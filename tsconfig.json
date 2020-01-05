@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "removeComments": true,
+    "moduleResolution": "node",
+    "strict": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "declaration": true,
+    "experimentalDecorators": true,
+    "rootDir": "./",
+    "module": "ESNext",
+    "target": "ESNext",
+    "noUnusedLocals": true,
+    "allowJs": true,
+    "noUnusedParameters": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "jsx": "react"
+  },
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
