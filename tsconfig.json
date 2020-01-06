@@ -16,10 +16,23 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,
-    "jsx": "react"
+    "jsx": "react",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "typeRedux": [
+        "./src/packages/typeRedux"
+      ],
+      "dnd": [
+        "./src/packages/dnd"
+      ]
+    }
   },
   "include": [
-    "./src"
+    "./src",
+    "./typings"
   ],
   "exclude": [
     "node_modules"

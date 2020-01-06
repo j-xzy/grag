@@ -1,6 +1,6 @@
 declare namespace IGrag {
   interface INode {
-    component: React.FC | React.ComponentClass;
+    component: IGrag.ICompFcClass;
     // dom: HTMLElement;
     children: INode[];
   }

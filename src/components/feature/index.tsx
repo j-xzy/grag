@@ -1,9 +1,9 @@
+import { ItemTypes } from '@/lib/itemTypes';
+import { DragElementWrapper, DragSourceOptions, useDrag } from 'dnd';
 import * as React from 'react';
-import { DragElementWrapper, DragSourceOptions, useDrag } from 'react-dnd';
-import { ItemTypes } from '../itemTypes';
 
 interface IProps extends React.Props<any> {
-  component: React.ReactElement | {};
+  component: IGrag.ICompFcClass;
   children: (ref: DragElementWrapper<DragSourceOptions>) => React.ReactNode;
 }
 

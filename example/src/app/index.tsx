@@ -1,31 +1,24 @@
 import * as React from 'react';
-import { Board, BoradProvider, Feature } from '../../../src';
+import { createBoard, Feature, GragProvider } from '../../../src';
+
+const Board = createBoard();
 
 export function App() {
   return (
-    <BoradProvider>
+    <GragProvider>
       <div className='comp-bar'>
-        <FtrNode />
         <FtrFunc />
         <FtrClass />
       </div>
-      <Board />
-    </BoradProvider>
-  );
-}
-
-function FtrNode() {
-  return (
-    <Feature component={<button>Node</button>}>
-      {(ref) => <div ref={ref} style={{ border: '1px solid #000', display: 'inline-block' }}>Node组件</div>}
-    </Feature>
+      <Board className='border' />
+    </GragProvider>
   );
 }
 
 function FtrFunc() {
   return (
     <Feature component={Table}>
-      {(ref) => <div ref={ref} style={{ border: '1px solid #000', display: 'inline-block' }}>Func组件</div>}
+      {(ref) => <div ref={ref} className='preview'>Func组件</div>}
     </Feature>
   );
 }
@@ -33,7 +26,7 @@ function FtrFunc() {
 function FtrClass() {
   return (
     <Feature component={Select}>
-      {(ref) => <div ref={ref} style={{ border: '1px solid #000', display: 'inline-block' }}>Class组件</div>}
+      {(ref) => <div ref={ref} className='preview'>Class组件</div>}
     </Feature>
   );
 }

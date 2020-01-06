@@ -1,5 +1,6 @@
 /// <reference path="../typings/node.d.ts"/>
+/// <reference path="../typings/common.d.ts"/>
 
-export { Board } from './board';
-export { Feature } from './feature';
-export { BoradProvider } from './provider';
+export * from './createBoard';
+export * from './components/provider';
+export * from './components/feature';

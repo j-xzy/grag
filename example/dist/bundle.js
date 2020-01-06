@@ -86,31 +86,19 @@
     if (superClass) _setPrototypeOf(subClass, superClass);
   }
 
-  function renderTree(root) {
-    var component = root.component,
-        children = root.children;
-
-    if (React.isValidElement(component)) {
-      return React.cloneElement(component, {}, children.map(function (node) {
-        return renderTree(node);
-      }));
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
     } else {
-      return React.createElement(component, {}, children.map(function (node) {
-        return renderTree(node);
-      }));
+      obj[key] = value;
     }
-  }
 
-  function Board(props) {
-    var style = props.style,
-        className = props.className;
-    return React__default.createElement("div", {
-      style: style,
-      className: className
-    }, renderTree({
-      component: React__default.createElement("div", null, "renderTree"),
-      children: []
-    }));
+    return obj;
   }
 
   function _arrayWithHoles(arr) {
@@ -153,6 +141,390 @@
 
   function _slicedToArray(arr, i) {
     return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
+  }
+
+  function WrapperComp(props) {
+    var _React$useState = React.useState(false),
+        _React$useState2 = _slicedToArray(_React$useState, 2),
+        flag = _React$useState2[0],
+        setFlag = _React$useState2[1];
+
+    var domRef = React.useRef(null);
+    React.useEffect(function () {
+      console.log('child');
+      setFlag(true);
+    }, []);
+    React.useEffect(function () {
+      props.domReady(function (dom) {
+        domRef.current = dom;
+      });
+      return function () {
+        domRef.current = null;
+      };
+    }, [props.domReady, domRef]);
+    var domReady = React.useCallback(function (_id) {
+      return function (cb) {
+        var observer = new MutationObserver(function (records) {
+          cb(records[0].addedNodes[0]);
+        });
+
+        if (domRef.current) {
+          observer.observe(domRef.current);
+        }
+      };
+    }, []);
+    return flag ? props.children(domReady) : null;
+  }
+
+  function renderTree(root, ctx, domReady, idx) {
+    if (root === null) {
+      return null;
+    }
+
+    var Comp = root.component,
+        children = root.children;
+    return React.createElement(WrapperComp, Object.assign({}, ctx, {
+      idx: idx,
+      key: idx,
+      domReady: domReady
+    }), function (ready) {
+      return React.createElement(Comp, null, children.map(function (child, index) {
+        return renderTree(child, ctx, ready(index), index);
+      }));
+    });
+  }
+
+  var tree = {
+    component: Foo,
+    children: [{
+      component: Bar,
+      children: []
+    }, {
+      component: Bar,
+      children: []
+    }]
+  };
+
+  function Foo(props) {
+    console.log('1');
+    return React__default.createElement("div", null, props.children);
+  }
+
+  function Bar(props) {
+    console.log('2');
+    return React__default.createElement("div", null, props.children);
+  }
+
+  function Board(props) {
+    var _React$useState = React__default.useState(false),
+        _React$useState2 = _slicedToArray(_React$useState, 2),
+        flag = _React$useState2[0],
+        setFlag = _React$useState2[1];
+
+    var style = props.style,
+        className = props.className,
+        dispatch = props.dispatch,
+        useMappedState = props.useMappedState;
+    var domRef = React__default.useRef(null);
+    React__default.useEffect(function () {
+      setFlag(true);
+      console.log('parent');
+      var observer = new MutationObserver(function (records) {
+        console.log(records);
+      });
+
+      if (domRef.current) {
+        observer.observe(domRef.current, {
+          childList: true
+        });
+      }
+    }, []);
+    return React__default.createElement("div", {
+      ref: domRef,
+      style: style,
+      className: className
+    }, flag ? renderTree(tree, {
+      useMappedState: useMappedState,
+      dispatch: dispatch
+    }, function (d) {
+      console.log(d);
+    }, 0) : null);
+  }
+
+  function foo(getState) {
+    return getState();
+  }
+
+  var reducers = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    foo: foo
+  });
+
+  function createInitState() {
+    return {
+      maxId: 0,
+      root: null
+    };
+  }
+
+  function applyMiddleware() {
+    for (var _len = arguments.length, middlewares = new Array(_len), _key = 0; _key < _len; _key++) {
+      middlewares[_key] = arguments[_key];
+    }
+
+    return function (store) {
+      var mutationChain = middlewares.map(function (middleware) {
+        return middleware(store);
+      });
+
+      if (mutationChain.length < 1) {
+        return store.dispatch;
+      }
+
+      var dispatch = store.dispatch;
+
+      var middledispatch = function middledispatch(param) {
+        var type = param.type,
+            payload = param.payload;
+        dispatch(type, payload);
+        return store.getState();
+      };
+
+      if (mutationChain.length === 1) {
+        return function (type, payload) {
+          return mutationChain[0](function (action) {
+            return middledispatch(action);
+          })({
+            type: type,
+            payload: payload
+          });
+        };
+      } else {
+        return function (type, payload) {
+          return mutationChain.reduce(function (a, b) {
+            return function () {
+              return a(b.apply(void 0, arguments));
+            };
+          })(function (action) {
+            return middledispatch(action);
+          })({
+            type: type,
+            payload: payload
+          });
+        };
+      }
+    };
+  }
+
+  function _objectWithoutPropertiesLoose(source, excluded) {
+    if (source == null) return {};
+    var target = {};
+    var sourceKeys = Object.keys(source);
+    var key, i;
+
+    for (i = 0; i < sourceKeys.length; i++) {
+      key = sourceKeys[i];
+      if (excluded.indexOf(key) >= 0) continue;
+      target[key] = source[key];
+    }
+
+    return target;
+  }
+
+  function _objectWithoutProperties(source, excluded) {
+    if (source == null) return {};
+    var target = _objectWithoutPropertiesLoose(source, excluded);
+    var key, i;
+
+    if (Object.getOwnPropertySymbols) {
+      var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+
+      for (i = 0; i < sourceSymbolKeys.length; i++) {
+        key = sourceSymbolKeys[i];
+        if (excluded.indexOf(key) >= 0) continue;
+        if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+        target[key] = source[key];
+      }
+    }
+
+    return target;
+  }
+
+  var Store =
+  /*#__PURE__*/
+  function () {
+    function Store(preloadedState, reducers, enhancer) {
+      var _this = this;
+
+      _classCallCheck(this, Store);
+
+      this.listeners = [];
+
+      this.dispatch = function (action, payload) {
+        if (typeof action !== 'string') {
+          return _this.adapterReduxDispatch(action);
+        }
+
+        var act = _this.actions[action];
+
+        if (!act) {
+          return;
+        }
+
+        _this.lastState = _this.state;
+        _this.state = act(_this.getState, payload);
+
+        _this.notify();
+      };
+
+      this.state = this.lastState = preloadedState;
+      this.actions = reducers;
+      this.dispatch = this.dispatch.bind(this);
+      this.getState = this.getState.bind(this);
+      this.getLastState = this.getLastState.bind(this);
+      this.context = {
+        getState: this.getState,
+        getLastState: this.getLastState,
+        dispatch: this.dispatch
+      };
+      var dispatch = enhancer(this);
+      this.context.dispatch = this.dispatch = dispatch.bind(this);
+    }
+
+    _createClass(Store, [{
+      key: "subscribe",
+      value: function subscribe(listener) {
+        var _this2 = this;
+
+        this.listeners.push(listener);
+        return function () {
+          return _this2.unSubscribe(listener);
+        };
+      }
+    }, {
+      key: "unSubscribe",
+      value: function unSubscribe(listener) {
+        var index = this.listeners.indexOf(listener);
+
+        if (index !== -1) {
+          this.listeners.splice(index, 1);
+        }
+      }
+    }, {
+      key: "getState",
+      value: function getState() {
+        return this.state;
+      }
+    }, {
+      key: "getLastState",
+      value: function getLastState() {
+        return this.lastState;
+      }
+    }, {
+      key: "notify",
+      value: function notify() {
+        this.listeners.forEach(function (callback) {
+          callback();
+        });
+      }
+    }, {
+      key: "adapterReduxDispatch",
+      value: function adapterReduxDispatch(action) {
+        if (Object.prototype.toString.apply(action) === '[object Object]') {
+          var type = action.type,
+              data = _objectWithoutProperties(action, ["type"]);
+
+          typeof type !== 'undefined' && this.dispatch(type, data);
+        }
+      }
+    }]);
+
+    return Store;
+  }();
+  function createStore(preloadedState, reducers) {
+    var enhancer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : applyMiddleware();
+    return new Store(preloadedState, reducers, enhancer);
+  }
+
+  function shallowEqual(objA, objB) {
+    if (is(objA, objB)) {
+      return true;
+    }
+
+    if (_typeof(objA) !== 'object' || objA === null || _typeof(objB) !== 'object' || objB === null) {
+      return false;
+    }
+
+    var keysA = Object.keys(objA);
+    var keysB = Object.keys(objB);
+
+    if (keysA.length !== keysB.length) {
+      return false;
+    }
+
+    for (var i = 0; i < keysA.length; i++) {
+      if (!Object.prototype.hasOwnProperty.call(objB, keysA[i]) || !is(objA[keysA[i]], objB[keysA[i]])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function is(x, y) {
+    if (x === y) {
+      return x !== 0 || y !== 0 || 1 / x === 1 / y;
+    } else {
+      return x !== x && y !== y;
+    }
+  }
+
+  function createUseMappedState(store) {
+    return function useMappedState(mappedState) {
+      var savedMappedState = React.useRef(mappedState);
+
+      var _React$useState = React.useState(savedMappedState.current(store.getState())),
+          _React$useState2 = _slicedToArray(_React$useState, 2),
+          state = _React$useState2[0],
+          setState = _React$useState2[1];
+
+      var lastState = React.useRef(state);
+      var update = React.useCallback(function () {
+        var nextState = savedMappedState.current(store.getState());
+
+        if (!shallowEqual(nextState, lastState.current)) {
+          setState(nextState);
+        }
+
+        lastState.current = nextState;
+      }, []);
+      React.useEffect(function () {
+        savedMappedState.current = mappedState;
+        update();
+      }, [mappedState]);
+      React.useEffect(function () {
+        var unSubscribe = store.subscribe(update);
+        return function () {
+          return unSubscribe();
+        };
+      }, []);
+      return state;
+    };
+  }
+
+  function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+  function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+  function createBoard() {
+    var store = createStore(createInitState(), reducers);
+    var dispatch = store.dispatch;
+    var useMappedState = createUseMappedState(store);
+    return function EnhanceBorad(props) {
+      return React.createElement(Board, _objectSpread({}, props, {
+        dispatch: dispatch,
+        useMappedState: useMappedState
+      }));
+    };
   }
 
   var HandlerRole;
@@ -219,7 +591,7 @@
     return Object.getPrototypeOf(obj) === proto;
   }
 
-  function createStore(reducer, preloadedState, enhancer) {
+  function createStore$1(reducer, preloadedState, enhancer) {
     var _ref2;
 
     if (typeof preloadedState === 'function' && typeof enhancer === 'function' || typeof enhancer === 'function' && typeof arguments[3] === 'function') {
@@ -236,7 +608,7 @@
         throw new Error('Expected the enhancer to be a function.');
       }
 
-      return enhancer(createStore)(reducer, preloadedState);
+      return enhancer(createStore$1)(reducer, preloadedState);
     }
 
     if (typeof reducer !== 'function') {
@@ -645,7 +1017,7 @@
     });
   }
 
-  function ownKeys(object, enumerableOnly) {
+  function ownKeys$1(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -659,18 +1031,18 @@
     return keys;
   }
 
-  function _objectSpread(target) {
+  function _objectSpread$1(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys(Object(source), true).forEach(function (key) {
-          _defineProperty(target, key, source[key]);
+        ownKeys$1(Object(source), true).forEach(function (key) {
+          _defineProperty$1(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys(Object(source)).forEach(function (key) {
+        ownKeys$1(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -679,7 +1051,7 @@
     return target;
   }
 
-  function _defineProperty(obj, key, value) {
+  function _defineProperty$1(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -705,7 +1077,7 @@
         var action = {
           type: DROP,
           payload: {
-            dropResult: _objectSpread({}, options, {}, dropResult)
+            dropResult: _objectSpread$1({}, options, {}, dropResult)
           }
         };
         manager.dispatch(action);
@@ -797,7 +1169,7 @@
     return true;
   }
 
-  function ownKeys$1(object, enumerableOnly) {
+  function ownKeys$2(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -811,18 +1183,18 @@
     return keys;
   }
 
-  function _objectSpread$1(target) {
+  function _objectSpread$2(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys$1(Object(source), true).forEach(function (key) {
-          _defineProperty$1(target, key, source[key]);
+        ownKeys$2(Object(source), true).forEach(function (key) {
+          _defineProperty$2(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys$1(Object(source)).forEach(function (key) {
+        ownKeys$2(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -831,7 +1203,7 @@
     return target;
   }
 
-  function _defineProperty$1(obj, key, value) {
+  function _defineProperty$2(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -869,7 +1241,7 @@
           return state;
         }
 
-        return _objectSpread$1({}, state, {
+        return _objectSpread$2({}, state, {
           clientOffset: payload.clientOffset
         });
 
@@ -919,7 +1291,7 @@
     };
   }
 
-  function ownKeys$2(object, enumerableOnly) {
+  function ownKeys$3(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -933,18 +1305,18 @@
     return keys;
   }
 
-  function _objectSpread$2(target) {
+  function _objectSpread$3(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys$2(Object(source), true).forEach(function (key) {
-          _defineProperty$2(target, key, source[key]);
+        ownKeys$3(Object(source), true).forEach(function (key) {
+          _defineProperty$3(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys$2(Object(source)).forEach(function (key) {
+        ownKeys$3(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -953,7 +1325,7 @@
     return target;
   }
 
-  function _defineProperty$2(obj, key, value) {
+  function _defineProperty$3(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -983,7 +1355,7 @@
 
     switch (action.type) {
       case BEGIN_DRAG:
-        return _objectSpread$2({}, state, {
+        return _objectSpread$3({}, state, {
           itemType: payload.itemType,
           item: payload.item,
           sourceId: payload.sourceId,
@@ -993,12 +1365,12 @@
         });
 
       case PUBLISH_DRAG_SOURCE:
-        return _objectSpread$2({}, state, {
+        return _objectSpread$3({}, state, {
           isSourcePublic: true
         });
 
       case HOVER:
-        return _objectSpread$2({}, state, {
+        return _objectSpread$3({}, state, {
           targetIds: payload.targetIds
         });
 
@@ -1007,19 +1379,19 @@
           return state;
         }
 
-        return _objectSpread$2({}, state, {
+        return _objectSpread$3({}, state, {
           targetIds: without(state.targetIds, payload.targetId)
         });
 
       case DROP:
-        return _objectSpread$2({}, state, {
+        return _objectSpread$3({}, state, {
           dropResult: payload.dropResult,
           didDrop: true,
           targetIds: []
         });
 
       case END_DRAG:
-        return _objectSpread$2({}, state, {
+        return _objectSpread$3({}, state, {
           itemType: null,
           item: null,
           sourceId: null,
@@ -1123,7 +1495,7 @@
     return state + 1;
   }
 
-  function ownKeys$3(object, enumerableOnly) {
+  function ownKeys$4(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -1137,18 +1509,18 @@
     return keys;
   }
 
-  function _objectSpread$3(target) {
+  function _objectSpread$4(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys$3(Object(source), true).forEach(function (key) {
-          _defineProperty$3(target, key, source[key]);
+        ownKeys$4(Object(source), true).forEach(function (key) {
+          _defineProperty$4(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys$3(Object(source)).forEach(function (key) {
+        ownKeys$4(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -1157,7 +1529,7 @@
     return target;
   }
 
-  function _defineProperty$3(obj, key, value) {
+  function _defineProperty$4(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -1177,7 +1549,7 @@
     return {
       dirtyHandlerIds: dirtyHandlerIds(state.dirtyHandlerIds, {
         type: action.type,
-        payload: _objectSpread$3({}, action.payload, {
+        payload: _objectSpread$4({}, action.payload, {
           prevTargetIds: get(state, 'dragOperation.targetIds', [])
         })
       }),
@@ -1889,7 +2261,7 @@
 
   function makeStoreInstance(debugMode) {
     var reduxDevTools = typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION__;
-    return createStore(reduce, debugMode && reduxDevTools && reduxDevTools({
+    return createStore$1(reduce, debugMode && reduxDevTools && reduxDevTools({
       name: 'dnd-core',
       instanceId: 'dnd-core'
     }));
@@ -2042,10 +2414,10 @@
     if (Array.isArray(arr)) return arr;
   }
 
-  function _objectWithoutProperties(source, excluded) {
+  function _objectWithoutProperties$1(source, excluded) {
     if (source == null) return {};
 
-    var target = _objectWithoutPropertiesLoose(source, excluded);
+    var target = _objectWithoutPropertiesLoose$1(source, excluded);
 
     var key, i;
 
@@ -2063,7 +2435,7 @@
     return target;
   }
 
-  function _objectWithoutPropertiesLoose(source, excluded) {
+  function _objectWithoutPropertiesLoose$1(source, excluded) {
     if (source == null) return {};
     var target = {};
     var sourceKeys = Object.keys(source);
@@ -2080,7 +2452,7 @@
   var refCount$1 = 0;
   var DndProvider = React.memo(function (_ref) {
     var children = _ref.children,
-        props = _objectWithoutProperties(_ref, ["children"]);
+        props = _objectWithoutProperties$1(_ref, ["children"]);
 
     var _getDndContextValue = getDndContextValue(props),
         _getDndContextValue2 = _slicedToArray$2(_getDndContextValue, 2),
@@ -2143,7 +2515,7 @@
 
   var useIsomorphicLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 
-  function shallowEqual(objA, objB, compare, compareContext) {
+  function shallowEqual$1(objA, objB, compare, compareContext) {
     var compareResult = compare ? compare.call(compareContext, objA, objB) : void 0;
 
     if (compareResult !== void 0) {
@@ -2238,7 +2610,7 @@
     var updateCollected = React.useCallback(function () {
       var nextValue = collect(monitor);
 
-      if (!shallowEqual(collected, nextValue)) {
+      if (!shallowEqual$1(collected, nextValue)) {
         setCollected(nextValue);
 
         if (onUpdate) {
@@ -2726,12 +3098,12 @@
     }, {
       key: "didDragSourceOptionsChange",
       value: function didDragSourceOptionsChange() {
-        return !shallowEqual(this.lastConnectedDragSourceOptions, this.dragSourceOptions);
+        return !shallowEqual$1(this.lastConnectedDragSourceOptions, this.dragSourceOptions);
       }
     }, {
       key: "didDragPreviewOptionsChange",
       value: function didDragPreviewOptionsChange() {
-        return !shallowEqual(this.lastConnectedDragPreviewOptions, this.dragPreviewOptions);
+        return !shallowEqual$1(this.lastConnectedDragPreviewOptions, this.dragPreviewOptions);
       }
     }, {
       key: "disconnectDragSource",
@@ -2990,23 +3362,6 @@
       connector.reconnect();
     }, [connector]);
     return [result, connectDragSource, connectDragPreview];
-  }
-
-  var ItemTypes = {
-    BOARD: 'board'
-  };
-
-  function Feature(props) {
-    var _useDrag = useDrag({
-      item: {
-        type: ItemTypes.BOARD,
-        component: props.component
-      }
-    }),
-        _useDrag2 = _slicedToArray(_useDrag, 2),
-        drag = _useDrag2[1];
-
-    return props.children(drag);
   }
 
   function memoize(fn) {
@@ -3345,7 +3700,7 @@
 
   var _nativeTypesConfig;
 
-  function _defineProperty$4(obj, key, value) {
+  function _defineProperty$5(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -3359,7 +3714,7 @@
 
     return obj;
   }
-  var nativeTypesConfig = (_nativeTypesConfig = {}, _defineProperty$4(_nativeTypesConfig, FILE, {
+  var nativeTypesConfig = (_nativeTypesConfig = {}, _defineProperty$5(_nativeTypesConfig, FILE, {
     exposeProperties: {
       files: function files(dataTransfer) {
         return Array.prototype.slice.call(dataTransfer.files);
@@ -3369,14 +3724,14 @@
       }
     },
     matchesTypes: ['Files']
-  }), _defineProperty$4(_nativeTypesConfig, URL, {
+  }), _defineProperty$5(_nativeTypesConfig, URL, {
     exposeProperties: {
       urls: function urls(dataTransfer, matchesTypes) {
         return getDataFromDataTransfer(dataTransfer, matchesTypes, '').split('\n');
       }
     },
     matchesTypes: ['Url', 'text/uri-list']
-  }), _defineProperty$4(_nativeTypesConfig, TEXT, {
+  }), _defineProperty$5(_nativeTypesConfig, TEXT, {
     exposeProperties: {
       text: function text(dataTransfer, matchesTypes) {
         return getDataFromDataTransfer(dataTransfer, matchesTypes, '');
@@ -3545,7 +3900,7 @@
     return OptionsReader;
   }();
 
-  function ownKeys$4(object, enumerableOnly) {
+  function ownKeys$5(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -3559,18 +3914,18 @@
     return keys;
   }
 
-  function _objectSpread$4(target) {
+  function _objectSpread$5(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys$4(Object(source), true).forEach(function (key) {
-          _defineProperty$5(target, key, source[key]);
+        ownKeys$5(Object(source), true).forEach(function (key) {
+          _defineProperty$6(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys$4(Object(source)).forEach(function (key) {
+        ownKeys$5(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -3579,7 +3934,7 @@
     return target;
   }
 
-  function _defineProperty$5(obj, key, value) {
+  function _defineProperty$6(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -4054,7 +4409,7 @@
       value: function getCurrentSourceNodeOptions() {
         var sourceId = this.monitor.getSourceId();
         var sourceNodeOptions = this.sourceNodeOptions.get(sourceId);
-        return _objectSpread$4({
+        return _objectSpread$5({
           dropEffect: this.altKeyPressed ? 'copy' : 'move'
         }, sourceNodeOptions || {});
       }
@@ -4072,7 +4427,7 @@
       value: function getCurrentSourcePreviewNodeOptions() {
         var sourceId = this.monitor.getSourceId();
         var sourcePreviewNodeOptions = this.sourcePreviewNodeOptions.get(sourceId);
-        return _objectSpread$4({
+        return _objectSpread$5({
           anchorX: 0.5,
           anchorY: 0.5,
           captureDraggingState: false
@@ -4174,30 +4529,40 @@
     return new HTML5Backend(manager, context);
   };
 
-  function BoradProvider(props) {
-    return React__default.createElement(DndProvider, {
+  function Provider(props) {
+    return React.createElement(DndProvider, {
       backend: createBackend
     }, props.children);
   }
 
-  function App() {
-    return React.createElement(BoradProvider, null, React.createElement("div", {
-      className: 'comp-bar'
-    }, React.createElement(FtrNode, null), React.createElement(FtrFunc, null), React.createElement(FtrClass, null)), React.createElement(Board, null));
+  function GragProvider(props) {
+    return React__default.createElement(Provider, null, props.children);
   }
 
-  function FtrNode() {
-    return React.createElement(Feature, {
-      component: React.createElement("button", null, "Node")
-    }, function (ref) {
-      return React.createElement("div", {
-        ref: ref,
-        style: {
-          border: '1px solid #000',
-          display: 'inline-block'
-        }
-      }, "Node\u7EC4\u4EF6");
-    });
+  var ItemTypes = {
+    BOARD: 'board'
+  };
+
+  function Feature(props) {
+    var _useDrag = useDrag({
+      item: {
+        type: ItemTypes.BOARD,
+        component: props.component
+      }
+    }),
+        _useDrag2 = _slicedToArray(_useDrag, 2),
+        drag = _useDrag2[1];
+
+    return props.children(drag);
+  }
+
+  var Board$1 = createBoard();
+  function App() {
+    return React.createElement(GragProvider, null, React.createElement("div", {
+      className: 'comp-bar'
+    }, React.createElement(FtrFunc, null), React.createElement(FtrClass, null)), React.createElement(Board$1, {
+      className: 'border'
+    }));
   }
 
   function FtrFunc() {
@@ -4206,10 +4571,7 @@
     }, function (ref) {
       return React.createElement("div", {
         ref: ref,
-        style: {
-          border: '1px solid #000',
-          display: 'inline-block'
-        }
+        className: 'preview'
       }, "Func\u7EC4\u4EF6");
     });
   }
@@ -4220,10 +4582,7 @@
     }, function (ref) {
       return React.createElement("div", {
         ref: ref,
-        style: {
-          border: '1px solid #000',
-          display: 'inline-block'
-        }
+        className: 'preview'
       }, "Class\u7EC4\u4EF6");
     });
   }
