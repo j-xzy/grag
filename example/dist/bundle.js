@@ -143,40 +143,93 @@
     return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
   }
 
+  function useListener() {
+    var lis = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+    var listeners = React.useRef(lis);
+    var subscribe = React.useCallback(function (cb) {
+      listeners.current.push(cb);
+      return function unSubscribe() {
+        var idx = listeners.current.findIndex(function (listener) {
+          return listener === cb;
+        });
+
+        if (idx >= 0) {
+          listeners.current.splice(idx, 1);
+        }
+      };
+    }, [listeners]);
+    var notify = React.useCallback(function () {
+      for (var _len = arguments.length, params = new Array(_len), _key = 0; _key < _len; _key++) {
+        params[_key] = arguments[_key];
+      }
+
+      listeners.current.forEach(function (cb) {
+        cb.apply(void 0, params);
+      });
+    }, [listeners]);
+    React.useEffect(function () {
+      return function () {
+        listeners.current = [];
+      };
+    }, []);
+    return [subscribe, notify];
+  }
+
+  function useMount(mount) {
+    React.useLayoutEffect(mount, []);
+  }
+
   function WrapperComp(props) {
     var _React$useState = React.useState(false),
         _React$useState2 = _slicedToArray(_React$useState, 2),
-        flag = _React$useState2[0],
-        setFlag = _React$useState2[1];
+        parentIsMount = _React$useState2[0],
+        setParentIsMount = _React$useState2[1];
 
     var domRef = React.useRef(null);
-    React.useEffect(function () {
-      console.log('child');
-      setFlag(true);
-    }, []);
-    React.useEffect(function () {
-      props.domReady(function (dom) {
-        domRef.current = dom;
-      });
-      return function () {
-        domRef.current = null;
-      };
-    }, [props.domReady, domRef]);
-    var domReady = React.useCallback(function (_id) {
-      return function (cb) {
-        var observer = new MutationObserver(function (records) {
-          cb(records[0].addedNodes[0]);
-        });
 
-        if (domRef.current) {
-          observer.observe(domRef.current);
+    var _useListener = useListener(),
+        _useListener2 = _slicedToArray(_useListener, 2),
+        registerChildDom = _useListener2[0],
+        childDomReady = _useListener2[1];
+
+    var _useListener3 = useListener(),
+        _useListener4 = _slicedToArray(_useListener3, 2),
+        registerMyDomMount = _useListener4[0],
+        myDomMount = _useListener4[1];
+
+    var observer = React.useRef(new MutationObserver(function (records) {
+      records.forEach(function (_ref, idx) {
+        var addedNodes = _ref.addedNodes;
+        childDomReady(addedNodes[0], idx);
+      });
+    }));
+    React.useLayoutEffect(function () {
+      var unSubscribe = props.registerDom(function (dom, idx) {
+        if (!domRef.current && idx === props.idx) {
+          domRef.current = dom;
+          observer.current.observe(domRef.current, {
+            childList: true
+          });
+          unSubscribe();
         }
+      });
+      return unSubscribe;
+    }, [props.registerDom]);
+    React.useLayoutEffect(function () {
+      props.registerParentMount(function () {
+        setParentIsMount(true);
+      });
+    }, [props.registerParentMount]);
+    useMount(function () {
+      myDomMount(true);
+      return function () {
+        observer.current.disconnect();
       };
-    }, []);
-    return flag ? props.children(domReady) : null;
+    });
+    return parentIsMount ? props.children(registerChildDom, registerMyDomMount) : null;
   }
 
-  function renderTree(root, ctx, domReady, idx) {
+  function renderTree(root, ctx, params) {
     if (root === null) {
       return null;
     }
@@ -184,71 +237,76 @@
     var Comp = root.component,
         children = root.children;
     return React.createElement(WrapperComp, Object.assign({}, ctx, {
-      idx: idx,
-      key: idx,
-      domReady: domReady
-    }), function (ready) {
-      return React.createElement(Comp, null, children.map(function (child, index) {
-        return renderTree(child, ctx, ready(index), index);
+      idx: params.idx,
+      key: params.idx,
+      registerParentMount: params.registerParentMount,
+      registerDom: params.registerDom
+    }), function (registerDom, registerParentMount) {
+      return React.createElement(Comp, null, children.map(function (child, idx) {
+        return renderTree(child, ctx, {
+          registerDom: registerDom,
+          idx: idx,
+          registerParentMount: registerParentMount
+        });
       }));
     });
   }
 
   var tree = {
-    component: Foo,
+    component: function component(props) {
+      return React__default.createElement("div", null, "root", props.children);
+    },
     children: [{
-      component: Bar,
-      children: []
-    }, {
-      component: Bar,
+      component: function component(props) {
+        return React__default.createElement("div", null, "1", props.children);
+      },
       children: []
     }]
   };
-
-  function Foo(props) {
-    console.log('1');
-    return React__default.createElement("div", null, props.children);
-  }
-
-  function Bar(props) {
-    console.log('2');
-    return React__default.createElement("div", null, props.children);
-  }
-
   function Board(props) {
-    var _React$useState = React__default.useState(false),
-        _React$useState2 = _slicedToArray(_React$useState, 2),
-        flag = _React$useState2[0],
-        setFlag = _React$useState2[1];
-
     var style = props.style,
         className = props.className,
         dispatch = props.dispatch,
         useMappedState = props.useMappedState;
     var domRef = React__default.useRef(null);
-    React__default.useEffect(function () {
-      setFlag(true);
-      console.log('parent');
-      var observer = new MutationObserver(function (records) {
-        console.log(records);
-      });
+
+    var _useListener = useListener(),
+        _useListener2 = _slicedToArray(_useListener, 2),
+        registerChildDom = _useListener2[0],
+        childDomReady = _useListener2[1];
+
+    var _useListener3 = useListener(),
+        _useListener4 = _slicedToArray(_useListener3, 2),
+        registerMyDomMount = _useListener4[0],
+        myDomMount = _useListener4[1];
+
+    var observer = React__default.useRef(new MutationObserver(function (records) {
+      var node = records[0].addedNodes[0];
+      childDomReady(node, 0);
+    }));
+    useMount(function () {
+      myDomMount(true);
 
       if (domRef.current) {
-        observer.observe(domRef.current, {
+        observer.current.observe(domRef.current, {
           childList: true
         });
       }
-    }, []);
+
+      return observer.current.disconnect;
+    });
     return React__default.createElement("div", {
       ref: domRef,
       style: style,
       className: className
-    }, flag ? renderTree(tree, {
+    }, renderTree(tree, {
       useMappedState: useMappedState,
       dispatch: dispatch
-    }, function (d) {
-      console.log(d);
-    }, 0) : null);
+    }, {
+      registerDom: registerChildDom,
+      idx: 0,
+      registerParentMount: registerMyDomMount
+    }));
   }
 
   function foo(getState) {

@@ -1,4 +1,5 @@
-// import { Root } from '@/components/root';
+import { useListener } from '@/hooks/useListener';
+import { useMount } from '@/hooks/useMount';
 import { renderTree } from '@/lib/renderTree';
 import { IDispatch, IUseMappedState } from '@/store';
 import React from 'react';
@@ -11,51 +12,51 @@ export interface IBoardProps extends Omit<React.Props<any>, 'children'> {
 }
 
 const tree: IGrag.INode = {
-  component: Foo,
+  component: (props: any) => <div>root{props.children}</div>,
   children: [{
-    component: Bar,
-    children: []
-  },{
-    component: Bar,
-    children: []
+    component: (props: any) => {
+      return <div>1{props.children}</div>;
+    },
+    children: [
+    //   {
+    //   component: (props: any) => {
+    //     return <span>2{props.children}</span>;
+    //   },
+    //   children: []
+    // }
+  ]
   }]
 };
 
-function Foo(props: any) {
-  console.log('1')
-  return <div>{props.children}</div>
-}
-
-function Bar(props: any) {
-  console.log('2')
-  return <div>{props.children}</div>
-}
-
-
 export function Board(props: IBoardProps) {
-  const [flag, setFlag] = React.useState(false);
   const { style, className, dispatch, useMappedState } = props;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
+  const [registerChildDom, childDomReady] = useListener();
+  const [registerMyDomMount, myDomMount] = useListener();
+  const observer = React.useRef(new MutationObserver((records) => {
+    const node: any = records[0].addedNodes[0];
+    childDomReady(node, 0);
+  }));
 
-  React.useEffect(() => {
-    setFlag(true)
-    console.log('parent')
-    const observer = new MutationObserver((records) => {
-      // cb(records[0].addedNodes[0] as HTMLElement);
-      console.log(records)
-    });
-
+  useMount(() => {
+    myDomMount(true);
     if (domRef.current) {
-      observer.observe(domRef.current, {
+      observer.current.observe(domRef.current, {
         childList: true
       });
     }
-  }, []);
+    return observer.current.disconnect;
+  });
 
   return (
     <div ref={domRef} style={style} className={className}>
       {
-        flag ? renderTree(tree, { useMappedState, dispatch }, (d) => { console.log(d) }, 0) : null
+        renderTree(
+          tree, { useMappedState, dispatch }, {
+          registerDom: registerChildDom,
+          idx: 0,
+          registerParentMount: registerMyDomMount
+        })
       }
     </div>
   );

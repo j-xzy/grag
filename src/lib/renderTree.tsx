@@ -1,17 +1,33 @@
-import { IDomReadyCallback, IProps, WrapperComp } from '@/components/wrapperComp';
+import { IRegiserDom, IRegiserParentMount, WrapperComp } from '@/components/wrapperComp';
+import { IDispatch, IUseMappedState } from '@/store';
 import * as React from 'react';
 
-type ICtx = Omit<IProps, 'children' | 'domReady' | 'idx'>;
+interface ICtx {
+  dispatch: IDispatch;
+  useMappedState: IUseMappedState;
+}
 
-export function renderTree(root: IGrag.INode | null, ctx: ICtx, domReady: IDomReadyCallback, idx: number) {
+interface IParams {
+  registerParentMount: IRegiserParentMount;
+  registerDom: IRegiserDom;
+  idx: number;
+}
+
+export function renderTree(root: IGrag.INode | null, ctx: ICtx, params: IParams) {
   if (root === null) {
     return null;
   }
   const { component: Comp, children } = root;
   return (
-    <WrapperComp {...ctx} idx={idx} key={idx} domReady={domReady}>
+    <WrapperComp {...ctx} idx={params.idx} key={params.idx} registerParentMount={params.registerParentMount} registerDom={params.registerDom} >
       {
-        (ready) => (<Comp>{children.map((child, index) => renderTree(child, ctx, ready(index), index))}</Comp>)
+        (registerDom, registerParentMount) => (
+          <Comp>
+            {
+              children.map((child, idx) => renderTree(child, ctx, { registerDom, idx, registerParentMount }))
+            }
+          </Comp>
+        )
       }
     </WrapperComp>
   );
