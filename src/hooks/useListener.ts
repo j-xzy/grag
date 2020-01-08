@@ -15,7 +15,8 @@ export function useListener(lis: IFunc[] = []) {
   }, [listeners]);
 
   const notify = React.useCallback((...params: any[]) => {
-    listeners.current.forEach((cb) => {
+    const cbs = [...listeners.current];
+    cbs.forEach((cb) => {
       cb(...params);
     });
   }, [listeners]);

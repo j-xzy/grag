@@ -12,19 +12,34 @@ export interface IBoardProps extends Omit<React.Props<any>, 'children'> {
 }
 
 const tree: IGrag.INode = {
-  component: (props: any) => <div>root{props.children}</div>,
+  component: (props: any) => <div style={{ width: '100%', height: '100%' }}>root{props.children}</div>,
   children: [{
     component: (props: any) => {
       return <div>1{props.children}</div>;
     },
     children: [
-    //   {
-    //   component: (props: any) => {
-    //     return <span>2{props.children}</span>;
-    //   },
-    //   children: []
-    // }
-  ]
+      {
+        component: (props: any) => {
+          return <span>2{props.children}</span>;
+        },
+        children: [{
+          component: () => {
+            return <button>3</button>;
+          },
+          children: []
+        }, {
+          component: () => {
+            return <button>4</button>;
+          },
+          children: []
+        }]
+      }
+    ]
+  }, {
+    component: () => {
+      return <div>2</div>;
+    },
+    children: []
   }]
 };
 
@@ -39,8 +54,8 @@ export function Board(props: IBoardProps) {
   }));
 
   useMount(() => {
-    myDomMount(true);
     if (domRef.current) {
+      myDomMount(true);
       observer.current.observe(domRef.current, {
         childList: true
       });

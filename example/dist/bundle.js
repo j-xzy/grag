@@ -143,6 +143,28 @@
     return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
   }
 
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
+
+      return arr2;
+    }
+  }
+
+  function _iterableToArray(iter) {
+    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  }
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance");
+  }
+
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+  }
+
   function useListener() {
     var lis = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
     var listeners = React.useRef(lis);
@@ -163,7 +185,9 @@
         params[_key] = arguments[_key];
       }
 
-      listeners.current.forEach(function (cb) {
+      var cbs = _toConsumableArray(listeners.current);
+
+      cbs.forEach(function (cb) {
         cb.apply(void 0, params);
       });
     }, [listeners]);
@@ -179,7 +203,7 @@
     React.useLayoutEffect(mount, []);
   }
 
-  function WrapperComp(props) {
+  function CaptureDom(props) {
     var _React$useState = React.useState(false),
         _React$useState2 = _slicedToArray(_React$useState, 2),
         parentIsMount = _React$useState2[0],
@@ -211,17 +235,19 @@
             childList: true
           });
           unSubscribe();
+          myDomMount(dom);
         }
       });
       return unSubscribe;
     }, [props.registerDom]);
     React.useLayoutEffect(function () {
-      props.registerParentMount(function () {
+      var unSubscribe = props.registerParentMount(function () {
+        unSubscribe();
         setParentIsMount(true);
       });
+      return unSubscribe;
     }, [props.registerParentMount]);
     useMount(function () {
-      myDomMount(true);
       return function () {
         observer.current.disconnect();
       };
@@ -229,361 +255,9 @@
     return parentIsMount ? props.children(registerChildDom, registerMyDomMount) : null;
   }
 
-  function renderTree(root, ctx, params) {
-    if (root === null) {
-      return null;
-    }
-
-    var Comp = root.component,
-        children = root.children;
-    return React.createElement(WrapperComp, Object.assign({}, ctx, {
-      idx: params.idx,
-      key: params.idx,
-      registerParentMount: params.registerParentMount,
-      registerDom: params.registerDom
-    }), function (registerDom, registerParentMount) {
-      return React.createElement(Comp, null, children.map(function (child, idx) {
-        return renderTree(child, ctx, {
-          registerDom: registerDom,
-          idx: idx,
-          registerParentMount: registerParentMount
-        });
-      }));
-    });
-  }
-
-  var tree = {
-    component: function component(props) {
-      return React__default.createElement("div", null, "root", props.children);
-    },
-    children: [{
-      component: function component(props) {
-        return React__default.createElement("div", null, "1", props.children);
-      },
-      children: []
-    }]
+  var ItemTypes = {
+    BOARD: 'board'
   };
-  function Board(props) {
-    var style = props.style,
-        className = props.className,
-        dispatch = props.dispatch,
-        useMappedState = props.useMappedState;
-    var domRef = React__default.useRef(null);
-
-    var _useListener = useListener(),
-        _useListener2 = _slicedToArray(_useListener, 2),
-        registerChildDom = _useListener2[0],
-        childDomReady = _useListener2[1];
-
-    var _useListener3 = useListener(),
-        _useListener4 = _slicedToArray(_useListener3, 2),
-        registerMyDomMount = _useListener4[0],
-        myDomMount = _useListener4[1];
-
-    var observer = React__default.useRef(new MutationObserver(function (records) {
-      var node = records[0].addedNodes[0];
-      childDomReady(node, 0);
-    }));
-    useMount(function () {
-      myDomMount(true);
-
-      if (domRef.current) {
-        observer.current.observe(domRef.current, {
-          childList: true
-        });
-      }
-
-      return observer.current.disconnect;
-    });
-    return React__default.createElement("div", {
-      ref: domRef,
-      style: style,
-      className: className
-    }, renderTree(tree, {
-      useMappedState: useMappedState,
-      dispatch: dispatch
-    }, {
-      registerDom: registerChildDom,
-      idx: 0,
-      registerParentMount: registerMyDomMount
-    }));
-  }
-
-  function foo(getState) {
-    return getState();
-  }
-
-  var reducers = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    foo: foo
-  });
-
-  function createInitState() {
-    return {
-      maxId: 0,
-      root: null
-    };
-  }
-
-  function applyMiddleware() {
-    for (var _len = arguments.length, middlewares = new Array(_len), _key = 0; _key < _len; _key++) {
-      middlewares[_key] = arguments[_key];
-    }
-
-    return function (store) {
-      var mutationChain = middlewares.map(function (middleware) {
-        return middleware(store);
-      });
-
-      if (mutationChain.length < 1) {
-        return store.dispatch;
-      }
-
-      var dispatch = store.dispatch;
-
-      var middledispatch = function middledispatch(param) {
-        var type = param.type,
-            payload = param.payload;
-        dispatch(type, payload);
-        return store.getState();
-      };
-
-      if (mutationChain.length === 1) {
-        return function (type, payload) {
-          return mutationChain[0](function (action) {
-            return middledispatch(action);
-          })({
-            type: type,
-            payload: payload
-          });
-        };
-      } else {
-        return function (type, payload) {
-          return mutationChain.reduce(function (a, b) {
-            return function () {
-              return a(b.apply(void 0, arguments));
-            };
-          })(function (action) {
-            return middledispatch(action);
-          })({
-            type: type,
-            payload: payload
-          });
-        };
-      }
-    };
-  }
-
-  function _objectWithoutPropertiesLoose(source, excluded) {
-    if (source == null) return {};
-    var target = {};
-    var sourceKeys = Object.keys(source);
-    var key, i;
-
-    for (i = 0; i < sourceKeys.length; i++) {
-      key = sourceKeys[i];
-      if (excluded.indexOf(key) >= 0) continue;
-      target[key] = source[key];
-    }
-
-    return target;
-  }
-
-  function _objectWithoutProperties(source, excluded) {
-    if (source == null) return {};
-    var target = _objectWithoutPropertiesLoose(source, excluded);
-    var key, i;
-
-    if (Object.getOwnPropertySymbols) {
-      var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
-
-      for (i = 0; i < sourceSymbolKeys.length; i++) {
-        key = sourceSymbolKeys[i];
-        if (excluded.indexOf(key) >= 0) continue;
-        if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
-        target[key] = source[key];
-      }
-    }
-
-    return target;
-  }
-
-  var Store =
-  /*#__PURE__*/
-  function () {
-    function Store(preloadedState, reducers, enhancer) {
-      var _this = this;
-
-      _classCallCheck(this, Store);
-
-      this.listeners = [];
-
-      this.dispatch = function (action, payload) {
-        if (typeof action !== 'string') {
-          return _this.adapterReduxDispatch(action);
-        }
-
-        var act = _this.actions[action];
-
-        if (!act) {
-          return;
-        }
-
-        _this.lastState = _this.state;
-        _this.state = act(_this.getState, payload);
-
-        _this.notify();
-      };
-
-      this.state = this.lastState = preloadedState;
-      this.actions = reducers;
-      this.dispatch = this.dispatch.bind(this);
-      this.getState = this.getState.bind(this);
-      this.getLastState = this.getLastState.bind(this);
-      this.context = {
-        getState: this.getState,
-        getLastState: this.getLastState,
-        dispatch: this.dispatch
-      };
-      var dispatch = enhancer(this);
-      this.context.dispatch = this.dispatch = dispatch.bind(this);
-    }
-
-    _createClass(Store, [{
-      key: "subscribe",
-      value: function subscribe(listener) {
-        var _this2 = this;
-
-        this.listeners.push(listener);
-        return function () {
-          return _this2.unSubscribe(listener);
-        };
-      }
-    }, {
-      key: "unSubscribe",
-      value: function unSubscribe(listener) {
-        var index = this.listeners.indexOf(listener);
-
-        if (index !== -1) {
-          this.listeners.splice(index, 1);
-        }
-      }
-    }, {
-      key: "getState",
-      value: function getState() {
-        return this.state;
-      }
-    }, {
-      key: "getLastState",
-      value: function getLastState() {
-        return this.lastState;
-      }
-    }, {
-      key: "notify",
-      value: function notify() {
-        this.listeners.forEach(function (callback) {
-          callback();
-        });
-      }
-    }, {
-      key: "adapterReduxDispatch",
-      value: function adapterReduxDispatch(action) {
-        if (Object.prototype.toString.apply(action) === '[object Object]') {
-          var type = action.type,
-              data = _objectWithoutProperties(action, ["type"]);
-
-          typeof type !== 'undefined' && this.dispatch(type, data);
-        }
-      }
-    }]);
-
-    return Store;
-  }();
-  function createStore(preloadedState, reducers) {
-    var enhancer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : applyMiddleware();
-    return new Store(preloadedState, reducers, enhancer);
-  }
-
-  function shallowEqual(objA, objB) {
-    if (is(objA, objB)) {
-      return true;
-    }
-
-    if (_typeof(objA) !== 'object' || objA === null || _typeof(objB) !== 'object' || objB === null) {
-      return false;
-    }
-
-    var keysA = Object.keys(objA);
-    var keysB = Object.keys(objB);
-
-    if (keysA.length !== keysB.length) {
-      return false;
-    }
-
-    for (var i = 0; i < keysA.length; i++) {
-      if (!Object.prototype.hasOwnProperty.call(objB, keysA[i]) || !is(objA[keysA[i]], objB[keysA[i]])) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  function is(x, y) {
-    if (x === y) {
-      return x !== 0 || y !== 0 || 1 / x === 1 / y;
-    } else {
-      return x !== x && y !== y;
-    }
-  }
-
-  function createUseMappedState(store) {
-    return function useMappedState(mappedState) {
-      var savedMappedState = React.useRef(mappedState);
-
-      var _React$useState = React.useState(savedMappedState.current(store.getState())),
-          _React$useState2 = _slicedToArray(_React$useState, 2),
-          state = _React$useState2[0],
-          setState = _React$useState2[1];
-
-      var lastState = React.useRef(state);
-      var update = React.useCallback(function () {
-        var nextState = savedMappedState.current(store.getState());
-
-        if (!shallowEqual(nextState, lastState.current)) {
-          setState(nextState);
-        }
-
-        lastState.current = nextState;
-      }, []);
-      React.useEffect(function () {
-        savedMappedState.current = mappedState;
-        update();
-      }, [mappedState]);
-      React.useEffect(function () {
-        var unSubscribe = store.subscribe(update);
-        return function () {
-          return unSubscribe();
-        };
-      }, []);
-      return state;
-    };
-  }
-
-  function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-  function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-  function createBoard() {
-    var store = createStore(createInitState(), reducers);
-    var dispatch = store.dispatch;
-    var useMappedState = createUseMappedState(store);
-    return function EnhanceBorad(props) {
-      return React.createElement(Board, _objectSpread({}, props, {
-        dispatch: dispatch,
-        useMappedState: useMappedState
-      }));
-    };
-  }
 
   var HandlerRole;
 
@@ -649,7 +323,7 @@
     return Object.getPrototypeOf(obj) === proto;
   }
 
-  function createStore$1(reducer, preloadedState, enhancer) {
+  function createStore(reducer, preloadedState, enhancer) {
     var _ref2;
 
     if (typeof preloadedState === 'function' && typeof enhancer === 'function' || typeof enhancer === 'function' && typeof arguments[3] === 'function') {
@@ -666,7 +340,7 @@
         throw new Error('Expected the enhancer to be a function.');
       }
 
-      return enhancer(createStore$1)(reducer, preloadedState);
+      return enhancer(createStore)(reducer, preloadedState);
     }
 
     if (typeof reducer !== 'function') {
@@ -1075,7 +749,7 @@
     });
   }
 
-  function ownKeys$1(object, enumerableOnly) {
+  function ownKeys(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -1089,18 +763,18 @@
     return keys;
   }
 
-  function _objectSpread$1(target) {
+  function _objectSpread(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys$1(Object(source), true).forEach(function (key) {
+        ownKeys(Object(source), true).forEach(function (key) {
           _defineProperty$1(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys$1(Object(source)).forEach(function (key) {
+        ownKeys(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -1135,7 +809,7 @@
         var action = {
           type: DROP,
           payload: {
-            dropResult: _objectSpread$1({}, options, {}, dropResult)
+            dropResult: _objectSpread({}, options, {}, dropResult)
           }
         };
         manager.dispatch(action);
@@ -1227,7 +901,7 @@
     return true;
   }
 
-  function ownKeys$2(object, enumerableOnly) {
+  function ownKeys$1(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -1241,18 +915,18 @@
     return keys;
   }
 
-  function _objectSpread$2(target) {
+  function _objectSpread$1(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys$2(Object(source), true).forEach(function (key) {
+        ownKeys$1(Object(source), true).forEach(function (key) {
           _defineProperty$2(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys$2(Object(source)).forEach(function (key) {
+        ownKeys$1(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -1299,7 +973,7 @@
           return state;
         }
 
-        return _objectSpread$2({}, state, {
+        return _objectSpread$1({}, state, {
           clientOffset: payload.clientOffset
         });
 
@@ -1349,7 +1023,7 @@
     };
   }
 
-  function ownKeys$3(object, enumerableOnly) {
+  function ownKeys$2(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -1363,18 +1037,18 @@
     return keys;
   }
 
-  function _objectSpread$3(target) {
+  function _objectSpread$2(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys$3(Object(source), true).forEach(function (key) {
+        ownKeys$2(Object(source), true).forEach(function (key) {
           _defineProperty$3(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys$3(Object(source)).forEach(function (key) {
+        ownKeys$2(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -1413,7 +1087,7 @@
 
     switch (action.type) {
       case BEGIN_DRAG:
-        return _objectSpread$3({}, state, {
+        return _objectSpread$2({}, state, {
           itemType: payload.itemType,
           item: payload.item,
           sourceId: payload.sourceId,
@@ -1423,12 +1097,12 @@
         });
 
       case PUBLISH_DRAG_SOURCE:
-        return _objectSpread$3({}, state, {
+        return _objectSpread$2({}, state, {
           isSourcePublic: true
         });
 
       case HOVER:
-        return _objectSpread$3({}, state, {
+        return _objectSpread$2({}, state, {
           targetIds: payload.targetIds
         });
 
@@ -1437,19 +1111,19 @@
           return state;
         }
 
-        return _objectSpread$3({}, state, {
+        return _objectSpread$2({}, state, {
           targetIds: without(state.targetIds, payload.targetId)
         });
 
       case DROP:
-        return _objectSpread$3({}, state, {
+        return _objectSpread$2({}, state, {
           dropResult: payload.dropResult,
           didDrop: true,
           targetIds: []
         });
 
       case END_DRAG:
-        return _objectSpread$3({}, state, {
+        return _objectSpread$2({}, state, {
           itemType: null,
           item: null,
           sourceId: null,
@@ -1553,7 +1227,7 @@
     return state + 1;
   }
 
-  function ownKeys$4(object, enumerableOnly) {
+  function ownKeys$3(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -1567,18 +1241,18 @@
     return keys;
   }
 
-  function _objectSpread$4(target) {
+  function _objectSpread$3(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys$4(Object(source), true).forEach(function (key) {
+        ownKeys$3(Object(source), true).forEach(function (key) {
           _defineProperty$4(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys$4(Object(source)).forEach(function (key) {
+        ownKeys$3(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -1607,7 +1281,7 @@
     return {
       dirtyHandlerIds: dirtyHandlerIds(state.dirtyHandlerIds, {
         type: action.type,
-        payload: _objectSpread$4({}, action.payload, {
+        payload: _objectSpread$3({}, action.payload, {
           prevTargetIds: get(state, 'dragOperation.targetIds', [])
         })
       }),
@@ -2319,7 +1993,7 @@
 
   function makeStoreInstance(debugMode) {
     var reduxDevTools = typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION__;
-    return createStore$1(reduce, debugMode && reduxDevTools && reduxDevTools({
+    return createStore(reduce, debugMode && reduxDevTools && reduxDevTools({
       name: 'dnd-core',
       instanceId: 'dnd-core'
     }));
@@ -2472,10 +2146,10 @@
     if (Array.isArray(arr)) return arr;
   }
 
-  function _objectWithoutProperties$1(source, excluded) {
+  function _objectWithoutProperties(source, excluded) {
     if (source == null) return {};
 
-    var target = _objectWithoutPropertiesLoose$1(source, excluded);
+    var target = _objectWithoutPropertiesLoose(source, excluded);
 
     var key, i;
 
@@ -2493,7 +2167,7 @@
     return target;
   }
 
-  function _objectWithoutPropertiesLoose$1(source, excluded) {
+  function _objectWithoutPropertiesLoose(source, excluded) {
     if (source == null) return {};
     var target = {};
     var sourceKeys = Object.keys(source);
@@ -2510,7 +2184,7 @@
   var refCount$1 = 0;
   var DndProvider = React.memo(function (_ref) {
     var children = _ref.children,
-        props = _objectWithoutProperties$1(_ref, ["children"]);
+        props = _objectWithoutProperties(_ref, ["children"]);
 
     var _getDndContextValue = getDndContextValue(props),
         _getDndContextValue2 = _slicedToArray$2(_getDndContextValue, 2),
@@ -2573,7 +2247,7 @@
 
   var useIsomorphicLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 
-  function shallowEqual$1(objA, objB, compare, compareContext) {
+  function shallowEqual(objA, objB, compare, compareContext) {
     var compareResult = compare ? compare.call(compareContext, objA, objB) : void 0;
 
     if (compareResult !== void 0) {
@@ -2668,7 +2342,7 @@
     var updateCollected = React.useCallback(function () {
       var nextValue = collect(monitor);
 
-      if (!shallowEqual$1(collected, nextValue)) {
+      if (!shallowEqual(collected, nextValue)) {
         setCollected(nextValue);
 
         if (onUpdate) {
@@ -2741,6 +2415,13 @@
     return collected;
   }
 
+  function registerTarget(type, target, manager) {
+    var registry = manager.getRegistry();
+    var targetId = registry.addTarget(type, target);
+    return [targetId, function () {
+      return registry.removeTarget(targetId);
+    }];
+  }
   function registerSource(type, source, manager) {
     var registry = manager.getRegistry();
     var sourceId = registry.addSource(type, source);
@@ -3156,12 +2837,12 @@
     }, {
       key: "didDragSourceOptionsChange",
       value: function didDragSourceOptionsChange() {
-        return !shallowEqual$1(this.lastConnectedDragSourceOptions, this.dragSourceOptions);
+        return !shallowEqual(this.lastConnectedDragSourceOptions, this.dragSourceOptions);
       }
     }, {
       key: "didDragPreviewOptionsChange",
       value: function didDragPreviewOptionsChange() {
-        return !shallowEqual$1(this.lastConnectedDragPreviewOptions, this.dragPreviewOptions);
+        return !shallowEqual(this.lastConnectedDragPreviewOptions, this.dragPreviewOptions);
       }
     }, {
       key: "disconnectDragSource",
@@ -3422,6 +3103,420 @@
     return [result, connectDragSource, connectDragPreview];
   }
 
+  function _classCallCheck$6(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _defineProperties$6(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function _createClass$6(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties$6(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties$6(Constructor, staticProps);
+    return Constructor;
+  }
+  var TargetConnector = function () {
+    function TargetConnector(backend) {
+      var _this = this;
+
+      _classCallCheck$6(this, TargetConnector);
+
+      this.hooks = wrapConnectorHooks({
+        dropTarget: function dropTarget(node, options) {
+          _this.clearDropTarget();
+
+          _this.dropTargetOptions = options;
+
+          if (isRef(node)) {
+            _this.dropTargetRef = node;
+          } else {
+            _this.dropTargetNode = node;
+          }
+
+          _this.reconnect();
+        }
+      });
+      this.handlerId = null;
+      this.dropTargetRef = null;
+      this.dropTargetOptionsInternal = null;
+      this.lastConnectedHandlerId = null;
+      this.lastConnectedDropTarget = null;
+      this.lastConnectedDropTargetOptions = null;
+      this.backend = backend;
+    }
+
+    _createClass$6(TargetConnector, [{
+      key: "reconnect",
+      value: function reconnect() {
+        var didChange = this.didHandlerIdChange() || this.didDropTargetChange() || this.didOptionsChange();
+
+        if (didChange) {
+          this.disconnectDropTarget();
+        }
+
+        var dropTarget = this.dropTarget;
+
+        if (!this.handlerId) {
+          return;
+        }
+
+        if (!dropTarget) {
+          this.lastConnectedDropTarget = dropTarget;
+          return;
+        }
+
+        if (didChange) {
+          this.lastConnectedHandlerId = this.handlerId;
+          this.lastConnectedDropTarget = dropTarget;
+          this.lastConnectedDropTargetOptions = this.dropTargetOptions;
+          this.unsubscribeDropTarget = this.backend.connectDropTarget(this.handlerId, dropTarget, this.dropTargetOptions);
+        }
+      }
+    }, {
+      key: "receiveHandlerId",
+      value: function receiveHandlerId(newHandlerId) {
+        if (newHandlerId === this.handlerId) {
+          return;
+        }
+
+        this.handlerId = newHandlerId;
+        this.reconnect();
+      }
+    }, {
+      key: "didHandlerIdChange",
+      value: function didHandlerIdChange() {
+        return this.lastConnectedHandlerId !== this.handlerId;
+      }
+    }, {
+      key: "didDropTargetChange",
+      value: function didDropTargetChange() {
+        return this.lastConnectedDropTarget !== this.dropTarget;
+      }
+    }, {
+      key: "didOptionsChange",
+      value: function didOptionsChange() {
+        return !shallowEqual(this.lastConnectedDropTargetOptions, this.dropTargetOptions);
+      }
+    }, {
+      key: "disconnectDropTarget",
+      value: function disconnectDropTarget() {
+        if (this.unsubscribeDropTarget) {
+          this.unsubscribeDropTarget();
+          this.unsubscribeDropTarget = undefined;
+        }
+      }
+    }, {
+      key: "clearDropTarget",
+      value: function clearDropTarget() {
+        this.dropTargetRef = null;
+        this.dropTargetNode = null;
+      }
+    }, {
+      key: "connectTarget",
+      get: function get() {
+        return this.dropTarget;
+      }
+    }, {
+      key: "dropTargetOptions",
+      get: function get() {
+        return this.dropTargetOptionsInternal;
+      },
+      set: function set(options) {
+        this.dropTargetOptionsInternal = options;
+      }
+    }, {
+      key: "dropTarget",
+      get: function get() {
+        return this.dropTargetNode || this.dropTargetRef && this.dropTargetRef.current;
+      }
+    }]);
+
+    return TargetConnector;
+  }();
+
+  function _classCallCheck$7(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _defineProperties$7(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function _createClass$7(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties$7(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties$7(Constructor, staticProps);
+    return Constructor;
+  }
+  var isCallingCanDrop = false;
+  var DropTargetMonitorImpl = function () {
+    function DropTargetMonitorImpl(manager) {
+      _classCallCheck$7(this, DropTargetMonitorImpl);
+
+      this.targetId = null;
+      this.internalMonitor = manager.getMonitor();
+    }
+
+    _createClass$7(DropTargetMonitorImpl, [{
+      key: "receiveHandlerId",
+      value: function receiveHandlerId(targetId) {
+        this.targetId = targetId;
+      }
+    }, {
+      key: "getHandlerId",
+      value: function getHandlerId() {
+        return this.targetId;
+      }
+    }, {
+      key: "subscribeToStateChange",
+      value: function subscribeToStateChange(listener, options) {
+        return this.internalMonitor.subscribeToStateChange(listener, options);
+      }
+    }, {
+      key: "canDrop",
+      value: function canDrop() {
+        if (!this.targetId) {
+          return false;
+        }
+
+        invariant(!isCallingCanDrop, 'You may not call monitor.canDrop() inside your canDrop() implementation. ' + 'Read more: http://react-dnd.github.io/react-dnd/docs/api/drop-target-monitor');
+
+        try {
+          isCallingCanDrop = true;
+          return this.internalMonitor.canDropOnTarget(this.targetId);
+        } finally {
+          isCallingCanDrop = false;
+        }
+      }
+    }, {
+      key: "isOver",
+      value: function isOver(options) {
+        if (!this.targetId) {
+          return false;
+        }
+
+        return this.internalMonitor.isOverTarget(this.targetId, options);
+      }
+    }, {
+      key: "getItemType",
+      value: function getItemType() {
+        return this.internalMonitor.getItemType();
+      }
+    }, {
+      key: "getItem",
+      value: function getItem() {
+        return this.internalMonitor.getItem();
+      }
+    }, {
+      key: "getDropResult",
+      value: function getDropResult() {
+        return this.internalMonitor.getDropResult();
+      }
+    }, {
+      key: "didDrop",
+      value: function didDrop() {
+        return this.internalMonitor.didDrop();
+      }
+    }, {
+      key: "getInitialClientOffset",
+      value: function getInitialClientOffset() {
+        return this.internalMonitor.getInitialClientOffset();
+      }
+    }, {
+      key: "getInitialSourceClientOffset",
+      value: function getInitialSourceClientOffset() {
+        return this.internalMonitor.getInitialSourceClientOffset();
+      }
+    }, {
+      key: "getSourceClientOffset",
+      value: function getSourceClientOffset() {
+        return this.internalMonitor.getSourceClientOffset();
+      }
+    }, {
+      key: "getClientOffset",
+      value: function getClientOffset() {
+        return this.internalMonitor.getClientOffset();
+      }
+    }, {
+      key: "getDifferenceFromInitialOffset",
+      value: function getDifferenceFromInitialOffset() {
+        return this.internalMonitor.getDifferenceFromInitialOffset();
+      }
+    }]);
+
+    return DropTargetMonitorImpl;
+  }();
+
+  function _slicedToArray$7(arr, i) {
+    return _arrayWithHoles$7(arr) || _iterableToArrayLimit$7(arr, i) || _nonIterableRest$7();
+  }
+
+  function _nonIterableRest$7() {
+    throw new TypeError("Invalid attempt to destructure non-iterable instance");
+  }
+
+  function _iterableToArrayLimit$7(arr, i) {
+    if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) {
+      return;
+    }
+
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"] != null) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  function _arrayWithHoles$7(arr) {
+    if (Array.isArray(arr)) return arr;
+  }
+  function useDropTargetMonitor() {
+    var manager = useDragDropManager();
+    var monitor = React.useMemo(function () {
+      return new DropTargetMonitorImpl(manager);
+    }, [manager]);
+    var connector = React.useMemo(function () {
+      return new TargetConnector(manager.getBackend());
+    }, [manager]);
+    return [monitor, connector];
+  }
+  function useDropHandler(spec, monitor, connector) {
+    var manager = useDragDropManager();
+    var handler = React.useMemo(function () {
+      return {
+        canDrop: function canDrop() {
+          var canDrop = spec.current.canDrop;
+          return canDrop ? canDrop(monitor.getItem(), monitor) : true;
+        },
+        hover: function hover() {
+          var hover = spec.current.hover;
+
+          if (hover) {
+            hover(monitor.getItem(), monitor);
+          }
+        },
+        drop: function drop() {
+          var drop = spec.current.drop;
+
+          if (drop) {
+            return drop(monitor.getItem(), monitor);
+          }
+        }
+      };
+    }, [monitor]);
+    useIsomorphicLayoutEffect(function registerHandler() {
+      var _registerTarget = registerTarget(spec.current.accept, handler, manager),
+          _registerTarget2 = _slicedToArray$7(_registerTarget, 2),
+          handlerId = _registerTarget2[0],
+          unregister = _registerTarget2[1];
+
+      monitor.receiveHandlerId(handlerId);
+      connector.receiveHandlerId(handlerId);
+      return unregister;
+    }, [monitor, connector]);
+  }
+
+  function _slicedToArray$8(arr, i) {
+    return _arrayWithHoles$8(arr) || _iterableToArrayLimit$8(arr, i) || _nonIterableRest$8();
+  }
+
+  function _nonIterableRest$8() {
+    throw new TypeError("Invalid attempt to destructure non-iterable instance");
+  }
+
+  function _iterableToArrayLimit$8(arr, i) {
+    if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) {
+      return;
+    }
+
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"] != null) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  function _arrayWithHoles$8(arr) {
+    if (Array.isArray(arr)) return arr;
+  }
+  function useDrop(spec) {
+    var specRef = React.useRef(spec);
+    specRef.current = spec;
+    invariant(spec.accept != null, 'accept must be defined');
+
+    var _useDropTargetMonitor = useDropTargetMonitor(),
+        _useDropTargetMonitor2 = _slicedToArray$8(_useDropTargetMonitor, 2),
+        monitor = _useDropTargetMonitor2[0],
+        connector = _useDropTargetMonitor2[1];
+
+    useDropHandler(specRef, monitor, connector);
+    var result = useMonitorOutput(monitor, specRef.current.collect || function () {
+      return {};
+    }, function () {
+      return connector.reconnect();
+    });
+    var connectDropTarget = React.useMemo(function () {
+      return connector.hooks.dropTarget();
+    }, [connector]);
+    useIsomorphicLayoutEffect(function () {
+      connector.dropTargetOptions = spec.options || null;
+      connector.reconnect();
+    }, [spec.options]);
+    return [result, connectDropTarget];
+  }
+
   function memoize(fn) {
     var result = null;
 
@@ -3456,13 +3551,13 @@
     return result;
   }
 
-  function _classCallCheck$6(instance, Constructor) {
+  function _classCallCheck$8(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  function _defineProperties$6(target, props) {
+  function _defineProperties$8(target, props) {
     for (var i = 0; i < props.length; i++) {
       var descriptor = props[i];
       descriptor.enumerable = descriptor.enumerable || false;
@@ -3472,21 +3567,21 @@
     }
   }
 
-  function _createClass$6(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties$6(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties$6(Constructor, staticProps);
+  function _createClass$8(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties$8(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties$8(Constructor, staticProps);
     return Constructor;
   }
 
   var EnterLeaveCounter = function () {
     function EnterLeaveCounter(isNodeInDocument) {
-      _classCallCheck$6(this, EnterLeaveCounter);
+      _classCallCheck$8(this, EnterLeaveCounter);
 
       this.entered = [];
       this.isNodeInDocument = isNodeInDocument;
     }
 
-    _createClass$6(EnterLeaveCounter, [{
+    _createClass$8(EnterLeaveCounter, [{
       key: "enter",
       value: function enter(enteringNode) {
         var _this = this;
@@ -3524,13 +3619,13 @@
     return Boolean(window.safari);
   });
 
-  function _classCallCheck$7(instance, Constructor) {
+  function _classCallCheck$9(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  function _defineProperties$7(target, props) {
+  function _defineProperties$9(target, props) {
     for (var i = 0; i < props.length; i++) {
       var descriptor = props[i];
       descriptor.enumerable = descriptor.enumerable || false;
@@ -3540,15 +3635,15 @@
     }
   }
 
-  function _createClass$7(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties$7(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties$7(Constructor, staticProps);
+  function _createClass$9(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties$9(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties$9(Constructor, staticProps);
     return Constructor;
   }
 
   var MonotonicInterpolant = function () {
     function MonotonicInterpolant(xs, ys) {
-      _classCallCheck$7(this, MonotonicInterpolant);
+      _classCallCheck$9(this, MonotonicInterpolant);
 
       var length = xs.length;
       var indexes = [];
@@ -3611,7 +3706,7 @@
       this.c3s = c3s;
     }
 
-    _createClass$7(MonotonicInterpolant, [{
+    _createClass$9(MonotonicInterpolant, [{
       key: "interpolate",
       value: function interpolate(x) {
         var xs = this.xs,
@@ -3798,13 +3893,13 @@
     matchesTypes: ['Text', 'text/plain']
   }), _nativeTypesConfig);
 
-  function _classCallCheck$8(instance, Constructor) {
+  function _classCallCheck$a(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  function _defineProperties$8(target, props) {
+  function _defineProperties$a(target, props) {
     for (var i = 0; i < props.length; i++) {
       var descriptor = props[i];
       descriptor.enumerable = descriptor.enumerable || false;
@@ -3814,22 +3909,22 @@
     }
   }
 
-  function _createClass$8(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties$8(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties$8(Constructor, staticProps);
+  function _createClass$a(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties$a(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties$a(Constructor, staticProps);
     return Constructor;
   }
 
   var NativeDragSource = function () {
     function NativeDragSource(config) {
-      _classCallCheck$8(this, NativeDragSource);
+      _classCallCheck$a(this, NativeDragSource);
 
       this.config = config;
       this.item = {};
       this.initializeExposedProperties();
     }
 
-    _createClass$8(NativeDragSource, [{
+    _createClass$a(NativeDragSource, [{
       key: "initializeExposedProperties",
       value: function initializeExposedProperties() {
         var _this = this;
@@ -3904,13 +3999,13 @@
     })[0] || null;
   }
 
-  function _classCallCheck$9(instance, Constructor) {
+  function _classCallCheck$b(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  function _defineProperties$9(target, props) {
+  function _defineProperties$b(target, props) {
     for (var i = 0; i < props.length; i++) {
       var descriptor = props[i];
       descriptor.enumerable = descriptor.enumerable || false;
@@ -3920,20 +4015,20 @@
     }
   }
 
-  function _createClass$9(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties$9(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties$9(Constructor, staticProps);
+  function _createClass$b(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties$b(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties$b(Constructor, staticProps);
     return Constructor;
   }
 
   var OptionsReader = function () {
     function OptionsReader(globalContext) {
-      _classCallCheck$9(this, OptionsReader);
+      _classCallCheck$b(this, OptionsReader);
 
       this.globalContext = globalContext;
     }
 
-    _createClass$9(OptionsReader, [{
+    _createClass$b(OptionsReader, [{
       key: "window",
       get: function get() {
         if (this.globalContext) {
@@ -3958,7 +4053,7 @@
     return OptionsReader;
   }();
 
-  function ownKeys$5(object, enumerableOnly) {
+  function ownKeys$4(object, enumerableOnly) {
     var keys = Object.keys(object);
 
     if (Object.getOwnPropertySymbols) {
@@ -3972,18 +4067,18 @@
     return keys;
   }
 
-  function _objectSpread$5(target) {
+  function _objectSpread$4(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
 
       if (i % 2) {
-        ownKeys$5(Object(source), true).forEach(function (key) {
+        ownKeys$4(Object(source), true).forEach(function (key) {
           _defineProperty$6(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
       } else {
-        ownKeys$5(Object(source)).forEach(function (key) {
+        ownKeys$4(Object(source)).forEach(function (key) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         });
       }
@@ -4007,13 +4102,13 @@
     return obj;
   }
 
-  function _classCallCheck$a(instance, Constructor) {
+  function _classCallCheck$c(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  function _defineProperties$a(target, props) {
+  function _defineProperties$c(target, props) {
     for (var i = 0; i < props.length; i++) {
       var descriptor = props[i];
       descriptor.enumerable = descriptor.enumerable || false;
@@ -4023,9 +4118,9 @@
     }
   }
 
-  function _createClass$a(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties$a(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties$a(Constructor, staticProps);
+  function _createClass$c(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties$c(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties$c(Constructor, staticProps);
     return Constructor;
   }
 
@@ -4033,7 +4128,7 @@
     function HTML5Backend(manager, globalContext) {
       var _this = this;
 
-      _classCallCheck$a(this, HTML5Backend);
+      _classCallCheck$c(this, HTML5Backend);
 
       this.sourcePreviewNodes = new Map();
       this.sourcePreviewNodeOptions = new Map();
@@ -4329,7 +4424,7 @@
       this.enterLeaveCounter = new EnterLeaveCounter(this.isNodeInDocument);
     }
 
-    _createClass$a(HTML5Backend, [{
+    _createClass$c(HTML5Backend, [{
       key: "setup",
       value: function setup() {
         if (this.window === undefined) {
@@ -4467,7 +4562,7 @@
       value: function getCurrentSourceNodeOptions() {
         var sourceId = this.monitor.getSourceId();
         var sourceNodeOptions = this.sourceNodeOptions.get(sourceId);
-        return _objectSpread$5({
+        return _objectSpread$4({
           dropEffect: this.altKeyPressed ? 'copy' : 'move'
         }, sourceNodeOptions || {});
       }
@@ -4485,7 +4580,7 @@
       value: function getCurrentSourcePreviewNodeOptions() {
         var sourceId = this.monitor.getSourceId();
         var sourcePreviewNodeOptions = this.sourcePreviewNodeOptions.get(sourceId);
-        return _objectSpread$5({
+        return _objectSpread$4({
           anchorX: 0.5,
           anchorY: 0.5,
           captureDraggingState: false
@@ -4593,13 +4688,410 @@
     }, props.children);
   }
 
+  function Dropable(props) {
+    var _useDrop = useDrop({
+      accept: ItemTypes.BOARD,
+      drop: function drop() {
+        console.log('!!!');
+      }
+    }),
+        _useDrop2 = _slicedToArray(_useDrop, 2),
+        drop = _useDrop2[1];
+
+    React.useEffect(function () {
+      props.registerDom(function (dom) {
+        console.log(dom);
+        drop(dom);
+      });
+    }, [props.registerDom]);
+    return props.children;
+  }
+
+  function renderTree(root, ctx, params) {
+    if (root === null) {
+      return null;
+    }
+
+    var Comp = root.component,
+        children = root.children;
+    return React.createElement(CaptureDom, Object.assign({}, ctx, {
+      idx: params.idx,
+      key: params.idx,
+      registerParentMount: params.registerParentMount,
+      registerDom: params.registerDom
+    }), function (registerDom, registerParentMount) {
+      return React.createElement(Dropable, {
+        registerDom: registerDom
+      }, React.createElement(Comp, null, children.map(function (child, idx) {
+        return renderTree(child, ctx, {
+          registerDom: registerDom,
+          idx: idx,
+          registerParentMount: registerParentMount
+        });
+      })));
+    });
+  }
+
+  var tree = {
+    component: function component(props) {
+      return React__default.createElement("div", {
+        style: {
+          width: '100%',
+          height: '100%'
+        }
+      }, "root", props.children);
+    },
+    children: [{
+      component: function component(props) {
+        return React__default.createElement("div", null, "1", props.children);
+      },
+      children: [{
+        component: function component(props) {
+          return React__default.createElement("span", null, "2", props.children);
+        },
+        children: [{
+          component: function component() {
+            return React__default.createElement("button", null, "3");
+          },
+          children: []
+        }, {
+          component: function component() {
+            return React__default.createElement("button", null, "4");
+          },
+          children: []
+        }]
+      }]
+    }, {
+      component: function component() {
+        return React__default.createElement("div", null, "2");
+      },
+      children: []
+    }]
+  };
+  function Board(props) {
+    var style = props.style,
+        className = props.className,
+        dispatch = props.dispatch,
+        useMappedState = props.useMappedState;
+    var domRef = React__default.useRef(null);
+
+    var _useListener = useListener(),
+        _useListener2 = _slicedToArray(_useListener, 2),
+        registerChildDom = _useListener2[0],
+        childDomReady = _useListener2[1];
+
+    var _useListener3 = useListener(),
+        _useListener4 = _slicedToArray(_useListener3, 2),
+        registerMyDomMount = _useListener4[0],
+        myDomMount = _useListener4[1];
+
+    var observer = React__default.useRef(new MutationObserver(function (records) {
+      var node = records[0].addedNodes[0];
+      childDomReady(node, 0);
+    }));
+    useMount(function () {
+      if (domRef.current) {
+        myDomMount(true);
+        observer.current.observe(domRef.current, {
+          childList: true
+        });
+      }
+
+      return observer.current.disconnect;
+    });
+    return React__default.createElement("div", {
+      ref: domRef,
+      style: style,
+      className: className
+    }, renderTree(tree, {
+      useMappedState: useMappedState,
+      dispatch: dispatch
+    }, {
+      registerDom: registerChildDom,
+      idx: 0,
+      registerParentMount: registerMyDomMount
+    }));
+  }
+
+  function foo(getState) {
+    return getState();
+  }
+
+  var reducers = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    foo: foo
+  });
+
+  function createInitState() {
+    return {
+      maxId: 0,
+      root: null
+    };
+  }
+
+  function applyMiddleware() {
+    for (var _len = arguments.length, middlewares = new Array(_len), _key = 0; _key < _len; _key++) {
+      middlewares[_key] = arguments[_key];
+    }
+
+    return function (store) {
+      var mutationChain = middlewares.map(function (middleware) {
+        return middleware(store);
+      });
+
+      if (mutationChain.length < 1) {
+        return store.dispatch;
+      }
+
+      var dispatch = store.dispatch;
+
+      var middledispatch = function middledispatch(param) {
+        var type = param.type,
+            payload = param.payload;
+        dispatch(type, payload);
+        return store.getState();
+      };
+
+      if (mutationChain.length === 1) {
+        return function (type, payload) {
+          return mutationChain[0](function (action) {
+            return middledispatch(action);
+          })({
+            type: type,
+            payload: payload
+          });
+        };
+      } else {
+        return function (type, payload) {
+          return mutationChain.reduce(function (a, b) {
+            return function () {
+              return a(b.apply(void 0, arguments));
+            };
+          })(function (action) {
+            return middledispatch(action);
+          })({
+            type: type,
+            payload: payload
+          });
+        };
+      }
+    };
+  }
+
+  function _objectWithoutPropertiesLoose$1(source, excluded) {
+    if (source == null) return {};
+    var target = {};
+    var sourceKeys = Object.keys(source);
+    var key, i;
+
+    for (i = 0; i < sourceKeys.length; i++) {
+      key = sourceKeys[i];
+      if (excluded.indexOf(key) >= 0) continue;
+      target[key] = source[key];
+    }
+
+    return target;
+  }
+
+  function _objectWithoutProperties$1(source, excluded) {
+    if (source == null) return {};
+    var target = _objectWithoutPropertiesLoose$1(source, excluded);
+    var key, i;
+
+    if (Object.getOwnPropertySymbols) {
+      var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+
+      for (i = 0; i < sourceSymbolKeys.length; i++) {
+        key = sourceSymbolKeys[i];
+        if (excluded.indexOf(key) >= 0) continue;
+        if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+        target[key] = source[key];
+      }
+    }
+
+    return target;
+  }
+
+  var Store =
+  /*#__PURE__*/
+  function () {
+    function Store(preloadedState, reducers, enhancer) {
+      var _this = this;
+
+      _classCallCheck(this, Store);
+
+      this.listeners = [];
+
+      this.dispatch = function (action, payload) {
+        if (typeof action !== 'string') {
+          return _this.adapterReduxDispatch(action);
+        }
+
+        var act = _this.actions[action];
+
+        if (!act) {
+          return;
+        }
+
+        _this.lastState = _this.state;
+        _this.state = act(_this.getState, payload);
+
+        _this.notify();
+      };
+
+      this.state = this.lastState = preloadedState;
+      this.actions = reducers;
+      this.dispatch = this.dispatch.bind(this);
+      this.getState = this.getState.bind(this);
+      this.getLastState = this.getLastState.bind(this);
+      this.context = {
+        getState: this.getState,
+        getLastState: this.getLastState,
+        dispatch: this.dispatch
+      };
+      var dispatch = enhancer(this);
+      this.context.dispatch = this.dispatch = dispatch.bind(this);
+    }
+
+    _createClass(Store, [{
+      key: "subscribe",
+      value: function subscribe(listener) {
+        var _this2 = this;
+
+        this.listeners.push(listener);
+        return function () {
+          return _this2.unSubscribe(listener);
+        };
+      }
+    }, {
+      key: "unSubscribe",
+      value: function unSubscribe(listener) {
+        var index = this.listeners.indexOf(listener);
+
+        if (index !== -1) {
+          this.listeners.splice(index, 1);
+        }
+      }
+    }, {
+      key: "getState",
+      value: function getState() {
+        return this.state;
+      }
+    }, {
+      key: "getLastState",
+      value: function getLastState() {
+        return this.lastState;
+      }
+    }, {
+      key: "notify",
+      value: function notify() {
+        this.listeners.forEach(function (callback) {
+          callback();
+        });
+      }
+    }, {
+      key: "adapterReduxDispatch",
+      value: function adapterReduxDispatch(action) {
+        if (Object.prototype.toString.apply(action) === '[object Object]') {
+          var type = action.type,
+              data = _objectWithoutProperties$1(action, ["type"]);
+
+          typeof type !== 'undefined' && this.dispatch(type, data);
+        }
+      }
+    }]);
+
+    return Store;
+  }();
+  function createStore$1(preloadedState, reducers) {
+    var enhancer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : applyMiddleware();
+    return new Store(preloadedState, reducers, enhancer);
+  }
+
+  function shallowEqual$1(objA, objB) {
+    if (is(objA, objB)) {
+      return true;
+    }
+
+    if (_typeof(objA) !== 'object' || objA === null || _typeof(objB) !== 'object' || objB === null) {
+      return false;
+    }
+
+    var keysA = Object.keys(objA);
+    var keysB = Object.keys(objB);
+
+    if (keysA.length !== keysB.length) {
+      return false;
+    }
+
+    for (var i = 0; i < keysA.length; i++) {
+      if (!Object.prototype.hasOwnProperty.call(objB, keysA[i]) || !is(objA[keysA[i]], objB[keysA[i]])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function is(x, y) {
+    if (x === y) {
+      return x !== 0 || y !== 0 || 1 / x === 1 / y;
+    } else {
+      return x !== x && y !== y;
+    }
+  }
+
+  function createUseMappedState(store) {
+    return function useMappedState(mappedState) {
+      var savedMappedState = React.useRef(mappedState);
+
+      var _React$useState = React.useState(savedMappedState.current(store.getState())),
+          _React$useState2 = _slicedToArray(_React$useState, 2),
+          state = _React$useState2[0],
+          setState = _React$useState2[1];
+
+      var lastState = React.useRef(state);
+      var update = React.useCallback(function () {
+        var nextState = savedMappedState.current(store.getState());
+
+        if (!shallowEqual$1(nextState, lastState.current)) {
+          setState(nextState);
+        }
+
+        lastState.current = nextState;
+      }, []);
+      React.useEffect(function () {
+        savedMappedState.current = mappedState;
+        update();
+      }, [mappedState]);
+      React.useEffect(function () {
+        var unSubscribe = store.subscribe(update);
+        return function () {
+          return unSubscribe();
+        };
+      }, []);
+      return state;
+    };
+  }
+
+  function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+  function _objectSpread$5(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$5(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$5(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+  function createBoard() {
+    var store = createStore$1(createInitState(), reducers);
+    var dispatch = store.dispatch;
+    var useMappedState = createUseMappedState(store);
+    return function EnhanceBorad(props) {
+      return React.createElement(Board, _objectSpread$5({}, props, {
+        dispatch: dispatch,
+        useMappedState: useMappedState
+      }));
+    };
+  }
+
   function GragProvider(props) {
     return React__default.createElement(Provider, null, props.children);
   }
-
-  var ItemTypes = {
-    BOARD: 'board'
-  };
 
   function Feature(props) {
     var _useDrag = useDrag({

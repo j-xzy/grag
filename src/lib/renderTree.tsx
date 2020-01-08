@@ -1,4 +1,5 @@
-import { IRegiserDom, IRegiserParentMount, WrapperComp } from '@/components/wrapperComp';
+import { CaptureDom, IRegiserDom, IRegiserParentMount } from '@/components/wrapperComp/captureDom';
+import { Dropable } from '@/components/wrapperComp/draggable';
 import { IDispatch, IUseMappedState } from '@/store';
 import * as React from 'react';
 
@@ -19,16 +20,18 @@ export function renderTree(root: IGrag.INode | null, ctx: ICtx, params: IParams)
   }
   const { component: Comp, children } = root;
   return (
-    <WrapperComp {...ctx} idx={params.idx} key={params.idx} registerParentMount={params.registerParentMount} registerDom={params.registerDom} >
+    <CaptureDom {...ctx} idx={params.idx} key={params.idx} registerParentMount={params.registerParentMount} registerDom={params.registerDom} >
       {
         (registerDom, registerParentMount) => (
-          <Comp>
-            {
-              children.map((child, idx) => renderTree(child, ctx, { registerDom, idx, registerParentMount }))
-            }
-          </Comp>
+          <Dropable registerDom={registerDom}>
+            <Comp>
+              {
+                children.map((child, idx) => renderTree(child, ctx, { registerDom, idx, registerParentMount }))
+              }
+            </Comp>
+          </Dropable>
         )
       }
-    </WrapperComp>
+    </CaptureDom>
   );
 }
