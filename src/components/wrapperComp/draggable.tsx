@@ -10,17 +10,14 @@ interface IDropableProps extends React.Props<any> {
 
 export function Dropable(props: IDropableProps) {
   const [, drop] = useDrop({
-    accept: ItemTypes.BOARD,
-    drop() {
-      console.log('!!!');
-    }
+    accept: ItemTypes.BOARD
   });
+
   React.useEffect(() => {
     props.registerDom((dom) => {
-      console.log(dom);
       drop(dom);
     });
   }, [props.registerDom]);
 
-  return props.children as any;
+  return props.children as React.ReactElement;
 }

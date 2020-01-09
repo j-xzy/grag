@@ -20,18 +20,18 @@ export function renderTree(root: IGrag.INode | null, ctx: ICtx, params: IParams)
   }
   const { component: Comp, children } = root;
   return (
-    <CaptureDom {...ctx} idx={params.idx} key={params.idx} registerParentMount={params.registerParentMount} registerDom={params.registerDom} >
-      {
-        (registerDom, registerParentMount) => (
-          <Dropable registerDom={registerDom}>
+    <Dropable key={params.idx} registerDom={params.registerDom}>
+      <CaptureDom {...ctx} idx={params.idx} registerParentMount={params.registerParentMount} registerDom={params.registerDom} >
+        {
+          (registerDom, registerParentMount) => (
             <Comp>
               {
                 children.map((child, idx) => renderTree(child, ctx, { registerDom, idx, registerParentMount }))
               }
             </Comp>
-          </Dropable>
-        )
-      }
-    </CaptureDom>
+          )
+        }
+      </CaptureDom>
+    </Dropable>
   );
 }

@@ -4690,17 +4690,13 @@
 
   function Dropable(props) {
     var _useDrop = useDrop({
-      accept: ItemTypes.BOARD,
-      drop: function drop() {
-        console.log('!!!');
-      }
+      accept: ItemTypes.BOARD
     }),
         _useDrop2 = _slicedToArray(_useDrop, 2),
         drop = _useDrop2[1];
 
     React.useEffect(function () {
       props.registerDom(function (dom) {
-        console.log(dom);
         drop(dom);
       });
     }, [props.registerDom]);
@@ -4714,22 +4710,22 @@
 
     var Comp = root.component,
         children = root.children;
-    return React.createElement(CaptureDom, Object.assign({}, ctx, {
-      idx: params.idx,
+    return React.createElement(Dropable, {
       key: params.idx,
+      registerDom: params.registerDom
+    }, React.createElement(CaptureDom, Object.assign({}, ctx, {
+      idx: params.idx,
       registerParentMount: params.registerParentMount,
       registerDom: params.registerDom
     }), function (registerDom, registerParentMount) {
-      return React.createElement(Dropable, {
-        registerDom: registerDom
-      }, React.createElement(Comp, null, children.map(function (child, idx) {
+      return React.createElement(Comp, null, children.map(function (child, idx) {
         return renderTree(child, ctx, {
           registerDom: registerDom,
           idx: idx,
           registerParentMount: registerParentMount
         });
-      })));
-    });
+      }));
+    }));
   }
 
   var tree = {
