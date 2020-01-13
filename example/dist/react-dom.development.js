@@ -1735,7 +1735,7 @@ function createDOMResponderEvent(topLevelType, nativeEvent, nativeEventTarget, p
   if (pointerType !== undefined) {
     eventPointerType = pointerType;
   } else if (nativeEvent.key !== undefined) {
-    eventPointerType = 'keyboard';
+    eventPointerType = 'keycanvas';
   } else if (buttons !== undefined) {
     eventPointerType = 'mouse';
   } else if (nativeEvent.changedTouches !== undefined) {
@@ -5256,12 +5256,12 @@ var SyntheticAnimationEvent = SyntheticEvent.extend({
 
 /**
  * @interface Event
- * @see http://www.w3.org/TR/clipboard-apis/
+ * @see http://www.w3.org/TR/clipcanvas-apis/
  */
 
-var SyntheticClipboardEvent = SyntheticEvent.extend({
-  clipboardData: function (event) {
-    return 'clipboardData' in event ? event.clipboardData : window.clipboardData;
+var SyntheticClipcanvasEvent = SyntheticEvent.extend({
+  clipcanvasData: function (event) {
+    return 'clipcanvasData' in event ? event.clipcanvasData : window.clipcanvasData;
   }
 });
 
@@ -5321,7 +5321,7 @@ function getEventCharCode(nativeEvent) {
 
 /**
  * Normalization of deprecated HTML5 `key` values
- * @see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Key_names
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/KeycanvasEvent#Key_names
  */
 
 var normalizeKey = {
@@ -5340,8 +5340,8 @@ var normalizeKey = {
 };
 /**
  * Translation from legacy `keyCode` to HTML5 `key`
- * Only special keys supported, all others depend on keyboard layout or browser
- * @see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Key_names
+ * Only special keys supported, all others depend on keycanvas layout or browser
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/KeycanvasEvent#Key_names
  */
 
 var translateToKey = {
@@ -5409,7 +5409,7 @@ function getEventKey(nativeEvent) {
   }
 
   if (nativeEvent.type === 'keydown' || nativeEvent.type === 'keyup') {
-    // While user keyboard layout determines the actual meaning of each
+    // While user keycanvas layout determines the actual meaning of each
     // `keyCode` value, almost all function keys have a universal value.
     return translateToKey[nativeEvent.keyCode] || 'Unidentified';
   }
@@ -5447,11 +5447,11 @@ function getEventModifierState(nativeEvent) {
 }
 
 /**
- * @interface KeyboardEvent
+ * @interface KeycanvasEvent
  * @see http://www.w3.org/TR/DOM-Level-3-Events/
  */
 
-var SyntheticKeyboardEvent = SyntheticUIEvent.extend({
+var SyntheticKeycanvasEvent = SyntheticUIEvent.extend({
   key: getEventKey,
   location: null,
   ctrlKey: null,
@@ -5475,9 +5475,9 @@ var SyntheticKeyboardEvent = SyntheticUIEvent.extend({
   },
   keyCode: function (event) {
     // `keyCode` is the result of a KeyDown/Up event and represents the value of
-    // physical keyboard key.
-    // The actual meaning of the value depends on the users' keyboard layout
-    // which cannot be detected. Assuming that it is a US keyboard layout
+    // physical keycanvas key.
+    // The actual meaning of the value depends on the users' keycanvas layout
+    // which cannot be detected. Assuming that it is a US keycanvas layout
     // provides a surprisingly accurate mapping for US and European users.
     // Due to this, it is left to the user to implement at this time.
     if (event.type === 'keydown' || event.type === 'keyup') {
@@ -5713,7 +5713,7 @@ var SimpleEventPlugin = {
 
       case TOP_KEY_DOWN:
       case TOP_KEY_UP:
-        EventConstructor = SyntheticKeyboardEvent;
+        EventConstructor = SyntheticKeycanvasEvent;
         break;
 
       case TOP_BLUR:
@@ -5783,7 +5783,7 @@ var SimpleEventPlugin = {
       case TOP_COPY:
       case TOP_CUT:
       case TOP_PASTE:
-        EventConstructor = SyntheticClipboardEvent;
+        EventConstructor = SyntheticClipcanvasEvent;
         break;
 
       case TOP_GOT_POINTER_CAPTURE:
@@ -10668,7 +10668,7 @@ function getFallbackBeforeInputChars(topLevelType, nativeEvent) {
        */
       if (!isKeypressCommand(nativeEvent)) {
         // IE fires the `keypress` event when a user types an emoji via
-        // Touch keyboard of Windows.  In such a case, the `char` property
+        // Touch keycanvas of Windows.  In such a case, the `char` property
         // holds an emoji character like `\uD83D\uDE0A`.  Because its length
         // is 2, the property `which` does not represent an emoji correctly.
         // In such a case, we directly return the `char` property instead of

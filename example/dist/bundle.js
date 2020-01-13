@@ -86,21 +86,6 @@
     if (superClass) _setPrototypeOf(subClass, superClass);
   }
 
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
-  }
-
   function _arrayWithHoles(arr) {
     if (Array.isArray(arr)) return arr;
   }
@@ -256,7 +241,7 @@
   }
 
   var ItemTypes = {
-    BOARD: 'board'
+    CANVAS: 'canvas'
   };
 
   var HandlerRole;
@@ -769,7 +754,7 @@
 
       if (i % 2) {
         ownKeys(Object(source), true).forEach(function (key) {
-          _defineProperty$1(target, key, source[key]);
+          _defineProperty(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -783,7 +768,7 @@
     return target;
   }
 
-  function _defineProperty$1(obj, key, value) {
+  function _defineProperty(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -921,7 +906,7 @@
 
       if (i % 2) {
         ownKeys$1(Object(source), true).forEach(function (key) {
-          _defineProperty$2(target, key, source[key]);
+          _defineProperty$1(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -935,7 +920,7 @@
     return target;
   }
 
-  function _defineProperty$2(obj, key, value) {
+  function _defineProperty$1(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -1043,7 +1028,7 @@
 
       if (i % 2) {
         ownKeys$2(Object(source), true).forEach(function (key) {
-          _defineProperty$3(target, key, source[key]);
+          _defineProperty$2(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -1057,7 +1042,7 @@
     return target;
   }
 
-  function _defineProperty$3(obj, key, value) {
+  function _defineProperty$2(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -1247,7 +1232,7 @@
 
       if (i % 2) {
         ownKeys$3(Object(source), true).forEach(function (key) {
-          _defineProperty$4(target, key, source[key]);
+          _defineProperty$3(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -1261,7 +1246,7 @@
     return target;
   }
 
-  function _defineProperty$4(obj, key, value) {
+  function _defineProperty$3(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -3853,7 +3838,7 @@
 
   var _nativeTypesConfig;
 
-  function _defineProperty$5(obj, key, value) {
+  function _defineProperty$4(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -3867,7 +3852,7 @@
 
     return obj;
   }
-  var nativeTypesConfig = (_nativeTypesConfig = {}, _defineProperty$5(_nativeTypesConfig, FILE, {
+  var nativeTypesConfig = (_nativeTypesConfig = {}, _defineProperty$4(_nativeTypesConfig, FILE, {
     exposeProperties: {
       files: function files(dataTransfer) {
         return Array.prototype.slice.call(dataTransfer.files);
@@ -3877,14 +3862,14 @@
       }
     },
     matchesTypes: ['Files']
-  }), _defineProperty$5(_nativeTypesConfig, URL, {
+  }), _defineProperty$4(_nativeTypesConfig, URL, {
     exposeProperties: {
       urls: function urls(dataTransfer, matchesTypes) {
         return getDataFromDataTransfer(dataTransfer, matchesTypes, '').split('\n');
       }
     },
     matchesTypes: ['Url', 'text/uri-list']
-  }), _defineProperty$5(_nativeTypesConfig, TEXT, {
+  }), _defineProperty$4(_nativeTypesConfig, TEXT, {
     exposeProperties: {
       text: function text(dataTransfer, matchesTypes) {
         return getDataFromDataTransfer(dataTransfer, matchesTypes, '');
@@ -4073,7 +4058,7 @@
 
       if (i % 2) {
         ownKeys$4(Object(source), true).forEach(function (key) {
-          _defineProperty$6(target, key, source[key]);
+          _defineProperty$5(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -4087,7 +4072,7 @@
     return target;
   }
 
-  function _defineProperty$6(obj, key, value) {
+  function _defineProperty$5(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -4690,7 +4675,7 @@
 
   function Dropable(props) {
     var _useDrop = useDrop({
-      accept: ItemTypes.BOARD
+      accept: ItemTypes.CANVAS
     }),
         _useDrop2 = _slicedToArray(_useDrop, 2),
         drop = _useDrop2[1];
@@ -4725,87 +4710,6 @@
           registerParentMount: registerParentMount
         });
       }));
-    }));
-  }
-
-  var tree = {
-    component: function component(props) {
-      return React__default.createElement("div", {
-        style: {
-          width: '100%',
-          height: '100%'
-        }
-      }, "root", props.children);
-    },
-    children: [{
-      component: function component(props) {
-        return React__default.createElement("div", null, "1", props.children);
-      },
-      children: [{
-        component: function component(props) {
-          return React__default.createElement("span", null, "2", props.children);
-        },
-        children: [{
-          component: function component() {
-            return React__default.createElement("button", null, "3");
-          },
-          children: []
-        }, {
-          component: function component() {
-            return React__default.createElement("button", null, "4");
-          },
-          children: []
-        }]
-      }]
-    }, {
-      component: function component() {
-        return React__default.createElement("div", null, "2");
-      },
-      children: []
-    }]
-  };
-  function Board(props) {
-    var style = props.style,
-        className = props.className,
-        dispatch = props.dispatch,
-        useMappedState = props.useMappedState;
-    var domRef = React__default.useRef(null);
-
-    var _useListener = useListener(),
-        _useListener2 = _slicedToArray(_useListener, 2),
-        registerChildDom = _useListener2[0],
-        childDomReady = _useListener2[1];
-
-    var _useListener3 = useListener(),
-        _useListener4 = _slicedToArray(_useListener3, 2),
-        registerMyDomMount = _useListener4[0],
-        myDomMount = _useListener4[1];
-
-    var observer = React__default.useRef(new MutationObserver(function (records) {
-      var node = records[0].addedNodes[0];
-      childDomReady(node, 0);
-    }));
-    useMount(function () {
-      if (domRef.current) {
-        myDomMount(true);
-        observer.current.observe(domRef.current, {
-          childList: true
-        });
-      }
-
-      return observer.current.disconnect;
-    });
-    return React__default.createElement("div", {
-      ref: domRef,
-      style: style,
-      className: className
-    }, renderTree(tree, {
-      useMappedState: useMappedState,
-      dispatch: dispatch
-    }, {
-      registerDom: registerChildDom,
-      idx: 0,
-      registerParentMount: registerMyDomMount
     }));
   }
 
@@ -5070,19 +4974,95 @@
     };
   }
 
-  function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+  var tree = {
+    component: function component(props) {
+      return React__default.createElement("div", {
+        style: {
+          width: '100%',
+          height: '100%'
+        }
+      }, "root", props.children);
+    },
+    children: [{
+      component: function component(props) {
+        return React__default.createElement("div", null, "1", props.children);
+      },
+      children: [{
+        component: function component(props) {
+          return React__default.createElement("span", null, "2", props.children);
+        },
+        children: [{
+          component: function component() {
+            return React__default.createElement("button", null, "3");
+          },
+          children: []
+        }, {
+          component: function component() {
+            return React__default.createElement("button", null, "4");
+          },
+          children: []
+        }]
+      }]
+    }, {
+      component: function component() {
+        return React__default.createElement("div", null, "2");
+      },
+      children: []
+    }]
+  };
 
-  function _objectSpread$5(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$5(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$5(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-  function createBoard() {
-    var store = createStore$1(createInitState(), reducers);
-    var dispatch = store.dispatch;
-    var useMappedState = createUseMappedState(store);
-    return function EnhanceBorad(props) {
-      return React.createElement(Board, _objectSpread$5({}, props, {
-        dispatch: dispatch,
-        useMappedState: useMappedState
-      }));
-    };
+  function RawCanvas(props) {
+    var style = props.style,
+        className = props.className,
+        dispatch = props.dispatch,
+        useMappedState = props.useMappedState;
+    var domRef = React__default.useRef(null);
+
+    var _useListener = useListener(),
+        _useListener2 = _slicedToArray(_useListener, 2),
+        registerChildDom = _useListener2[0],
+        childDomReady = _useListener2[1];
+
+    var _useListener3 = useListener(),
+        _useListener4 = _slicedToArray(_useListener3, 2),
+        registerMyDomMount = _useListener4[0],
+        myDomMount = _useListener4[1];
+
+    var observer = React__default.useRef(new MutationObserver(function (records) {
+      var node = records[0].addedNodes[0];
+      childDomReady(node, 0);
+    }));
+    useMount(function () {
+      if (domRef.current) {
+        myDomMount(true);
+        observer.current.observe(domRef.current, {
+          childList: true
+        });
+      }
+
+      return observer.current.disconnect;
+    });
+    return React__default.createElement("div", {
+      ref: domRef,
+      style: style,
+      className: className
+    }, renderTree(tree, {
+      useMappedState: useMappedState,
+      dispatch: dispatch
+    }, {
+      registerDom: registerChildDom,
+      idx: 0,
+      registerParentMount: registerMyDomMount
+    }));
+  }
+
+  function Canvas(props) {
+    var storeRef = React__default.useRef(createStore$1(createInitState(), reducers));
+    var useMappedStateRef = React__default.useRef(createUseMappedState(storeRef.current));
+    return React__default.createElement(RawCanvas, Object.assign({
+      dispatch: storeRef.current.dispatch,
+      useMappedState: useMappedStateRef.current
+    }, props));
   }
 
   function GragProvider(props) {
@@ -5092,7 +5072,7 @@
   function Feature(props) {
     var _useDrag = useDrag({
       item: {
-        type: ItemTypes.BOARD,
+        type: ItemTypes.CANVAS,
         component: props.component
       }
     }),
@@ -5102,11 +5082,10 @@
     return props.children(drag);
   }
 
-  var Board$1 = createBoard();
   function App() {
     return React.createElement(GragProvider, null, React.createElement("div", {
       className: 'comp-bar'
-    }, React.createElement(FtrFunc, null), React.createElement(FtrClass, null)), React.createElement(Board$1, {
+    }, React.createElement(FtrFunc, null), React.createElement(FtrClass, null)), React.createElement(Canvas, {
       className: 'border'
     }));
   }

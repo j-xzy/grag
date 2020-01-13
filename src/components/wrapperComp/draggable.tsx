@@ -10,7 +10,7 @@ interface IDropableProps extends React.Props<any> {
 
 export function Dropable(props: IDropableProps) {
   const [, drop] = useDrop({
-    accept: ItemTypes.BOARD
+    accept: ItemTypes.CANVAS
   });
 
   React.useEffect(() => {

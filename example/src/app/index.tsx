@@ -1,7 +1,5 @@
 import * as React from 'react';
-import { createBoard, Feature, GragProvider } from '../../../src';
-
-const Board = createBoard();
+import { Canvas, Feature, GragProvider } from '../../../src';
 
 export function App() {
   return (
@@ -10,7 +8,7 @@ export function App() {
         <FtrFunc />
         <FtrClass />
       </div>
-      <Board className='border' />
+      <Canvas className='border' />
     </GragProvider>
   );
 }

@@ -2,9 +2,12 @@ import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
 import { renderTree } from '@/lib/renderTree';
 import { IDispatch, IUseMappedState } from '@/store';
+import * as reducers from '@/store/reducer';
+import { createInitState } from '@/store/state';
 import React from 'react';
+import { createStore, createUseMappedState } from 'typeRedux';
 
-export interface IBoardProps extends Omit<React.Props<any>, 'children'> {
+export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'> {
   style?: React.CSSProperties;
   className?: string;
   dispatch: IDispatch;
@@ -43,7 +46,7 @@ const tree: IGrag.INode = {
   }]
 };
 
-export function Board(props: IBoardProps) {
+function RawCanvas(props: IRawCanvasProps) {
   const { style, className, dispatch, useMappedState } = props;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
   const [registerChildDom, childDomReady] = useListener();
@@ -75,4 +78,13 @@ export function Board(props: IBoardProps) {
       }
     </div>
   );
+}
+
+type ICanvasProps = Omit<IRawCanvasProps, 'dispatch' | 'useMappedState'>;
+
+export function Canvas(props: ICanvasProps) {
+  const storeRef = React.useRef(createStore(createInitState(), reducers));
+  const useMappedStateRef = React.useRef(createUseMappedState(storeRef.current));
+
+  return <RawCanvas dispatch={storeRef.current.dispatch} useMappedState={useMappedStateRef.current} {...props} />;
 }

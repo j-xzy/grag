@@ -9,7 +9,7 @@ interface IProps extends React.Props<any> {
 
 export function Feature(props: IProps) {
   const [, drag] = useDrag({
-    item: { type: ItemTypes.BOARD, component: props.component }
+    item: { type: ItemTypes.CANVAS, component: props.component }
   });
   return props.children(drag) as React.ReactElement;
 }
