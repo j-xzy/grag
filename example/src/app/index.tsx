@@ -7,6 +7,7 @@ export function App() {
       <div className='comp-bar'>
         <FtrFunc />
         <FtrClass />
+        <FtrBox />
       </div>
       <Canvas className='border' />
     </GragProvider>
@@ -29,6 +30,14 @@ function FtrClass() {
   );
 }
 
+function FtrBox() {
+  return (
+    <Feature component={Box}>
+      {(ref) => <div ref={ref} className='preview'>Box</div>}
+    </Feature>
+  );
+}
+
 class Select extends React.Component {
   public render() {
     return (
@@ -39,6 +48,14 @@ class Select extends React.Component {
       </select>
     );
   }
+}
+
+function Box(props: React.Props<any>) {
+  return (
+    <div style={{ border: '1px solid $000' }}>
+      {props.children}
+    </div>
+  );
 }
 
 function Table() {

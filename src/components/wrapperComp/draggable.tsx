@@ -1,8 +1,7 @@
 import { ItemTypes } from '@/lib/itemTypes';
 import { useDrop } from 'dnd';
 import * as React from 'react';
-
-type IRegiserDom = (cb: (dom: HTMLElement) => void) => () => void;
+import { IRegiserDom } from './captureDom';
 
 interface IDropableProps extends React.Props<any> {
   registerDom: IRegiserDom;

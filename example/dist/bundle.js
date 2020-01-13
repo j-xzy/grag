@@ -4688,6 +4688,26 @@
     return props.children;
   }
 
+  function Monitor(props) {
+    var domRef = React.useRef(null);
+    useMount(function () {
+      function handleClick(e) {
+        e.stopPropagation();
+      }
+
+      props.registerDom(function (dom) {
+        domRef.current = dom;
+        dom.addEventListener('click', handleClick);
+      });
+      return function () {
+        var _domRef$current;
+
+        (_domRef$current = domRef.current) === null || _domRef$current === void 0 ? void 0 : _domRef$current.removeEventListener('click', handleClick);
+      };
+    });
+    return props.children;
+  }
+
   function renderTree(root, ctx, params) {
     if (root === null) {
       return null;
@@ -4697,6 +4717,8 @@
         children = root.children;
     return React.createElement(Dropable, {
       key: params.idx,
+      registerDom: params.registerDom
+    }, React.createElement(Monitor, {
       registerDom: params.registerDom
     }, React.createElement(CaptureDom, Object.assign({}, ctx, {
       idx: params.idx,
@@ -4710,7 +4732,7 @@
           registerParentMount: registerParentMount
         });
       }));
-    }));
+    })));
   }
 
   function foo(getState) {
@@ -5085,7 +5107,7 @@
   function App() {
     return React.createElement(GragProvider, null, React.createElement("div", {
       className: 'comp-bar'
-    }, React.createElement(FtrFunc, null), React.createElement(FtrClass, null)), React.createElement(Canvas, {
+    }, React.createElement(FtrFunc, null), React.createElement(FtrClass, null), React.createElement(FtrBox, null)), React.createElement(Canvas, {
       className: 'border'
     }));
   }
@@ -5109,6 +5131,17 @@
         ref: ref,
         className: 'preview'
       }, "Class\u7EC4\u4EF6");
+    });
+  }
+
+  function FtrBox() {
+    return React.createElement(Feature, {
+      component: Box
+    }, function (ref) {
+      return React.createElement("div", {
+        ref: ref,
+        className: 'preview'
+      }, "Box");
     });
   }
 
@@ -5137,6 +5170,14 @@
 
     return Select;
   }(React.Component);
+
+  function Box(props) {
+    return React.createElement("div", {
+      style: {
+        border: '1px solid $000'
+      }
+    }, props.children);
+  }
 
   function Table() {
     return React.createElement("table", null, React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", {
