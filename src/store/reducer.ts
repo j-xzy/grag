@@ -1,5 +1,5 @@
 import { IGetState } from './state';
 
-export function foo(getState: IGetState) {
+export function beforeDrop(getState: IGetState) {
   return getState();
 }

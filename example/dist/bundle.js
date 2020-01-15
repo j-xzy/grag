@@ -4674,8 +4674,17 @@
   }
 
   function Dropable(props) {
+    var domRef = React.useRef(null);
+
     var _useDrop = useDrop({
-      accept: ItemTypes.CANVAS
+      accept: ItemTypes.CANVAS,
+      drop: function drop(_item, monitor) {
+        if (monitor.didDrop()) {
+          return;
+        }
+
+        props.dispatch('beforeDrop');
+      }
     }),
         _useDrop2 = _slicedToArray(_useDrop, 2),
         drop = _useDrop2[1];
@@ -4683,6 +4692,7 @@
     React.useEffect(function () {
       props.registerDom(function (dom) {
         drop(dom);
+        domRef.current = dom;
       });
     }, [props.registerDom]);
     return props.children;
@@ -4715,12 +4725,12 @@
 
     var Comp = root.component,
         children = root.children;
-    return React.createElement(Dropable, {
+    return React.createElement(Dropable, Object.assign({}, ctx, {
       key: params.idx,
       registerDom: params.registerDom
-    }, React.createElement(Monitor, {
+    }), React.createElement(Monitor, Object.assign({}, ctx, {
       registerDom: params.registerDom
-    }, React.createElement(CaptureDom, Object.assign({}, ctx, {
+    }), React.createElement(CaptureDom, Object.assign({}, ctx, {
       idx: params.idx,
       registerParentMount: params.registerParentMount,
       registerDom: params.registerDom
@@ -4735,13 +4745,14 @@
     })));
   }
 
-  function foo(getState) {
+  function beforeDrop(getState) {
+    console.log("!!!!!!");
     return getState();
   }
 
   var reducers = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    foo: foo
+    beforeDrop: beforeDrop
   });
 
   function createInitState() {
@@ -5007,29 +5018,26 @@
     },
     children: [{
       component: function component(props) {
-        return React__default.createElement("div", null, "1", props.children);
+        return React__default.createElement("div", {
+          style: {
+            width: 300,
+            height: 300,
+            border: '1px solid #000'
+          }
+        }, props.children);
       },
       children: [{
         component: function component(props) {
-          return React__default.createElement("span", null, "2", props.children);
+          return React__default.createElement("div", {
+            style: {
+              width: 200,
+              height: 200,
+              border: '1px solid red'
+            }
+          }, "2", props.children);
         },
-        children: [{
-          component: function component() {
-            return React__default.createElement("button", null, "3");
-          },
-          children: []
-        }, {
-          component: function component() {
-            return React__default.createElement("button", null, "4");
-          },
-          children: []
-        }]
+        children: []
       }]
-    }, {
-      component: function component() {
-        return React__default.createElement("div", null, "2");
-      },
-      children: []
     }]
   };
 

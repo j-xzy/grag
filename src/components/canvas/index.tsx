@@ -18,31 +18,16 @@ const tree: IGrag.INode = {
   component: (props: any) => <div style={{ width: '100%', height: '100%' }}>root{props.children}</div>,
   children: [{
     component: (props: any) => {
-      return <div>1{props.children}</div>;
+      return <div style={{ width: 300, height: 300, border: '1px solid #000' }}>{props.children}</div>;
     },
     children: [
       {
         component: (props: any) => {
-          return <span>2{props.children}</span>;
+          return <div style={{ width: 200, height: 200, border: '1px solid red' }}>2{props.children}</div>;
         },
-        children: [{
-          component: () => {
-            return <button>3</button>;
-          },
-          children: []
-        }, {
-          component: () => {
-            return <button>4</button>;
-          },
-          children: []
-        }]
+        children: []
       }
     ]
-  }, {
-    component: () => {
-      return <div>2</div>;
-    },
-    children: []
   }]
 };
 
@@ -67,7 +52,7 @@ function RawCanvas(props: IRawCanvasProps) {
   });
 
   return (
-    <div ref={domRef} style={style} className={className}>
+    <div ref={domRef} style={style} className={className} >
       {
         renderTree(
           tree, { useMappedState, dispatch }, {

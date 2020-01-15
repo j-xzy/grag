@@ -1,9 +1,12 @@
 import { useMount } from '@/hooks/useMount';
+import { IDispatch, IUseMappedState } from '@/store';
 import * as React from 'react';
 import { IRegiserDom } from './captureDom';
 
 interface IDropableProps extends React.Props<any> {
   registerDom: IRegiserDom;
+  dispatch: IDispatch;
+  useMappedState: IUseMappedState;
 }
 
 export function Monitor(props: IDropableProps) {
