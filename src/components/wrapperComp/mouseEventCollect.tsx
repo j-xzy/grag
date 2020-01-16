@@ -10,7 +10,7 @@ interface IDropableProps extends React.Props<any> {
   idx: number;
 }
 
-export function Monitor(props: IDropableProps) {
+export function MouseEventCollect(props: IDropableProps) {
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
 
   useMount(() => {

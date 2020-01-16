@@ -59,7 +59,6 @@ function Box(props: React.Props<any>) {
 }
 
 function Table() {
-  console.log('table');
   return (
     <table>
       <thead>

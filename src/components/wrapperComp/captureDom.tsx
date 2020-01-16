@@ -35,7 +35,7 @@ export function CaptureDom(props: ICaptureDomProps) {
     });
   }));
 
-  React.useLayoutEffect(() => {
+  useMount(() => {
     // 注册本节点dom挂载事件
     const unSubscribe = props.registerDom((dom, idx) => {
       if (!domRef.current && idx === props.idx) {
@@ -50,22 +50,19 @@ export function CaptureDom(props: ICaptureDomProps) {
         myDomMount(dom);
       }
     });
-    return unSubscribe;
-  }, [props.registerDom]);
+    return () => {
+      unSubscribe();
+      observer.current.disconnect();
+    };
+  });
 
-  React.useLayoutEffect(() => {
+  useMount(() => {
     // 注册父亲节点dom挂载事件
     const unSubscribe = props.registerParentMount(() => {
       unSubscribe();
       setParentIsMount(true);
     });
     return unSubscribe;
-  }, [props.registerParentMount]);
-
-  useMount(() => {
-    return () => {
-      observer.current.disconnect();
-    };
   });
 
   return parentIsMount ? props.children({

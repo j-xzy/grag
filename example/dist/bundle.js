@@ -216,7 +216,7 @@
         childDomReady(ch, idx);
       });
     }));
-    React.useLayoutEffect(function () {
+    useMount(function () {
       var unSubscribe = props.registerDom(function (dom, idx) {
         if (!domRef.current && idx === props.idx) {
           domRef.current = dom;
@@ -227,19 +227,17 @@
           myDomMount(dom);
         }
       });
-      return unSubscribe;
-    }, [props.registerDom]);
-    React.useLayoutEffect(function () {
+      return function () {
+        unSubscribe();
+        observer.current.disconnect();
+      };
+    });
+    useMount(function () {
       var unSubscribe = props.registerParentMount(function () {
         unSubscribe();
         setParentIsMount(true);
       });
       return unSubscribe;
-    }, [props.registerParentMount]);
-    useMount(function () {
-      return function () {
-        observer.current.disconnect();
-      };
     });
     return parentIsMount ? props.children({
       registerChildDom: registerChildDom,
@@ -4709,7 +4707,13 @@
     return props.children;
   }
 
-  function Monitor(props) {
+  var Memo = React.memo(function (props) {
+    return props.children;
+  }, function (pre, next) {
+    return pre['x-children'].length === next['x-children'].length;
+  });
+
+  function MouseEventCollect(props) {
     var domRef = React.useRef(null);
     useMount(function () {
       function handleClick(e) {
@@ -4739,11 +4743,13 @@
 
     var Comp = root.component,
         children = root.children;
-    return React.createElement(Dropable, Object.assign({}, ctx, {
-      idx: params.idx,
+    return React.createElement(Memo, {
       key: params.idx,
+      "x-children": children
+    }, React.createElement(MouseEventCollect, Object.assign({}, ctx, {
+      idx: params.idx,
       registerDom: params.registerChildDom
-    }), React.createElement(Monitor, Object.assign({}, ctx, {
+    }), React.createElement(Dropable, Object.assign({}, ctx, {
       idx: params.idx,
       registerDom: params.registerChildDom
     }), React.createElement(CaptureDom, Object.assign({}, ctx, {
@@ -4763,7 +4769,7 @@
           parentIsMount: parentIsMount
         });
       }) : null);
-    })));
+    }))));
   }
 
   function _defineProperty$6(obj, key, value) {
@@ -5100,7 +5106,11 @@
 
       return observer.current.disconnect;
     });
-    var A = renderTree(tree, {
+    return React__default.createElement("div", {
+      ref: domRef,
+      style: style,
+      className: className
+    }, renderTree(tree, {
       useMappedState: useMappedState,
       dispatch: dispatch
     }, {
@@ -5108,13 +5118,7 @@
       idx: 0,
       registerParentMount: registerMyDomMount,
       parentIsMount: !!domRef.current
-    });
-    console.log(A);
-    return React__default.createElement("div", {
-      ref: domRef,
-      style: style,
-      className: className
-    }, A);
+    }));
   }
 
   function Canvas(props) {
@@ -5221,7 +5225,6 @@
   }
 
   function Table() {
-    console.log('table');
     return React.createElement("table", null, React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", {
       colSpan: 2
     }, "The table header"))), React.createElement("tbody", null, React.createElement("tr", null, React.createElement("td", null, "The table body"), React.createElement("td", null, "with two columns"))));
