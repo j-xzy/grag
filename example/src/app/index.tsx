@@ -52,13 +52,14 @@ class Select extends React.Component {
 
 function Box(props: React.Props<any>) {
   return (
-    <div style={{ border: '1px solid $000' }}>
+    <div style={{ border: '1px solid #000', width: 150, height: 150 }}>
       {props.children}
     </div>
   );
 }
 
 function Table() {
+  console.log('table');
   return (
     <table>
       <thead>

@@ -5,6 +5,11 @@ import * as React from 'react';
 
 export type IRegiserDom = (cb: (dom: HTMLElement, idx: number) => void) => () => void;
 export type IRegiserParentMount = (cb: (mount: boolean) => void) => () => void;
+export interface IChildrenCallbackParams {
+  registerChildDom: IRegiserDom;
+  registerParentMount: IRegiserParentMount;
+  parentIsMount: boolean;
+}
 
 export interface ICaptureDomProps extends React.Props<any> {
   idx: number;
@@ -12,18 +17,21 @@ export interface ICaptureDomProps extends React.Props<any> {
   useMappedState: IUseMappedState;
   registerDom: IRegiserDom;
   registerParentMount: IRegiserParentMount;
-  children: (registerChildDom: IRegiserDom, registerParentMount: IRegiserParentMount) => React.ReactElement;
+  parentIsMount: boolean;
+  children: (params: IChildrenCallbackParams) => React.ReactElement;
 }
 
 export function CaptureDom(props: ICaptureDomProps) {
-  const [parentIsMount, setParentIsMount] = React.useState(false);
+  const [parentIsMount, setParentIsMount] = React.useState(props.parentIsMount);
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
   const [registerChildDom, childDomReady] = useListener();
   const [registerMyDomMount, myDomMount] = useListener();
 
   const observer = React.useRef(new MutationObserver((records) => {
-    records.forEach(({ addedNodes }, idx) => {
-      childDomReady(addedNodes[0], idx);
+    records.forEach(({ addedNodes }) => {
+      const ch = addedNodes[0];
+      const idx = Array.prototype.indexOf.call(domRef.current?.children, ch);
+      childDomReady(ch, idx);
     });
   }));
 
@@ -36,6 +44,7 @@ export function CaptureDom(props: ICaptureDomProps) {
         observer.current.observe(domRef.current, {
           childList: true
         });
+        // 解除监听
         unSubscribe();
         // 本节点dom挂载完成
         myDomMount(dom);
@@ -59,5 +68,9 @@ export function CaptureDom(props: ICaptureDomProps) {
     };
   });
 
-  return parentIsMount ? props.children(registerChildDom, registerMyDomMount) : null;
+  return parentIsMount ? props.children({
+    registerChildDom,
+    parentIsMount: !!domRef.current,
+    registerParentMount: registerMyDomMount
+  }) : null;
 }

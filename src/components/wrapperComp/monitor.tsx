@@ -7,6 +7,7 @@ interface IDropableProps extends React.Props<any> {
   registerDom: IRegiserDom;
   dispatch: IDispatch;
   useMappedState: IUseMappedState;
+  idx: number;
 }
 
 export function Monitor(props: IDropableProps) {
@@ -17,14 +18,16 @@ export function Monitor(props: IDropableProps) {
       e.stopPropagation();
     }
 
-    props.registerDom((dom) => {
-      domRef.current = dom;
-      dom.addEventListener('click', handleClick);
+    const unSubscribe = props.registerDom((dom, idx) => {
+      if (!domRef.current && props.idx === idx) {
+        domRef.current = dom;
+        dom.addEventListener('click', handleClick);
+        unSubscribe();
+      }
     });
     return () => {
       domRef.current?.removeEventListener('click', handleClick);
     };
   });
-
   return props.children as React.ReactElement;
 }

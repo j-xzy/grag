@@ -1,4 +1,4 @@
-import { CaptureDom, IRegiserDom, IRegiserParentMount } from '@/components/wrapperComp/captureDom';
+import { CaptureDom, IChildrenCallbackParams } from '@/components/wrapperComp/captureDom';
 import { Dropable } from '@/components/wrapperComp/draggable';
 import { Monitor } from '@/components/wrapperComp/monitor';
 import { IDispatch, IUseMappedState } from '@/store';
@@ -9,9 +9,7 @@ interface ICtx {
   useMappedState: IUseMappedState;
 }
 
-interface IParams {
-  registerParentMount: IRegiserParentMount;
-  registerDom: IRegiserDom;
+interface IParams extends IChildrenCallbackParams {
   idx: number;
 }
 
@@ -21,14 +19,22 @@ export function renderTree(root: IGrag.INode | null, ctx: ICtx, params: IParams)
   }
   const { component: Comp, children } = root;
   return (
-    <Dropable {...ctx} key={params.idx} registerDom={params.registerDom}>
-      <Monitor {...ctx} registerDom={params.registerDom}>
-        <CaptureDom {...ctx} idx={params.idx} registerParentMount={params.registerParentMount} registerDom={params.registerDom} >
+    <Dropable {...ctx} idx={params.idx} key={params.idx} registerDom={params.registerChildDom}>
+      <Monitor {...ctx} idx={params.idx} registerDom={params.registerChildDom}>
+        <CaptureDom
+          {...ctx}
+          idx={params.idx}
+          parentIsMount={params.parentIsMount}
+          registerParentMount={params.registerParentMount}
+          registerDom={params.registerChildDom}
+        >
           {
-            (registerDom, registerParentMount) => (
+            ({ registerChildDom, registerParentMount, parentIsMount }) => (
               <Comp>
                 {
-                  children.map((child, idx) => renderTree(child, ctx, { registerDom, idx, registerParentMount }))
+                  children.length ?
+                    children.map((child, idx) => renderTree(child, ctx, { registerChildDom, idx, registerParentMount, parentIsMount }))
+                    : null
                 }
               </Comp>
             )

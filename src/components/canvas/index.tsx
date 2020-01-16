@@ -14,24 +14,30 @@ export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'> {
   useMappedState: IUseMappedState;
 }
 
-const tree: IGrag.INode = {
-  component: (props: any) => <div style={{ width: '100%', height: '100%' }}>root{props.children}</div>,
-  children: [{
-    component: (props: any) => {
-      return <div style={{ width: 300, height: 300, border: '1px solid #000' }}>{props.children}</div>;
-    },
-    children: [
-      {
-        component: (props: any) => {
-          return <div style={{ width: 200, height: 200, border: '1px solid red' }}>2{props.children}</div>;
-        },
-        children: []
-      }
-    ]
-  }]
-};
+// const tree: IGrag.INode = {
+//   component: (props: any) => <div style={{ width: '100%', height: '100%' }}>root{props.children}</div>,
+//   children: [{
+//     component: (props: any) => {
+//       return <div style={{ width: 300, height: 300, border: '1px solid #000' }}>{props.children}</div>;
+//     },
+//     children: [
+//       // {
+//       //   component: (props: any) => {
+//       //     return <div style={{ width: 200, height: 200, border: '1px solid red' }}>2{props.children}</div>;
+//       //   },
+//       //   children: []
+//       // }
+//     ]
+//   }, {
+//     component: (props: any) => {
+//       return <div style={{ width: 300, height: 300, border: '1px solid #000' }}>{props.children}</div>;
+//     },
+//     children: []
+//   }]
+// };
 
 function RawCanvas(props: IRawCanvasProps) {
+  const tree = props.useMappedState(({ root }) => root);
   const { style, className, dispatch, useMappedState } = props;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
   const [registerChildDom, childDomReady] = useListener();
@@ -50,16 +56,25 @@ function RawCanvas(props: IRawCanvasProps) {
     }
     return observer.current.disconnect;
   });
-
+  const A = renderTree(
+    tree, { useMappedState, dispatch }, {
+    registerChildDom,
+    idx: 0,
+    registerParentMount: registerMyDomMount,
+    parentIsMount: !!domRef.current
+  });
+  console.log(A);
   return (
     <div ref={domRef} style={style} className={className} >
       {
-        renderTree(
-          tree, { useMappedState, dispatch }, {
-          registerDom: registerChildDom,
-          idx: 0,
-          registerParentMount: registerMyDomMount
-        })
+        A
+        // renderTree(
+        //   tree, { useMappedState, dispatch }, {
+        //   registerChildDom,
+        //   idx: 0,
+        //   registerParentMount: registerMyDomMount,
+        //   parentIsMount: !!domRef.current
+        // })
       }
     </div>
   );
