@@ -1,14 +1,12 @@
 import { IDragItem } from '@/components/feature';
 import { ItemTypes } from '@/lib/itemTypes';
-import { IDispatch, IUseMappedState } from '@/store';
+import { IRenderTreeCtx } from '@/lib/renderTree';
 import { useDrop } from 'dnd';
 import * as React from 'react';
 import { IRegiserDom } from './captureDom';
 
-interface IDropableProps extends React.Props<any> {
+interface IDropableProps extends React.Props<any>, IRenderTreeCtx {
   registerDom: IRegiserDom;
-  dispatch: IDispatch;
-  useMappedState: IUseMappedState;
   idx: number;
 }
 
@@ -20,7 +18,7 @@ export function Dropable(props: IDropableProps) {
       if (monitor.didDrop()) {
         return;
       }
-      props.dispatch('beforeDrop', item.component);
+      props.browserEvtEmit('drop', item.component);
     }
   });
 

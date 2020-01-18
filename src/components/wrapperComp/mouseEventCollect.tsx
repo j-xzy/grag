@@ -1,12 +1,10 @@
 import { useMount } from '@/hooks/useMount';
-import { IDispatch, IUseMappedState } from '@/store';
+import { IRenderTreeCtx } from '@/lib/renderTree';
 import * as React from 'react';
 import { IRegiserDom } from './captureDom';
 
-interface IDropableProps extends React.Props<any> {
+interface IDropableProps extends React.Props<any>, IRenderTreeCtx {
   registerDom: IRegiserDom;
-  dispatch: IDispatch;
-  useMappedState: IUseMappedState;
   idx: number;
 }
 

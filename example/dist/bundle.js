@@ -128,6 +128,35 @@
     return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
   }
 
+  var BrowserEventMonitor =
+  /*#__PURE__*/
+  function () {
+    function BrowserEventMonitor() {
+      _classCallCheck(this, BrowserEventMonitor);
+
+      this.emit = this.emit.bind(this);
+    }
+
+    _createClass(BrowserEventMonitor, [{
+      key: "emit",
+      value: function emit(evtName, params) {
+        this[evtName].call(this, params);
+      }
+    }, {
+      key: "mousemove",
+      value: function mousemove(_a) {
+        console.log(_a);
+      }
+    }, {
+      key: "drop",
+      value: function drop(_a) {
+        console.log(_a);
+      }
+    }]);
+
+    return BrowserEventMonitor;
+  }();
+
   function _arrayWithoutHoles(arr) {
     if (Array.isArray(arr)) {
       for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
@@ -4689,7 +4718,7 @@
           return;
         }
 
-        props.dispatch('beforeDrop', item.component);
+        props.browserEvtEmit('drop', item.component);
       }
     }),
         _useDrop2 = _slicedToArray(_useDrop, 2),
@@ -5076,9 +5105,9 @@
       var root = _ref.root;
       return root;
     });
-    var style = props.style,
+    var browserEvtEmit = props.browserEvtEmit,
+        style = props.style,
         className = props.className,
-        dispatch = props.dispatch,
         useMappedState = props.useMappedState;
     var domRef = React__default.useRef(null);
 
@@ -5097,14 +5126,24 @@
       childDomReady(node, 0);
     }));
     useMount(function () {
+      function handleCanvasMousemmove(e) {
+        e.stopPropagation();
+      }
+
       if (domRef.current) {
-        myDomMount(true);
         observer.current.observe(domRef.current, {
           childList: true
         });
+        domRef.current.addEventListener('mousemove', handleCanvasMousemmove, true);
+        myDomMount(true);
       }
 
-      return observer.current.disconnect;
+      return function () {
+        var _domRef$current;
+
+        observer.current.disconnect();
+        (_domRef$current = domRef.current) === null || _domRef$current === void 0 ? void 0 : _domRef$current.removeEventListener('mousemove', handleCanvasMousemmove, true);
+      };
     });
     return React__default.createElement("div", {
       ref: domRef,
@@ -5112,7 +5151,7 @@
       className: className
     }, renderTree(tree, {
       useMappedState: useMappedState,
-      dispatch: dispatch
+      browserEvtEmit: browserEvtEmit
     }, {
       registerChildDom: registerChildDom,
       idx: 0,
@@ -5123,9 +5162,10 @@
 
   function Canvas(props) {
     var storeRef = React__default.useRef(createStore$1(createInitState(), reducers));
+    var browserEvtMonitor = React__default.useRef(new BrowserEventMonitor());
     var useMappedStateRef = React__default.useRef(createUseMappedState(storeRef.current));
     return React__default.createElement(RawCanvas, Object.assign({
-      dispatch: storeRef.current.dispatch,
+      browserEvtEmit: browserEvtMonitor.current.emit,
       useMappedState: useMappedStateRef.current
     }, props));
   }

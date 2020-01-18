@@ -2,11 +2,12 @@ import { CaptureDom, IChildrenCallbackParams } from '@/components/wrapperComp/ca
 import { Dropable } from '@/components/wrapperComp/draggable';
 import { Memo } from '@/components/wrapperComp/memo';
 import { MouseEventCollect } from '@/components/wrapperComp/mouseEventCollect';
-import { IDispatch, IUseMappedState } from '@/store';
+import { IBrowserEvtEmit } from '@/eventMonitor';
+import { IUseMappedState } from '@/store';
 import * as React from 'react';
 
-interface ICtx {
-  dispatch: IDispatch;
+export interface IRenderTreeCtx {
+  browserEvtEmit: IBrowserEvtEmit;
   useMappedState: IUseMappedState;
 }
 
@@ -14,7 +15,7 @@ interface IParams extends IChildrenCallbackParams {
   idx: number;
 }
 
-export function renderTree(root: IGrag.INode | null, ctx: ICtx, params: IParams) {
+export function renderTree(root: IGrag.INode | null, ctx: IRenderTreeCtx, params: IParams) {
   if (root === null) {
     return null;
   }
