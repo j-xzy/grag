@@ -1,12 +1,13 @@
-import { Root } from '@/components/root';
+import { RootCompId, RootFtrId } from '@/components/root';
 export type IState = ReturnType<typeof createInitState>;
 export type IGetState = () => ReturnType<typeof createInitState>;
 
 export function createInitState() {
   return {
-    maxId: 0,
+    enterFtrId: null as string | null,
     root: {
-      component: Root,
+      compId: RootCompId,
+      ftrId: RootFtrId,
       children: []
     } as IGrag.INode
   };

@@ -1,12 +1,13 @@
 import { IDragItem } from '@/components/feature';
 import { ItemTypes } from '@/lib/itemTypes';
-import { IRenderTreeCtx } from '@/lib/renderTree';
+import { IFtrCtx } from '@/lib/renderTree';
 import { useDrop } from 'dnd';
 import * as React from 'react';
 import { IRegiserDom } from './captureDom';
 
-interface IDropableProps extends React.Props<any>, IRenderTreeCtx {
+interface IDropableProps extends React.Props<any>, IFtrCtx {
   registerDom: IRegiserDom;
+  ftrId: string;
   idx: number;
 }
 
@@ -14,11 +15,19 @@ export function Dropable(props: IDropableProps) {
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
   const [, drop] = useDrop({
     accept: ItemTypes.CANVAS,
-    drop: (item: IDragItem, monitor) => {
+    drop(item: IDragItem, monitor) {
       if (monitor.didDrop()) {
         return;
       }
-      props.browserEvtEmit('drop', item.component);
+      props.evtEmit('ftrDrop', { compId: item.compId, parentFtrId: props.ftrId });
+    },
+    hover(_item: IDragItem, monitor) {
+      if (!monitor.isOver({ shallow: true })) {
+        return;
+      }
+      props.evtEmit('ftrHover', {
+        targetFtrId: props.ftrId
+      });
     }
   });
 

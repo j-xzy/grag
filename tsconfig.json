@@ -27,6 +27,9 @@
       ],
       "dnd": [
         "./src/packages/dnd"
+      ],
+      "produce": [
+        "./src/packages/immer"
       ]
     }
   },

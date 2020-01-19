@@ -1,7 +1,7 @@
 declare namespace IGrag {
   interface INode {
-    component: IGrag.ICompFcClass;
-    // dom: HTMLElement;
+    compId: string;
+    ftrId: string;
     children: INode[];
   }
 }

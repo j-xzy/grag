@@ -1,50 +1,63 @@
-import { CaptureDom, IChildrenCallbackParams } from '@/components/wrapperComp/captureDom';
+import { CaptureDom, ICaptureDomParams } from '@/components/wrapperComp/captureDom';
 import { Dropable } from '@/components/wrapperComp/draggable';
 import { Memo } from '@/components/wrapperComp/memo';
 import { MouseEventCollect } from '@/components/wrapperComp/mouseEventCollect';
-import { IBrowserEvtEmit } from '@/eventMonitor';
+import { IEvtEmit } from '@/eventMonitor';
 import { IUseMappedState } from '@/store';
 import * as React from 'react';
 
-export interface IRenderTreeCtx {
-  browserEvtEmit: IBrowserEvtEmit;
+export interface IFtrCtx {
+  evtEmit: IEvtEmit;
   useMappedState: IUseMappedState;
 }
 
-interface IParams extends IChildrenCallbackParams {
+interface IParams extends ICaptureDomParams {
   idx: number;
 }
 
-export function renderTree(root: IGrag.INode | null, ctx: IRenderTreeCtx, params: IParams) {
-  if (root === null) {
-    return null;
+interface IRenderTreeProps {
+  root: IGrag.INode | null;
+  id2CompMap: IGrag.IId2CompMap;
+  ftrCtx: IFtrCtx;
+  captureDomParams: IParams;
+}
+
+export function renderTree(renderTreeparams: IRenderTreeProps) {
+  const { id2CompMap, root, ftrCtx, captureDomParams } = renderTreeparams;
+  return renderNode(root, captureDomParams);
+
+  function renderNode(node: IGrag.INode | null, params: IParams) {
+    if (node === null) {
+      return null;
+    }
+    const { compId, children, ftrId } = node;
+    const Comp = id2CompMap[compId];
+    return (
+      <Memo key={ftrId} x-children={children}>
+        <MouseEventCollect {...ftrCtx} idx={params.idx} registerDom={params.registerChildDom}>
+          <Dropable {...ftrCtx} ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
+            <CaptureDom
+              {...ftrCtx}
+              idx={params.idx}
+              parentIsMount={params.parentIsMount}
+              registerParentMount={params.registerParentMount}
+              registerDom={params.registerChildDom}
+            >
+              {
+                ({ registerChildDom, registerParentMount, parentIsMount }) => (
+                  <Comp>
+                    {
+                      children.length ?
+                        children.map((child, idx) => renderNode(child, { registerChildDom, idx, registerParentMount, parentIsMount }))
+                        : null
+                    }
+                  </Comp>
+                )
+              }
+            </CaptureDom>
+          </Dropable>
+        </MouseEventCollect>
+      </Memo>
+    );
   }
-  const { component: Comp, children } = root;
-  return (
-    <Memo key={params.idx} x-children={children}>
-      <MouseEventCollect {...ctx} idx={params.idx} registerDom={params.registerChildDom}>
-        <Dropable {...ctx} idx={params.idx} registerDom={params.registerChildDom}>
-          <CaptureDom
-            {...ctx}
-            idx={params.idx}
-            parentIsMount={params.parentIsMount}
-            registerParentMount={params.registerParentMount}
-            registerDom={params.registerChildDom}
-          >
-            {
-              ({ registerChildDom, registerParentMount, parentIsMount }) => (
-                <Comp>
-                  {
-                    children.length ?
-                      children.map((child, idx) => renderTree(child, ctx, { registerChildDom, idx, registerParentMount, parentIsMount }))
-                      : null
-                  }
-                </Comp>
-              )
-            }
-          </CaptureDom>
-        </Dropable>
-      </MouseEventCollect>
-    </Memo>
-  );
 }

@@ -1,26 +1,40 @@
+import { uuid } from '@/lib/uuid';
 import { IDispatch } from '@/store';
 
-interface IBrowserEventMap {
-  mousemove: any;
-  drop: any;
+interface IEventMap {
+  canvasMousemove: any;
+  ftrDrop: {
+    compId: string;
+    parentFtrId: string;
+  };
+  ftrHover: {
+    targetFtrId: string;
+  };
 }
 
-export type IBrowserEvtEmit = BrowserEventMonitor['emit'];
+export type IEvtEmit = EventMonitor['emit'];
 
-export class BrowserEventMonitor implements IGrag.IMap2Func<IBrowserEventMap>  {
+export class EventMonitor implements IGrag.IMap2Func<IEventMap>  {
   constructor(private dispatch: IDispatch) {
     this.emit = this.emit.bind(this);
   }
 
-  public emit<T extends keyof IBrowserEventMap>(evtName: T, params: IBrowserEventMap[T]) {
-    this[evtName].call(this, params);
+  public emit<T extends keyof IEventMap>(evtName: T, params: IEventMap[T]) {
+    this[evtName](params);
   }
 
-  public mousemove(_a: any) {
-    console.log(_a);
+  public canvasMousemove() {
+    //
   }
 
-  public drop(_a: any) {
-    console.log(_a);
+  public ftrDrop(param: IEventMap['ftrDrop']) {
+    this.dispatch('insertFtr', {
+      ...param,
+      ftrId: uuid()
+    });
+  }
+
+  public ftrHover(param: IEventMap['ftrHover']) {
+    this.dispatch('updateEnterFtr', param.targetFtrId);
   }
 }

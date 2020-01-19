@@ -1,9 +1,9 @@
 import { useMount } from '@/hooks/useMount';
-import { IRenderTreeCtx } from '@/lib/renderTree';
+import { IFtrCtx } from '@/lib/renderTree';
 import * as React from 'react';
 import { IRegiserDom } from './captureDom';
 
-interface IDropableProps extends React.Props<any>, IRenderTreeCtx {
+interface IDropableProps extends React.Props<any>, IFtrCtx {
   registerDom: IRegiserDom;
   idx: number;
 }

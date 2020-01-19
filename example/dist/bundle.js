@@ -128,156 +128,31 @@
     return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
   }
 
-  var BrowserEventMonitor =
-  /*#__PURE__*/
-  function () {
-    function BrowserEventMonitor() {
-      _classCallCheck(this, BrowserEventMonitor);
-
-      this.emit = this.emit.bind(this);
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
     }
 
-    _createClass(BrowserEventMonitor, [{
-      key: "emit",
-      value: function emit(evtName, params) {
-        this[evtName].call(this, params);
+    return obj;
+  }
+
+  var RootCompId = 'root';
+  var RootFtrId = 'root';
+  function Root(props) {
+    return React.createElement("div", {
+      style: {
+        width: '100%',
+        height: '100%'
       }
-    }, {
-      key: "mousemove",
-      value: function mousemove(_a) {
-        console.log(_a);
-      }
-    }, {
-      key: "drop",
-      value: function drop(_a) {
-        console.log(_a);
-      }
-    }]);
-
-    return BrowserEventMonitor;
-  }();
-
-  function _arrayWithoutHoles(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
-        arr2[i] = arr[i];
-      }
-
-      return arr2;
-    }
+    }, props.children);
   }
-
-  function _iterableToArray(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-  }
-
-  function _nonIterableSpread() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
-  }
-
-  function _toConsumableArray(arr) {
-    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
-  }
-
-  function useListener() {
-    var lis = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-    var listeners = React.useRef(lis);
-    var subscribe = React.useCallback(function (cb) {
-      listeners.current.push(cb);
-      return function unSubscribe() {
-        var idx = listeners.current.findIndex(function (listener) {
-          return listener === cb;
-        });
-
-        if (idx >= 0) {
-          listeners.current.splice(idx, 1);
-        }
-      };
-    }, [listeners]);
-    var notify = React.useCallback(function () {
-      for (var _len = arguments.length, params = new Array(_len), _key = 0; _key < _len; _key++) {
-        params[_key] = arguments[_key];
-      }
-
-      var cbs = _toConsumableArray(listeners.current);
-
-      cbs.forEach(function (cb) {
-        cb.apply(void 0, params);
-      });
-    }, [listeners]);
-    React.useEffect(function () {
-      return function () {
-        listeners.current = [];
-      };
-    }, []);
-    return [subscribe, notify];
-  }
-
-  function useMount(mount) {
-    React.useLayoutEffect(mount, []);
-  }
-
-  function CaptureDom(props) {
-    var _React$useState = React.useState(props.parentIsMount),
-        _React$useState2 = _slicedToArray(_React$useState, 2),
-        parentIsMount = _React$useState2[0],
-        setParentIsMount = _React$useState2[1];
-
-    var domRef = React.useRef(null);
-
-    var _useListener = useListener(),
-        _useListener2 = _slicedToArray(_useListener, 2),
-        registerChildDom = _useListener2[0],
-        childDomReady = _useListener2[1];
-
-    var _useListener3 = useListener(),
-        _useListener4 = _slicedToArray(_useListener3, 2),
-        registerMyDomMount = _useListener4[0],
-        myDomMount = _useListener4[1];
-
-    var observer = React.useRef(new MutationObserver(function (records) {
-      records.forEach(function (_ref) {
-        var _domRef$current;
-
-        var addedNodes = _ref.addedNodes;
-        var ch = addedNodes[0];
-        var idx = Array.prototype.indexOf.call((_domRef$current = domRef.current) === null || _domRef$current === void 0 ? void 0 : _domRef$current.children, ch);
-        childDomReady(ch, idx);
-      });
-    }));
-    useMount(function () {
-      var unSubscribe = props.registerDom(function (dom, idx) {
-        if (!domRef.current && idx === props.idx) {
-          domRef.current = dom;
-          observer.current.observe(domRef.current, {
-            childList: true
-          });
-          unSubscribe();
-          myDomMount(dom);
-        }
-      });
-      return function () {
-        unSubscribe();
-        observer.current.disconnect();
-      };
-    });
-    useMount(function () {
-      var unSubscribe = props.registerParentMount(function () {
-        unSubscribe();
-        setParentIsMount(true);
-      });
-      return unSubscribe;
-    });
-    return parentIsMount ? props.children({
-      registerChildDom: registerChildDom,
-      parentIsMount: !!domRef.current,
-      registerParentMount: registerMyDomMount
-    }) : null;
-  }
-
-  var ItemTypes = {
-    CANVAS: 'canvas'
-  };
 
   var HandlerRole;
 
@@ -789,7 +664,7 @@
 
       if (i % 2) {
         ownKeys(Object(source), true).forEach(function (key) {
-          _defineProperty(target, key, source[key]);
+          _defineProperty$1(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -803,7 +678,7 @@
     return target;
   }
 
-  function _defineProperty(obj, key, value) {
+  function _defineProperty$1(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -941,7 +816,7 @@
 
       if (i % 2) {
         ownKeys$1(Object(source), true).forEach(function (key) {
-          _defineProperty$1(target, key, source[key]);
+          _defineProperty$2(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -955,7 +830,7 @@
     return target;
   }
 
-  function _defineProperty$1(obj, key, value) {
+  function _defineProperty$2(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -1063,7 +938,7 @@
 
       if (i % 2) {
         ownKeys$2(Object(source), true).forEach(function (key) {
-          _defineProperty$2(target, key, source[key]);
+          _defineProperty$3(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -1077,7 +952,7 @@
     return target;
   }
 
-  function _defineProperty$2(obj, key, value) {
+  function _defineProperty$3(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -1267,7 +1142,7 @@
 
       if (i % 2) {
         ownKeys$3(Object(source), true).forEach(function (key) {
-          _defineProperty$3(target, key, source[key]);
+          _defineProperty$4(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -1281,7 +1156,7 @@
     return target;
   }
 
-  function _defineProperty$3(obj, key, value) {
+  function _defineProperty$4(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -3873,7 +3748,7 @@
 
   var _nativeTypesConfig;
 
-  function _defineProperty$4(obj, key, value) {
+  function _defineProperty$5(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -3887,7 +3762,7 @@
 
     return obj;
   }
-  var nativeTypesConfig = (_nativeTypesConfig = {}, _defineProperty$4(_nativeTypesConfig, FILE, {
+  var nativeTypesConfig = (_nativeTypesConfig = {}, _defineProperty$5(_nativeTypesConfig, FILE, {
     exposeProperties: {
       files: function files(dataTransfer) {
         return Array.prototype.slice.call(dataTransfer.files);
@@ -3897,14 +3772,14 @@
       }
     },
     matchesTypes: ['Files']
-  }), _defineProperty$4(_nativeTypesConfig, URL, {
+  }), _defineProperty$5(_nativeTypesConfig, URL, {
     exposeProperties: {
       urls: function urls(dataTransfer, matchesTypes) {
         return getDataFromDataTransfer(dataTransfer, matchesTypes, '').split('\n');
       }
     },
     matchesTypes: ['Url', 'text/uri-list']
-  }), _defineProperty$4(_nativeTypesConfig, TEXT, {
+  }), _defineProperty$5(_nativeTypesConfig, TEXT, {
     exposeProperties: {
       text: function text(dataTransfer, matchesTypes) {
         return getDataFromDataTransfer(dataTransfer, matchesTypes, '');
@@ -4093,7 +3968,7 @@
 
       if (i % 2) {
         ownKeys$4(Object(source), true).forEach(function (key) {
-          _defineProperty$5(target, key, source[key]);
+          _defineProperty$6(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -4107,7 +3982,7 @@
     return target;
   }
 
-  function _defineProperty$5(obj, key, value) {
+  function _defineProperty$6(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
         value: value,
@@ -4708,6 +4583,182 @@
     }, props.children);
   }
 
+  var Context = React__default.createContext({
+    id2CompMap: {}
+  });
+  function GragProvider(props) {
+    var id2CompMap = React__default.useRef(_defineProperty({}, RootCompId, Root));
+    return React__default.createElement(Context.Provider, {
+      value: {
+        id2CompMap: id2CompMap.current
+      }
+    }, React__default.createElement(Provider, null, props.children));
+  }
+
+  function uuid() {
+    return 'uuid' + Math.ceil(Math.random() * 100000) + Math.ceil(Math.random() * 100000);
+  }
+
+  function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+  function _objectSpread$5(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$5(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$5(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+  var EventMonitor =
+  /*#__PURE__*/
+  function () {
+    function EventMonitor(dispatch) {
+      _classCallCheck(this, EventMonitor);
+
+      this.dispatch = dispatch;
+      this.emit = this.emit.bind(this);
+    }
+
+    _createClass(EventMonitor, [{
+      key: "emit",
+      value: function emit(evtName, params) {
+        this[evtName](params);
+      }
+    }, {
+      key: "canvasMousemove",
+      value: function canvasMousemove() {}
+    }, {
+      key: "ftrDrop",
+      value: function ftrDrop(param) {
+        this.dispatch('insertFtr', _objectSpread$5({}, param, {
+          ftrId: uuid()
+        }));
+      }
+    }, {
+      key: "ftrHover",
+      value: function ftrHover(param) {
+        this.dispatch('updateEnterFtr', param.targetFtrId);
+      }
+    }]);
+
+    return EventMonitor;
+  }();
+
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
+
+      return arr2;
+    }
+  }
+
+  function _iterableToArray(iter) {
+    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  }
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance");
+  }
+
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+  }
+
+  function useListener() {
+    var lis = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+    var listeners = React.useRef(lis);
+    var subscribe = React.useCallback(function (cb) {
+      listeners.current.push(cb);
+      return function unSubscribe() {
+        var idx = listeners.current.findIndex(function (listener) {
+          return listener === cb;
+        });
+
+        if (idx >= 0) {
+          listeners.current.splice(idx, 1);
+        }
+      };
+    }, [listeners]);
+    var notify = React.useCallback(function () {
+      for (var _len = arguments.length, params = new Array(_len), _key = 0; _key < _len; _key++) {
+        params[_key] = arguments[_key];
+      }
+
+      var cbs = _toConsumableArray(listeners.current);
+
+      cbs.forEach(function (cb) {
+        cb.apply(void 0, params);
+      });
+    }, [listeners]);
+    React.useEffect(function () {
+      return function () {
+        listeners.current = [];
+      };
+    }, []);
+    return [subscribe, notify];
+  }
+
+  function useMount(mount) {
+    React.useLayoutEffect(mount, []);
+  }
+
+  function CaptureDom(props) {
+    var _React$useState = React.useState(props.parentIsMount),
+        _React$useState2 = _slicedToArray(_React$useState, 2),
+        parentIsMount = _React$useState2[0],
+        setParentIsMount = _React$useState2[1];
+
+    var domRef = React.useRef(null);
+
+    var _useListener = useListener(),
+        _useListener2 = _slicedToArray(_useListener, 2),
+        registerChildDom = _useListener2[0],
+        childDomReady = _useListener2[1];
+
+    var _useListener3 = useListener(),
+        _useListener4 = _slicedToArray(_useListener3, 2),
+        registerMyDomMount = _useListener4[0],
+        myDomMount = _useListener4[1];
+
+    var observer = React.useRef(new MutationObserver(function (records) {
+      records.forEach(function (_ref) {
+        var _domRef$current;
+
+        var addedNodes = _ref.addedNodes;
+        var ch = addedNodes[0];
+        var idx = Array.prototype.indexOf.call((_domRef$current = domRef.current) === null || _domRef$current === void 0 ? void 0 : _domRef$current.children, ch);
+        childDomReady(ch, idx);
+      });
+    }));
+    useMount(function () {
+      var unSubscribe = props.registerDom(function (dom, idx) {
+        if (!domRef.current && idx === props.idx) {
+          domRef.current = dom;
+          observer.current.observe(domRef.current, {
+            childList: true
+          });
+          unSubscribe();
+          myDomMount(dom);
+        }
+      });
+      return function () {
+        unSubscribe();
+        observer.current.disconnect();
+      };
+    });
+    useMount(function () {
+      var unSubscribe = props.registerParentMount(function () {
+        unSubscribe();
+        setParentIsMount(true);
+      });
+      return unSubscribe;
+    });
+    return parentIsMount ? props.children({
+      registerChildDom: registerChildDom,
+      parentIsMount: !!domRef.current,
+      registerParentMount: registerMyDomMount
+    }) : null;
+  }
+
+  var ItemTypes = {
+    CANVAS: 'canvas'
+  };
+
   function Dropable(props) {
     var domRef = React.useRef(null);
 
@@ -4718,7 +4769,21 @@
           return;
         }
 
-        props.browserEvtEmit('drop', item.component);
+        props.evtEmit('ftrDrop', {
+          compId: item.compId,
+          parentFtrId: props.ftrId
+        });
+      },
+      hover: function hover(_item, monitor) {
+        if (!monitor.isOver({
+          shallow: true
+        })) {
+          return;
+        }
+
+        props.evtEmit('ftrHover', {
+          targetFtrId: props.ftrId
+        });
       }
     }),
         _useDrop2 = _slicedToArray(_useDrop, 2),
@@ -4765,91 +4830,1774 @@
     return props.children;
   }
 
-  function renderTree(root, ctx, params) {
-    if (root === null) {
-      return null;
-    }
+  function renderTree(renderTreeparams) {
+    var id2CompMap = renderTreeparams.id2CompMap,
+        root = renderTreeparams.root,
+        ftrCtx = renderTreeparams.ftrCtx,
+        captureDomParams = renderTreeparams.captureDomParams;
+    return renderNode(root, captureDomParams);
 
-    var Comp = root.component,
-        children = root.children;
-    return React.createElement(Memo, {
-      key: params.idx,
-      "x-children": children
-    }, React.createElement(MouseEventCollect, Object.assign({}, ctx, {
-      idx: params.idx,
-      registerDom: params.registerChildDom
-    }), React.createElement(Dropable, Object.assign({}, ctx, {
-      idx: params.idx,
-      registerDom: params.registerChildDom
-    }), React.createElement(CaptureDom, Object.assign({}, ctx, {
-      idx: params.idx,
-      parentIsMount: params.parentIsMount,
-      registerParentMount: params.registerParentMount,
-      registerDom: params.registerChildDom
-    }), function (_ref) {
-      var registerChildDom = _ref.registerChildDom,
-          registerParentMount = _ref.registerParentMount,
-          parentIsMount = _ref.parentIsMount;
-      return React.createElement(Comp, null, children.length ? children.map(function (child, idx) {
-        return renderTree(child, ctx, {
-          registerChildDom: registerChildDom,
-          idx: idx,
-          registerParentMount: registerParentMount,
-          parentIsMount: parentIsMount
-        });
-      }) : null);
-    }))));
+    function renderNode(node, params) {
+      if (node === null) {
+        return null;
+      }
+
+      var compId = node.compId,
+          children = node.children,
+          ftrId = node.ftrId;
+      var Comp = id2CompMap[compId];
+      return React.createElement(Memo, {
+        key: ftrId,
+        "x-children": children
+      }, React.createElement(MouseEventCollect, Object.assign({}, ftrCtx, {
+        idx: params.idx,
+        registerDom: params.registerChildDom
+      }), React.createElement(Dropable, Object.assign({}, ftrCtx, {
+        ftrId: ftrId,
+        idx: params.idx,
+        registerDom: params.registerChildDom
+      }), React.createElement(CaptureDom, Object.assign({}, ftrCtx, {
+        idx: params.idx,
+        parentIsMount: params.parentIsMount,
+        registerParentMount: params.registerParentMount,
+        registerDom: params.registerChildDom
+      }), function (_ref) {
+        var registerChildDom = _ref.registerChildDom,
+            registerParentMount = _ref.registerParentMount,
+            parentIsMount = _ref.parentIsMount;
+        return React.createElement(Comp, null, children.length ? children.map(function (child, idx) {
+          return renderNode(child, {
+            registerChildDom: registerChildDom,
+            idx: idx,
+            registerParentMount: registerParentMount,
+            parentIsMount: parentIsMount
+          });
+        }) : null);
+      }))));
+    }
   }
 
-  function _defineProperty$6(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
+  var _a;
+
+  var hasSymbol = typeof Symbol !== "undefined";
+  var hasMap = typeof Map !== "undefined";
+  var hasSet = typeof Set !== "undefined";
+  var NOTHING = hasSymbol ? Symbol("immer-nothing") : (_a = {}, _a["immer-nothing"] = true, _a);
+  var DRAFTABLE = hasSymbol ? Symbol("immer-draftable") : "__$immer_draftable";
+  var DRAFT_STATE = hasSymbol ? Symbol("immer-state") : "__$immer_state";
+  var iteratorSymbol = hasSymbol ? Symbol.iterator : "@@iterator";
+
+  var _extendStatics = function extendStatics(d, b) {
+    _extendStatics = Object.setPrototypeOf || {
+      __proto__: []
+    } instanceof Array && function (d, b) {
+      d.__proto__ = b;
+    } || function (d, b) {
+      for (var p in b) {
+        if (b.hasOwnProperty(p)) {
+          d[p] = b[p];
+        }
+      }
+    };
+
+    return _extendStatics(d, b);
+  };
+
+  function __extends(d, b) {
+    _extendStatics(d, b);
+
+    function __() {
+      this.constructor = d;
+    }
+
+    d.prototype = (__.prototype = b.prototype, new __());
+  }
+
+  var Archtype;
+
+  (function (Archtype) {
+    Archtype[Archtype["Object"] = 0] = "Object";
+    Archtype[Archtype["Array"] = 1] = "Array";
+    Archtype[Archtype["Map"] = 2] = "Map";
+    Archtype[Archtype["Set"] = 3] = "Set";
+  })(Archtype || (Archtype = {}));
+
+  var ProxyType;
+
+  (function (ProxyType) {
+    ProxyType[ProxyType["ProxyObject"] = 0] = "ProxyObject";
+    ProxyType[ProxyType["ProxyArray"] = 1] = "ProxyArray";
+    ProxyType[ProxyType["ES5Object"] = 2] = "ES5Object";
+    ProxyType[ProxyType["ES5Array"] = 3] = "ES5Array";
+    ProxyType[ProxyType["Map"] = 4] = "Map";
+    ProxyType[ProxyType["Set"] = 5] = "Set";
+  })(ProxyType || (ProxyType = {}));
+
+  function isDraft(value) {
+    return !!value && !!value[DRAFT_STATE];
+  }
+
+  function isDraftable(value) {
+    if (!value) {
+      return false;
+    }
+
+    return isPlainObject$1(value) || Array.isArray(value) || !!value[DRAFTABLE] || !!value.constructor[DRAFTABLE] || isMap(value) || isSet(value);
+  }
+
+  function isPlainObject$1(value) {
+    if (!value || _typeof(value) !== "object") {
+      return false;
+    }
+
+    var proto = Object.getPrototypeOf(value);
+    return !proto || proto === Object.prototype;
+  }
+
+  var ownKeys$6 = typeof Reflect !== "undefined" && Reflect.ownKeys ? Reflect.ownKeys : typeof Object.getOwnPropertySymbols !== "undefined" ? function (obj) {
+    return Object.getOwnPropertyNames(obj).concat(Object.getOwnPropertySymbols(obj));
+  } : Object.getOwnPropertyNames;
+
+  function each(obj, iter) {
+    if (getArchtype(obj) === Archtype.Object) {
+      ownKeys$6(obj).forEach(function (key) {
+        return iter(key, obj[key], obj);
       });
     } else {
-      obj[key] = value;
+      obj.forEach(function (entry, index) {
+        return iter(index, entry, obj);
+      });
     }
-
-    return obj;
   }
 
-  function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+  function isEnumerable(base, prop) {
+    var desc = Object.getOwnPropertyDescriptor(base, prop);
+    return desc && desc.enumerable ? true : false;
+  }
 
-  function _objectSpread$5(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$5(Object(source), true).forEach(function (key) { _defineProperty$6(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$5(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+  function getArchtype(thing) {
+    if (!thing) {
+      die();
+    }
 
-  function beforeDrop(getState, component) {
-    return _objectSpread$5({}, getState(), {
-      root: _objectSpread$5({}, getState().root, {
-        children: [].concat(_toConsumableArray(getState().root.children), [{
-          component: component,
-          children: []
-        }])
-      })
+    if (thing[DRAFT_STATE]) {
+      switch (thing[DRAFT_STATE].type) {
+        case ProxyType.ES5Object:
+        case ProxyType.ProxyObject:
+          return Archtype.Object;
+
+        case ProxyType.ES5Array:
+        case ProxyType.ProxyArray:
+          return Archtype.Array;
+
+        case ProxyType.Map:
+          return Archtype.Map;
+
+        case ProxyType.Set:
+          return Archtype.Set;
+      }
+    }
+
+    return Array.isArray(thing) ? Archtype.Array : isMap(thing) ? Archtype.Map : isSet(thing) ? Archtype.Set : Archtype.Object;
+  }
+
+  function has(thing, prop) {
+    return getArchtype(thing) === Archtype.Map ? thing.has(prop) : Object.prototype.hasOwnProperty.call(thing, prop);
+  }
+
+  function get$1(thing, prop) {
+    return getArchtype(thing) === Archtype.Map ? thing.get(prop) : thing[prop];
+  }
+
+  function set(thing, propOrOldValue, value) {
+    switch (getArchtype(thing)) {
+      case Archtype.Map:
+        thing.set(propOrOldValue, value);
+        break;
+
+      case Archtype.Set:
+        thing.delete(propOrOldValue);
+        thing.add(value);
+        break;
+
+      default:
+        thing[propOrOldValue] = value;
+    }
+  }
+
+  function is(x, y) {
+    if (x === y) {
+      return x !== 0 || 1 / x === 1 / y;
+    } else {
+      return x !== x && y !== y;
+    }
+  }
+
+  function isMap(target) {
+    return hasMap && target instanceof Map;
+  }
+
+  function isSet(target) {
+    return hasSet && target instanceof Set;
+  }
+
+  function latest(state) {
+    return state.copy || state.base;
+  }
+
+  function shallowCopy(base, invokeGetters) {
+    if (invokeGetters === void 0) {
+      invokeGetters = false;
+    }
+
+    if (Array.isArray(base)) {
+      return base.slice();
+    }
+
+    var clone = Object.create(Object.getPrototypeOf(base));
+    ownKeys$6(base).forEach(function (key) {
+      if (key === DRAFT_STATE) {
+        return;
+      }
+
+      var desc = Object.getOwnPropertyDescriptor(base, key);
+      var value = desc.value;
+
+      if (desc.get) {
+        if (!invokeGetters) {
+          throw new Error("Immer drafts cannot have computed properties");
+        }
+
+        value = desc.get.call(base);
+      }
+
+      if (desc.enumerable) {
+        clone[key] = value;
+      } else {
+        Object.defineProperty(clone, key, {
+          value: value,
+          writable: true,
+          configurable: true
+        });
+      }
+    });
+    return clone;
+  }
+
+  function freeze(obj, deep) {
+    if (!isDraftable(obj) || isDraft(obj) || Object.isFrozen(obj)) {
+      return;
+    }
+
+    var type = getArchtype(obj);
+
+    if (type === Archtype.Set) {
+      obj.add = obj.clear = obj.delete = dontMutateFrozenCollections;
+    } else if (type === Archtype.Map) {
+      obj.set = obj.clear = obj.delete = dontMutateFrozenCollections;
+    }
+
+    Object.freeze(obj);
+
+    if (deep) {
+      each(obj, function (_, value) {
+        return freeze(value, true);
+      });
+    }
+  }
+
+  function dontMutateFrozenCollections() {
+    throw new Error("This object has been frozen and should not be mutated");
+  }
+
+  function createHiddenProperty(target, prop, value) {
+    Object.defineProperty(target, prop, {
+      value: value,
+      enumerable: false,
+      writable: true
+    });
+  }
+
+  function die() {
+    throw new Error("Illegal state, please file a bug");
+  }
+
+  var ImmerScope = function () {
+    function ImmerScope(parent, immer) {
+      this.drafts = [];
+      this.parent = parent;
+      this.immer = immer;
+      this.canAutoFreeze = true;
+    }
+
+    ImmerScope.prototype.usePatches = function (patchListener) {
+      if (patchListener) {
+        this.patches = [];
+        this.inversePatches = [];
+        this.patchListener = patchListener;
+      }
+    };
+
+    ImmerScope.prototype.revoke = function () {
+      this.leave();
+      this.drafts.forEach(revoke);
+      this.drafts = null;
+    };
+
+    ImmerScope.prototype.leave = function () {
+      if (this === ImmerScope.current) {
+        ImmerScope.current = this.parent;
+      }
+    };
+
+    ImmerScope.enter = function (immer) {
+      var scope = new ImmerScope(ImmerScope.current, immer);
+      ImmerScope.current = scope;
+      return scope;
+    };
+
+    return ImmerScope;
+  }();
+
+  function revoke(draft) {
+    var state = draft[DRAFT_STATE];
+
+    if (state.type === ProxyType.ProxyObject || state.type === ProxyType.ProxyArray) {
+      state.revoke();
+    } else {
+      state.revoked = true;
+    }
+  }
+
+  function processResult(immer, result, scope) {
+    var baseDraft = scope.drafts[0];
+    var isReplaced = result !== undefined && result !== baseDraft;
+    immer.willFinalize(scope, result, isReplaced);
+
+    if (isReplaced) {
+      if (baseDraft[DRAFT_STATE].modified) {
+        scope.revoke();
+        throw new Error("An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.");
+      }
+
+      if (isDraftable(result)) {
+        result = finalize(immer, result, scope);
+        maybeFreeze(immer, result);
+      }
+
+      if (scope.patches) {
+        scope.patches.push({
+          op: "replace",
+          path: [],
+          value: result
+        });
+        scope.inversePatches.push({
+          op: "replace",
+          path: [],
+          value: baseDraft[DRAFT_STATE].base
+        });
+      }
+    } else {
+      result = finalize(immer, baseDraft, scope, []);
+    }
+
+    scope.revoke();
+
+    if (scope.patches) {
+      scope.patchListener(scope.patches, scope.inversePatches);
+    }
+
+    return result !== NOTHING ? result : undefined;
+  }
+
+  function finalize(immer, draft, scope, path) {
+    var state = draft[DRAFT_STATE];
+
+    if (!state) {
+      if (Object.isFrozen(draft)) {
+        return draft;
+      }
+
+      return finalizeTree(immer, draft, scope);
+    }
+
+    if (state.scope !== scope) {
+      return draft;
+    }
+
+    if (!state.modified) {
+      maybeFreeze(immer, state.base, true);
+      return state.base;
+    }
+
+    if (!state.finalized) {
+      state.finalized = true;
+      finalizeTree(immer, state.draft, scope, path);
+
+      if (immer.onDelete && state.type !== ProxyType.Set) {
+        if (immer.useProxies) {
+          var assigned = state.assigned;
+          each(assigned, function (prop, exists) {
+            if (!exists) {
+              immer.onDelete(state, prop);
+            }
+          });
+        } else {
+          var base = state.base,
+              copy_1 = state.copy;
+          each(base, function (prop) {
+            if (!has(copy_1, prop)) {
+              immer.onDelete(state, prop);
+            }
+          });
+        }
+      }
+
+      if (immer.onCopy) {
+        immer.onCopy(state);
+      }
+
+      if (immer.autoFreeze && scope.canAutoFreeze) {
+        freeze(state.copy, false);
+      }
+
+      if (path && scope.patches) {
+        generatePatches(state, path, scope.patches, scope.inversePatches);
+      }
+    }
+
+    return state.copy;
+  }
+
+  function finalizeTree(immer, root, scope, rootPath) {
+    var state = root[DRAFT_STATE];
+
+    if (state) {
+      if (state.type === ProxyType.ES5Object || state.type === ProxyType.ES5Array) {
+        state.copy = shallowCopy(state.draft, true);
+      }
+
+      root = state.copy;
+    }
+
+    each(root, function (key, value) {
+      return finalizeProperty(immer, scope, root, state, root, key, value, rootPath);
+    });
+    return root;
+  }
+
+  function finalizeProperty(immer, scope, root, rootState, parentValue, prop, childValue, rootPath) {
+    if (childValue === parentValue) {
+      throw Error("Immer forbids circular references");
+    }
+
+    var isDraftProp = !!rootState && parentValue === root;
+    var isSetMember = isSet(parentValue);
+
+    if (isDraft(childValue)) {
+      var path = rootPath && isDraftProp && !isSetMember && !has(rootState.assigned, prop) ? rootPath.concat(prop) : undefined;
+      childValue = finalize(immer, childValue, scope, path);
+      set(parentValue, prop, childValue);
+
+      if (isDraft(childValue)) {
+        scope.canAutoFreeze = false;
+      }
+    } else if (isDraftProp && is(childValue, get$1(rootState.base, prop))) {
+      return;
+    } else if (isDraftable(childValue) && !Object.isFrozen(childValue)) {
+      each(childValue, function (key, grandChild) {
+        return finalizeProperty(immer, scope, root, rootState, childValue, key, grandChild, rootPath);
+      });
+      maybeFreeze(immer, childValue);
+    }
+
+    if (isDraftProp && immer.onAssign && !isSetMember) {
+      immer.onAssign(rootState, prop, childValue);
+    }
+  }
+
+  function maybeFreeze(immer, value, deep) {
+    if (deep === void 0) {
+      deep = false;
+    }
+
+    if (immer.autoFreeze && !isDraft(value)) {
+      freeze(value, deep);
+    }
+  }
+
+  function createProxy(base, parent) {
+    var isArray = Array.isArray(base);
+    var state = {
+      type: isArray ? ProxyType.ProxyArray : ProxyType.ProxyObject,
+      scope: parent ? parent.scope : ImmerScope.current,
+      modified: false,
+      finalized: false,
+      assigned: {},
+      parent: parent,
+      base: base,
+      draft: null,
+      drafts: {},
+      copy: null,
+      revoke: null,
+      isManual: false
+    };
+    var target = state;
+    var traps = objectTraps;
+
+    if (isArray) {
+      target = [state];
+      traps = arrayTraps;
+    }
+
+    var _a = Proxy.revocable(target, traps),
+        revoke = _a.revoke,
+        proxy = _a.proxy;
+
+    state.draft = proxy;
+    state.revoke = revoke;
+    return proxy;
+  }
+
+  var objectTraps = {
+    get: function get(state, prop) {
+      if (prop === DRAFT_STATE) {
+        return state;
+      }
+
+      var drafts = state.drafts;
+
+      if (!state.modified && has(drafts, prop)) {
+        return drafts[prop];
+      }
+
+      var value = latest(state)[prop];
+
+      if (state.finalized || !isDraftable(value)) {
+        return value;
+      }
+
+      if (state.modified) {
+        if (value !== peek(state.base, prop)) {
+          return value;
+        }
+
+        drafts = state.copy;
+      }
+
+      return drafts[prop] = state.scope.immer.createProxy(value, state);
+    },
+    has: function has(state, prop) {
+      return prop in latest(state);
+    },
+    ownKeys: function ownKeys(state) {
+      return Reflect.ownKeys(latest(state));
+    },
+    set: function set(state, prop, value) {
+      if (!state.modified) {
+        var baseValue = peek(state.base, prop);
+        var isUnchanged = value ? is(baseValue, value) || value === state.drafts[prop] : is(baseValue, value) && prop in state.base;
+
+        if (isUnchanged) {
+          return true;
+        }
+
+        prepareCopy(state);
+        markChanged(state);
+      }
+
+      state.assigned[prop] = true;
+      state.copy[prop] = value;
+      return true;
+    },
+    deleteProperty: function deleteProperty(state, prop) {
+      if (peek(state.base, prop) !== undefined || prop in state.base) {
+        state.assigned[prop] = false;
+        prepareCopy(state);
+        markChanged(state);
+      } else if (state.assigned[prop]) {
+        delete state.assigned[prop];
+      }
+
+      if (state.copy) {
+        delete state.copy[prop];
+      }
+
+      return true;
+    },
+    getOwnPropertyDescriptor: function getOwnPropertyDescriptor(state, prop) {
+      var owner = latest(state);
+      var desc = Reflect.getOwnPropertyDescriptor(owner, prop);
+
+      if (desc) {
+        desc.writable = true;
+        desc.configurable = state.type !== ProxyType.ProxyArray || prop !== "length";
+      }
+
+      return desc;
+    },
+    defineProperty: function defineProperty() {
+      throw new Error("Object.defineProperty() cannot be used on an Immer draft");
+    },
+    getPrototypeOf: function getPrototypeOf(state) {
+      return Object.getPrototypeOf(state.base);
+    },
+    setPrototypeOf: function setPrototypeOf() {
+      throw new Error("Object.setPrototypeOf() cannot be used on an Immer draft");
+    }
+  };
+  var arrayTraps = {};
+  each(objectTraps, function (key, fn) {
+    arrayTraps[key] = function () {
+      arguments[0] = arguments[0][0];
+      return fn.apply(this, arguments);
+    };
+  });
+
+  arrayTraps.deleteProperty = function (state, prop) {
+    if (isNaN(parseInt(prop))) {
+      throw new Error("Immer only supports deleting array indices");
+    }
+
+    return objectTraps.deleteProperty.call(this, state[0], prop);
+  };
+
+  arrayTraps.set = function (state, prop, value) {
+    if (prop !== "length" && isNaN(parseInt(prop))) {
+      throw new Error("Immer only supports setting array indices and the 'length' property");
+    }
+
+    return objectTraps.set.call(this, state[0], prop, value, state[0]);
+  };
+
+  function peek(draft, prop) {
+    var state = draft[DRAFT_STATE];
+    var desc = Reflect.getOwnPropertyDescriptor(state ? latest(state) : draft, prop);
+    return desc && desc.value;
+  }
+
+  function markChanged(state) {
+    if (!state.modified) {
+      state.modified = true;
+
+      if (state.type === ProxyType.ProxyObject || state.type === ProxyType.ProxyArray) {
+        var copy_1 = state.copy = shallowCopy(state.base);
+        each(state.drafts, function (key, value) {
+          copy_1[key] = value;
+        });
+        state.drafts = undefined;
+      }
+
+      if (state.parent) {
+        markChanged(state.parent);
+      }
+    }
+  }
+
+  function prepareCopy(state) {
+    if (!state.copy) {
+      state.copy = shallowCopy(state.base);
+    }
+  }
+
+  function willFinalizeES5(scope, result, isReplaced) {
+    scope.drafts.forEach(function (draft) {
+      draft[DRAFT_STATE].finalizing = true;
+    });
+
+    if (!isReplaced) {
+      if (scope.patches) {
+        markChangesRecursively(scope.drafts[0]);
+      }
+
+      markChangesSweep(scope.drafts);
+    } else if (isDraft(result) && result[DRAFT_STATE].scope === scope) {
+      markChangesSweep(scope.drafts);
+    }
+  }
+
+  function createES5Proxy(base, parent) {
+    var isArray = Array.isArray(base);
+    var draft = clonePotentialDraft(base);
+    each(draft, function (prop) {
+      proxyProperty(draft, prop, isArray || isEnumerable(base, prop));
+    });
+    var state = {
+      type: isArray ? ProxyType.ES5Array : ProxyType.ES5Object,
+      scope: parent ? parent.scope : ImmerScope.current,
+      modified: false,
+      finalizing: false,
+      finalized: false,
+      assigned: {},
+      parent: parent,
+      base: base,
+      draft: draft,
+      copy: null,
+      revoked: false,
+      isManual: false
+    };
+    createHiddenProperty(draft, DRAFT_STATE, state);
+    return draft;
+  }
+
+  function peek$1(draft, prop) {
+    var state = draft[DRAFT_STATE];
+
+    if (state && !state.finalizing) {
+      state.finalizing = true;
+      var value = draft[prop];
+      state.finalizing = false;
+      return value;
+    }
+
+    return draft[prop];
+  }
+
+  function get$1$1(state, prop) {
+    assertUnrevoked(state);
+    var value = peek$1(latest(state), prop);
+
+    if (state.finalizing) {
+      return value;
+    }
+
+    if (value === peek$1(state.base, prop) && isDraftable(value)) {
+      prepareCopy$1(state);
+      return state.copy[prop] = state.scope.immer.createProxy(value, state);
+    }
+
+    return value;
+  }
+
+  function set$1(state, prop, value) {
+    assertUnrevoked(state);
+    state.assigned[prop] = true;
+
+    if (!state.modified) {
+      if (is(value, peek$1(latest(state), prop))) {
+        return;
+      }
+
+      markChangedES5(state);
+      prepareCopy$1(state);
+    }
+
+    state.copy[prop] = value;
+  }
+
+  function markChangedES5(state) {
+    if (!state.modified) {
+      state.modified = true;
+
+      if (state.parent) {
+        markChangedES5(state.parent);
+      }
+    }
+  }
+
+  function prepareCopy$1(state) {
+    if (!state.copy) {
+      state.copy = clonePotentialDraft(state.base);
+    }
+  }
+
+  function clonePotentialDraft(base) {
+    var state = base && base[DRAFT_STATE];
+
+    if (state) {
+      state.finalizing = true;
+      var draft = shallowCopy(state.draft, true);
+      state.finalizing = false;
+      return draft;
+    }
+
+    return shallowCopy(base);
+  }
+
+  var descriptors = {};
+
+  function proxyProperty(draft, prop, enumerable) {
+    var desc = descriptors[prop];
+
+    if (desc) {
+      desc.enumerable = enumerable;
+    } else {
+      descriptors[prop] = desc = {
+        configurable: true,
+        enumerable: enumerable,
+        get: function get() {
+          return get$1$1(this[DRAFT_STATE], prop);
+        },
+        set: function set(value) {
+          set$1(this[DRAFT_STATE], prop, value);
+        }
+      };
+    }
+
+    Object.defineProperty(draft, prop, desc);
+  }
+
+  function assertUnrevoked(state) {
+    if (state.revoked === true) {
+      throw new Error("Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " + JSON.stringify(latest(state)));
+    }
+  }
+
+  function markChangesSweep(drafts) {
+    for (var i = drafts.length - 1; i >= 0; i--) {
+      var state = drafts[i][DRAFT_STATE];
+
+      if (!state.modified) {
+        switch (state.type) {
+          case ProxyType.ES5Array:
+            if (hasArrayChanges(state)) {
+              markChangedES5(state);
+            }
+
+            break;
+
+          case ProxyType.ES5Object:
+            if (hasObjectChanges(state)) {
+              markChangedES5(state);
+            }
+
+            break;
+        }
+      }
+    }
+  }
+
+  function markChangesRecursively(object) {
+    if (!object || _typeof(object) !== "object") {
+      return;
+    }
+
+    var state = object[DRAFT_STATE];
+
+    if (!state) {
+      return;
+    }
+
+    var base = state.base,
+        draft = state.draft,
+        assigned = state.assigned,
+        type = state.type;
+
+    if (type === ProxyType.ES5Object) {
+      each(draft, function (key) {
+        if (key === DRAFT_STATE) {
+          return;
+        }
+
+        if (base[key] === undefined && !has(base, key)) {
+          assigned[key] = true;
+          markChangedES5(state);
+        } else if (!assigned[key]) {
+          markChangesRecursively(draft[key]);
+        }
+      });
+      each(base, function (key) {
+        if (draft[key] === undefined && !has(draft, key)) {
+          assigned[key] = false;
+          markChangedES5(state);
+        }
+      });
+    } else if (type === ProxyType.ES5Array && hasArrayChanges(state)) {
+      markChangedES5(state);
+      assigned.length = true;
+
+      if (draft.length < base.length) {
+        for (var i = draft.length; i < base.length; i++) {
+          assigned[i] = false;
+        }
+      } else {
+        for (var i = base.length; i < draft.length; i++) {
+          assigned[i] = true;
+        }
+      }
+
+      for (var i = 0; i < draft.length; i++) {
+        if (assigned[i] === undefined) {
+          markChangesRecursively(draft[i]);
+        }
+      }
+    }
+  }
+
+  function hasObjectChanges(state) {
+    var base = state.base,
+        draft = state.draft;
+    var keys = Object.keys(draft);
+
+    for (var i = keys.length - 1; i >= 0; i--) {
+      var key = keys[i];
+      var baseValue = base[key];
+
+      if (baseValue === undefined && !has(base, key)) {
+        return true;
+      } else {
+        var value = draft[key];
+        var state_1 = value && value[DRAFT_STATE];
+
+        if (state_1 ? state_1.base !== baseValue : !is(value, baseValue)) {
+          return true;
+        }
+      }
+    }
+
+    return keys.length !== Object.keys(base).length;
+  }
+
+  function hasArrayChanges(state) {
+    var draft = state.draft;
+
+    if (draft.length !== state.base.length) {
+      return true;
+    }
+
+    var descriptor = Object.getOwnPropertyDescriptor(draft, draft.length - 1);
+
+    if (descriptor && !descriptor.get) {
+      return true;
+    }
+
+    return false;
+  }
+
+  var DraftMap = function (_super) {
+    if (!_super) {
+      throw new Error("Map is not polyfilled");
+    }
+
+    __extends(DraftMap, _super);
+
+    function DraftMap(target, parent) {
+      this[DRAFT_STATE] = {
+        type: ProxyType.Map,
+        parent: parent,
+        scope: parent ? parent.scope : ImmerScope.current,
+        modified: false,
+        finalized: false,
+        copy: undefined,
+        assigned: undefined,
+        base: target,
+        draft: this,
+        isManual: false,
+        revoked: false
+      };
+      return this;
+    }
+
+    var p = DraftMap.prototype;
+    Object.defineProperty(p, "size", {
+      get: function get() {
+        return latest(this[DRAFT_STATE]).size;
+      },
+      enumerable: true,
+      configurable: true
+    });
+
+    p.has = function (key) {
+      return latest(this[DRAFT_STATE]).has(key);
+    };
+
+    p.set = function (key, value) {
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+
+      if (latest(state).get(key) !== value) {
+        prepareCopy$2(state);
+        state.scope.immer.markChanged(state);
+        state.assigned.set(key, true);
+        state.copy.set(key, value);
+        state.assigned.set(key, true);
+      }
+
+      return this;
+    };
+
+    p.delete = function (key) {
+      if (!this.has(key)) {
+        return false;
+      }
+
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+      prepareCopy$2(state);
+      state.scope.immer.markChanged(state);
+      state.assigned.set(key, false);
+      state.copy.delete(key);
+      return true;
+    };
+
+    p.clear = function () {
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+      prepareCopy$2(state);
+      state.scope.immer.markChanged(state);
+      state.assigned = new Map();
+      return state.copy.clear();
+    };
+
+    p.forEach = function (cb, thisArg) {
+      var _this = this;
+
+      var state = this[DRAFT_STATE];
+      latest(state).forEach(function (_value, key, _map) {
+        cb.call(thisArg, _this.get(key), key, _this);
+      });
+    };
+
+    p.get = function (key) {
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+      var value = latest(state).get(key);
+
+      if (state.finalized || !isDraftable(value)) {
+        return value;
+      }
+
+      if (value !== state.base.get(key)) {
+        return value;
+      }
+
+      var draft = state.scope.immer.createProxy(value, state);
+      prepareCopy$2(state);
+      state.copy.set(key, draft);
+      return draft;
+    };
+
+    p.keys = function () {
+      return latest(this[DRAFT_STATE]).keys();
+    };
+
+    p.values = function () {
+      var _a;
+
+      var _this = this;
+
+      var iterator = this.keys();
+      return _a = {}, _a[iteratorSymbol] = function () {
+        return _this.values();
+      }, _a.next = function () {
+        var r = iterator.next();
+
+        if (r.done) {
+          return r;
+        }
+
+        var value = _this.get(r.value);
+
+        return {
+          done: false,
+          value: value
+        };
+      }, _a;
+    };
+
+    p.entries = function () {
+      var _a;
+
+      var _this = this;
+
+      var iterator = this.keys();
+      return _a = {}, _a[iteratorSymbol] = function () {
+        return _this.entries();
+      }, _a.next = function () {
+        var r = iterator.next();
+
+        if (r.done) {
+          return r;
+        }
+
+        var value = _this.get(r.value);
+
+        return {
+          done: false,
+          value: [r.value, value]
+        };
+      }, _a;
+    };
+
+    p[iteratorSymbol] = function () {
+      return this.entries();
+    };
+
+    return DraftMap;
+  }(Map);
+
+  function proxyMap(target, parent) {
+    return new DraftMap(target, parent);
+  }
+
+  function prepareCopy$2(state) {
+    if (!state.copy) {
+      state.assigned = new Map();
+      state.copy = new Map(state.base);
+    }
+  }
+
+  var DraftSet = function (_super) {
+    if (!_super) {
+      throw new Error("Set is not polyfilled");
+    }
+
+    __extends(DraftSet, _super);
+
+    function DraftSet(target, parent) {
+      this[DRAFT_STATE] = {
+        type: ProxyType.Set,
+        parent: parent,
+        scope: parent ? parent.scope : ImmerScope.current,
+        modified: false,
+        finalized: false,
+        copy: undefined,
+        base: target,
+        draft: this,
+        drafts: new Map(),
+        revoked: false,
+        isManual: false
+      };
+      return this;
+    }
+
+    var p = DraftSet.prototype;
+    Object.defineProperty(p, "size", {
+      get: function get() {
+        return latest(this[DRAFT_STATE]).size;
+      },
+      enumerable: true,
+      configurable: true
+    });
+
+    p.has = function (value) {
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+
+      if (!state.copy) {
+        return state.base.has(value);
+      }
+
+      if (state.copy.has(value)) {
+        return true;
+      }
+
+      if (state.drafts.has(value) && state.copy.has(state.drafts.get(value))) {
+        return true;
+      }
+
+      return false;
+    };
+
+    p.add = function (value) {
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+
+      if (state.copy) {
+        state.copy.add(value);
+      } else if (!state.base.has(value)) {
+        prepareCopy$3(state);
+        state.scope.immer.markChanged(state);
+        state.copy.add(value);
+      }
+
+      return this;
+    };
+
+    p.delete = function (value) {
+      if (!this.has(value)) {
+        return false;
+      }
+
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+      prepareCopy$3(state);
+      state.scope.immer.markChanged(state);
+      return state.copy.delete(value) || (state.drafts.has(value) ? state.copy.delete(state.drafts.get(value)) : false);
+    };
+
+    p.clear = function () {
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+      prepareCopy$3(state);
+      state.scope.immer.markChanged(state);
+      return state.copy.clear();
+    };
+
+    p.values = function () {
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+      prepareCopy$3(state);
+      return state.copy.values();
+    };
+
+    p.entries = function entries() {
+      var state = this[DRAFT_STATE];
+      assertUnrevoked(state);
+      prepareCopy$3(state);
+      return state.copy.entries();
+    };
+
+    p.keys = function () {
+      return this.values();
+    };
+
+    p[iteratorSymbol] = function () {
+      return this.values();
+    };
+
+    p.forEach = function forEach(cb, thisArg) {
+      var iterator = this.values();
+      var result = iterator.next();
+
+      while (!result.done) {
+        cb.call(thisArg, result.value, result.value, this);
+        result = iterator.next();
+      }
+    };
+
+    return DraftSet;
+  }(Set);
+
+  function proxySet(target, parent) {
+    return new DraftSet(target, parent);
+  }
+
+  function prepareCopy$3(state) {
+    if (!state.copy) {
+      state.copy = new Set();
+      state.base.forEach(function (value) {
+        if (isDraftable(value)) {
+          var draft = state.scope.immer.createProxy(value, state);
+          state.drafts.set(value, draft);
+          state.copy.add(draft);
+        } else {
+          state.copy.add(value);
+        }
+      });
+    }
+  }
+
+  function generatePatches(state, basePath, patches, inversePatches) {
+    switch (state.type) {
+      case ProxyType.ProxyObject:
+      case ProxyType.ES5Object:
+      case ProxyType.Map:
+        return generatePatchesFromAssigned(state, basePath, patches, inversePatches);
+
+      case ProxyType.ES5Array:
+      case ProxyType.ProxyArray:
+        return generateArrayPatches(state, basePath, patches, inversePatches);
+
+      case ProxyType.Set:
+        return generateSetPatches(state, basePath, patches, inversePatches);
+    }
+  }
+
+  function generateArrayPatches(state, basePath, patches, inversePatches) {
+    var _a, _b;
+
+    var base = state.base,
+        assigned = state.assigned,
+        copy = state.copy;
+
+    if (!copy) {
+      die();
+    }
+
+    if (copy.length < base.length) {
+      _a = [copy, base], base = _a[0], copy = _a[1];
+      _b = [inversePatches, patches], patches = _b[0], inversePatches = _b[1];
+    }
+
+    var delta = copy.length - base.length;
+    var start = 0;
+
+    while (base[start] === copy[start] && start < base.length) {
+      ++start;
+    }
+
+    var end = base.length;
+
+    while (end > start && base[end - 1] === copy[end + delta - 1]) {
+      --end;
+    }
+
+    for (var i = start; i < end; ++i) {
+      if (assigned[i] && copy[i] !== base[i]) {
+        var path = basePath.concat([i]);
+        patches.push({
+          op: "replace",
+          path: path,
+          value: copy[i]
+        });
+        inversePatches.push({
+          op: "replace",
+          path: path,
+          value: base[i]
+        });
+      }
+    }
+
+    var replaceCount = patches.length;
+
+    for (var i = end + delta - 1; i >= end; --i) {
+      var path = basePath.concat([i]);
+      patches[replaceCount + i - end] = {
+        op: "add",
+        path: path,
+        value: copy[i]
+      };
+      inversePatches.push({
+        op: "remove",
+        path: path
+      });
+    }
+  }
+
+  function generatePatchesFromAssigned(state, basePath, patches, inversePatches) {
+    var base = state.base,
+        copy = state.copy;
+    each(state.assigned, function (key, assignedValue) {
+      var origValue = get$1(base, key);
+      var value = get$1(copy, key);
+      var op = !assignedValue ? "remove" : has(base, key) ? "replace" : "add";
+
+      if (origValue === value && op === "replace") {
+        return;
+      }
+
+      var path = basePath.concat(key);
+      patches.push(op === "remove" ? {
+        op: op,
+        path: path
+      } : {
+        op: op,
+        path: path,
+        value: value
+      });
+      inversePatches.push(op === "add" ? {
+        op: "remove",
+        path: path
+      } : op === "remove" ? {
+        op: "add",
+        path: path,
+        value: origValue
+      } : {
+        op: "replace",
+        path: path,
+        value: origValue
+      });
+    });
+  }
+
+  function generateSetPatches(state, basePath, patches, inversePatches) {
+    var base = state.base,
+        copy = state.copy;
+    var i = 0;
+    base.forEach(function (value) {
+      if (!copy.has(value)) {
+        var path = basePath.concat([i]);
+        patches.push({
+          op: "remove",
+          path: path,
+          value: value
+        });
+        inversePatches.unshift({
+          op: "add",
+          path: path,
+          value: value
+        });
+      }
+
+      i++;
+    });
+    i = 0;
+    copy.forEach(function (value) {
+      if (!base.has(value)) {
+        var path = basePath.concat([i]);
+        patches.push({
+          op: "add",
+          path: path,
+          value: value
+        });
+        inversePatches.unshift({
+          op: "remove",
+          path: path,
+          value: value
+        });
+      }
+
+      i++;
+    });
+  }
+
+  function applyPatches(draft, patches) {
+    patches.forEach(function (patch) {
+      var path = patch.path,
+          op = patch.op;
+
+      if (!path.length) {
+        die();
+      }
+
+      var base = draft;
+
+      for (var i = 0; i < path.length - 1; i++) {
+        base = get$1(base, path[i]);
+
+        if (!base || _typeof(base) !== "object") {
+          throw new Error("Cannot apply patch, path doesn't resolve: " + path.join("/"));
+        }
+      }
+
+      var type = getArchtype(base);
+      var value = deepClonePatchValue(patch.value);
+      var key = path[path.length - 1];
+
+      switch (op) {
+        case "replace":
+          switch (type) {
+            case Archtype.Map:
+              return base.set(key, value);
+
+            case Archtype.Set:
+              throw new Error('Sets cannot have "replace" patches.');
+
+            default:
+              return base[key] = value;
+          }
+
+        case "add":
+          switch (type) {
+            case Archtype.Array:
+              return base.splice(key, 0, value);
+
+            case Archtype.Map:
+              return base.set(key, value);
+
+            case Archtype.Set:
+              return base.add(value);
+
+            default:
+              return base[key] = value;
+          }
+
+        case "remove":
+          switch (type) {
+            case Archtype.Array:
+              return base.splice(key, 1);
+
+            case Archtype.Map:
+              return base.delete(key);
+
+            case Archtype.Set:
+              return base.delete(patch.value);
+
+            default:
+              return delete base[key];
+          }
+
+        default:
+          throw new Error("Unsupported patch operation: " + op);
+      }
+    });
+    return draft;
+  }
+
+  function deepClonePatchValue(obj) {
+    if (!obj || _typeof(obj) !== "object") {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(deepClonePatchValue);
+    }
+
+    if (isMap(obj)) {
+      return new Map(Array.from(obj.entries()).map(function (_a) {
+        var k = _a[0],
+            v = _a[1];
+        return [k, deepClonePatchValue(v)];
+      }));
+    }
+
+    var cloned = Object.create(Object.getPrototypeOf(obj));
+
+    for (var key in obj) {
+      cloned[key] = deepClonePatchValue(obj[key]);
+    }
+
+    return cloned;
+  }
+
+  function __spreadArrays() {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) {
+      s += arguments[i].length;
+    }
+
+    for (var r = Array(s), k = 0, i = 0; i < il; i++) {
+      for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {
+        r[k] = a[j];
+      }
+    }
+
+    return r;
+  }
+
+  function verifyMinified() {}
+
+  var configDefaults = {
+    useProxies: typeof Proxy !== "undefined" && typeof Proxy.revocable !== "undefined" && typeof Reflect !== "undefined",
+    autoFreeze: typeof process !== "undefined" ? "development" !== "production" : verifyMinified.name === "verifyMinified",
+    onAssign: null,
+    onDelete: null,
+    onCopy: null
+  };
+
+  var Immer = function () {
+    function Immer(config) {
+      var _this = this;
+
+      this.useProxies = false;
+      this.autoFreeze = false;
+      each(configDefaults, function (key, value) {
+        var _a, _b;
+
+        _this[key] = (_b = (_a = config) === null || _a === void 0 ? void 0 : _a[key], _b !== null && _b !== void 0 ? _b : value);
+      });
+      this.setUseProxies(this.useProxies);
+      this.produce = this.produce.bind(this);
+      this.produceWithPatches = this.produceWithPatches.bind(this);
+    }
+
+    Immer.prototype.produce = function (base, recipe, patchListener) {
+      var _this = this;
+
+      if (typeof base === "function" && typeof recipe !== "function") {
+        var defaultBase_1 = recipe;
+        recipe = base;
+        var self_1 = this;
+        return function curriedProduce(base) {
+          var arguments$1 = arguments;
+
+          var _this = this;
+
+          if (base === void 0) {
+            base = defaultBase_1;
+          }
+
+          var args = [];
+
+          for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments$1[_i];
+          }
+
+          return self_1.produce(base, function (draft) {
+            return recipe.call.apply(recipe, __spreadArrays([_this, draft], args));
+          });
+        };
+      }
+
+      {
+        if (typeof recipe !== "function") {
+          throw new Error("The first or second argument to `produce` must be a function");
+        }
+
+        if (patchListener !== undefined && typeof patchListener !== "function") {
+          throw new Error("The third argument to `produce` must be a function or undefined");
+        }
+      }
+      var result;
+
+      if (isDraftable(base)) {
+        var scope_1 = ImmerScope.enter(this);
+        var proxy = this.createProxy(base, undefined);
+        var hasError = true;
+
+        try {
+          result = recipe(proxy);
+          hasError = false;
+        } finally {
+          if (hasError) {
+            scope_1.revoke();
+          } else {
+            scope_1.leave();
+          }
+        }
+
+        if (typeof Promise !== "undefined" && result instanceof Promise) {
+          return result.then(function (result) {
+            scope_1.usePatches(patchListener);
+            return processResult(_this, result, scope_1);
+          }, function (error) {
+            scope_1.revoke();
+            throw error;
+          });
+        }
+
+        scope_1.usePatches(patchListener);
+        return processResult(this, result, scope_1);
+      } else {
+        result = recipe(base);
+
+        if (result === NOTHING) {
+          return undefined;
+        }
+
+        if (result === undefined) {
+          result = base;
+        }
+
+        maybeFreeze(this, result, true);
+        return result;
+      }
+    };
+
+    Immer.prototype.produceWithPatches = function (arg1, arg2, arg3) {
+      var _this = this;
+
+      if (typeof arg1 === "function") {
+        return function (state) {
+          var arguments$1 = arguments;
+          var args = [];
+
+          for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments$1[_i];
+          }
+
+          return _this.produceWithPatches(state, function (draft) {
+            return arg1.apply(void 0, __spreadArrays([draft], args));
+          });
+        };
+      }
+
+      if (arg3) {
+        die();
+      }
+
+      var patches, inversePatches;
+      var nextState = this.produce(arg1, arg2, function (p, ip) {
+        patches = p;
+        inversePatches = ip;
+      });
+      return [nextState, patches, inversePatches];
+    };
+
+    Immer.prototype.createDraft = function (base) {
+      if (!isDraftable(base)) {
+        throw new Error("First argument to `createDraft` must be a plain object, an array, or an immerable object");
+      }
+
+      var scope = ImmerScope.enter(this);
+      var proxy = this.createProxy(base, undefined);
+      proxy[DRAFT_STATE].isManual = true;
+      scope.leave();
+      return proxy;
+    };
+
+    Immer.prototype.finishDraft = function (draft, patchListener) {
+      var state = draft && draft[DRAFT_STATE];
+
+      if (!state || !state.isManual) {
+        throw new Error("First argument to `finishDraft` must be a draft returned by `createDraft`");
+      }
+
+      if (state.finalized) {
+        throw new Error("The given draft is already finalized");
+      }
+
+      var scope = state.scope;
+      scope.usePatches(patchListener);
+      return processResult(this, undefined, scope);
+    };
+
+    Immer.prototype.setAutoFreeze = function (value) {
+      this.autoFreeze = value;
+    };
+
+    Immer.prototype.setUseProxies = function (value) {
+      this.useProxies = value;
+    };
+
+    Immer.prototype.applyPatches = function (base, patches) {
+      var i;
+
+      for (i = patches.length - 1; i >= 0; i--) {
+        var patch = patches[i];
+
+        if (patch.path.length === 0 && patch.op === "replace") {
+          base = patch.value;
+          break;
+        }
+      }
+
+      if (isDraft(base)) {
+        return applyPatches(base, patches);
+      }
+
+      return this.produce(base, function (draft) {
+        return applyPatches(draft, patches.slice(i + 1));
+      });
+    };
+
+    Immer.prototype.createProxy = function (value, parent) {
+      var draft = isMap(value) ? proxyMap(value, parent) : isSet(value) ? proxySet(value, parent) : this.useProxies ? createProxy(value, parent) : createES5Proxy(value, parent);
+      var scope = parent ? parent.scope : ImmerScope.current;
+      scope.drafts.push(draft);
+      return draft;
+    };
+
+    Immer.prototype.willFinalize = function (scope, thing, isReplaced) {
+      if (!this.useProxies) {
+        willFinalizeES5(scope, thing, isReplaced);
+      }
+    };
+
+    Immer.prototype.markChanged = function (state) {
+      if (this.useProxies) {
+        markChanged(state);
+      } else {
+        markChangedES5(state);
+      }
+    };
+
+    return Immer;
+  }();
+
+  var immer = new Immer();
+  var produce = immer.produce;
+  var produceWithPatches = immer.produceWithPatches.bind(immer);
+  var setAutoFreeze = immer.setAutoFreeze.bind(immer);
+  var setUseProxies = immer.setUseProxies.bind(immer);
+  var applyPatches$1 = immer.applyPatches.bind(immer);
+  var createDraft = immer.createDraft.bind(immer);
+  var finishDraft = immer.finishDraft.bind(immer);
+
+  function ownKeys$7(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+  function _objectSpread$6(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$7(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$7(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+  function insertFtr(getState, _payload) {
+    return produce(getState(), function (_draftState) {});
+  }
+  function updateEnterFtr(getState, ftrId) {
+    return _objectSpread$6({}, getState(), {
+      enterFtrId: ftrId
     });
   }
 
   var reducers = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    beforeDrop: beforeDrop
+    insertFtr: insertFtr,
+    updateEnterFtr: updateEnterFtr
   });
-
-  function Root(props) {
-    return React.createElement("div", {
-      style: {
-        width: '100%',
-        height: '100%'
-      }
-    }, props.children);
-  }
 
   function createInitState() {
     return {
-      maxId: 0,
+      enterFtrId: null,
       root: {
-        component: Root,
+        compId: RootCompId,
+        ftrId: RootFtrId,
         children: []
       }
     };
@@ -5035,7 +6783,7 @@
   }
 
   function shallowEqual$1(objA, objB) {
-    if (is(objA, objB)) {
+    if (is$1(objA, objB)) {
       return true;
     }
 
@@ -5051,7 +6799,7 @@
     }
 
     for (var i = 0; i < keysA.length; i++) {
-      if (!Object.prototype.hasOwnProperty.call(objB, keysA[i]) || !is(objA[keysA[i]], objB[keysA[i]])) {
+      if (!Object.prototype.hasOwnProperty.call(objB, keysA[i]) || !is$1(objA[keysA[i]], objB[keysA[i]])) {
         return false;
       }
     }
@@ -5059,7 +6807,7 @@
     return true;
   }
 
-  function is(x, y) {
+  function is$1(x, y) {
     if (x === y) {
       return x !== 0 || y !== 0 || 1 / x === 1 / y;
     } else {
@@ -5101,14 +6849,13 @@
   }
 
   function RawCanvas(props) {
-    var tree = props.useMappedState(function (_ref) {
-      var root = _ref.root;
-      return root;
-    });
-    var browserEvtEmit = props.browserEvtEmit,
+    var evtEmit = props.evtEmit,
         style = props.style,
         className = props.className,
         useMappedState = props.useMappedState;
+    var root = useMappedState(function (p) {
+      return p.root;
+    });
     var domRef = React__default.useRef(null);
 
     var _useListener = useListener(),
@@ -5128,6 +6875,7 @@
     useMount(function () {
       function handleCanvasMousemmove(e) {
         e.stopPropagation();
+        evtEmit('canvasMousemove', null);
       }
 
       if (domRef.current) {
@@ -5149,36 +6897,55 @@
       ref: domRef,
       style: style,
       className: className
-    }, renderTree(tree, {
-      useMappedState: useMappedState,
-      browserEvtEmit: browserEvtEmit
-    }, {
-      registerChildDom: registerChildDom,
-      idx: 0,
-      registerParentMount: registerMyDomMount,
-      parentIsMount: !!domRef.current
+    }, renderTree({
+      root: root,
+      id2CompMap: props.id2CompMap,
+      ftrCtx: {
+        useMappedState: useMappedState,
+        evtEmit: evtEmit
+      },
+      captureDomParams: {
+        idx: 0,
+        registerParentMount: registerMyDomMount,
+        parentIsMount: !!domRef.current,
+        registerChildDom: registerChildDom
+      }
     }));
   }
 
   function Canvas(props) {
     var storeRef = React__default.useRef(createStore$1(createInitState(), reducers));
-    var browserEvtMonitor = React__default.useRef(new BrowserEventMonitor());
+    var browserEvtMonitor = React__default.useRef(new EventMonitor(storeRef.current.dispatch));
     var useMappedStateRef = React__default.useRef(createUseMappedState(storeRef.current));
+
+    var _React$useContext = React__default.useContext(Context),
+        id2CompMap = _React$useContext.id2CompMap;
+
     return React__default.createElement(RawCanvas, Object.assign({
-      browserEvtEmit: browserEvtMonitor.current.emit,
-      useMappedState: useMappedStateRef.current
+      evtEmit: browserEvtMonitor.current.emit,
+      useMappedState: useMappedStateRef.current,
+      id2CompMap: id2CompMap
     }, props));
   }
 
-  function GragProvider(props) {
-    return React__default.createElement(Provider, null, props.children);
-  }
-
   function Feature(props) {
+    var _props$id;
+
+    var _React$useContext = React.useContext(Context),
+        id2CompMap = _React$useContext.id2CompMap;
+
+    var id = (_props$id = props.id) !== null && _props$id !== void 0 ? _props$id : uuid();
+
+    while (id2CompMap[id]) {
+      id = uuid();
+    }
+
+    id2CompMap[id] = props.component;
+
     var _useDrag = useDrag({
       item: {
         type: ItemTypes.CANVAS,
-        component: props.component
+        compId: id
       }
     }),
         _useDrag2 = _slicedToArray(_useDrag, 2),

@@ -1,22 +1,22 @@
 import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
-import { IRenderTreeCtx } from '@/lib/renderTree';
+import { IFtrCtx } from '@/lib/renderTree';
 import * as React from 'react';
 
 export type IRegiserDom = (cb: (dom: HTMLElement, idx: number) => void) => () => void;
 export type IRegiserParentMount = (cb: (mount: boolean) => void) => () => void;
-export interface IChildrenCallbackParams {
+export interface ICaptureDomParams {
   registerChildDom: IRegiserDom;
   registerParentMount: IRegiserParentMount;
   parentIsMount: boolean;
 }
 
-export interface ICaptureDomProps extends React.Props<any>, IRenderTreeCtx {
+export interface ICaptureDomProps extends React.Props<any>, IFtrCtx {
   idx: number;
   registerDom: IRegiserDom;
   registerParentMount: IRegiserParentMount;
   parentIsMount: boolean;
-  children: (params: IChildrenCallbackParams) => React.ReactElement;
+  children: (params: ICaptureDomParams) => React.ReactElement;
 }
 
 export function CaptureDom(props: ICaptureDomProps) {

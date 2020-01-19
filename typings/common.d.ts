@@ -4,4 +4,8 @@ declare namespace IGrag {
   type IMap2Func<M> = {
     [p in keyof M]: (params: M[p]) => void;
   };
+
+  interface IId2CompMap {
+    [id: string]: ICompFcClass;
+  }
 }

@@ -1,11 +1,21 @@
+import { produce } from 'produce';
 import { IGetState } from './state';
 
-export function beforeDrop(getState: IGetState, component: IGrag.ICompFcClass) {
+interface IInsertFtrPayload {
+  compId: string;
+  ftrId: string;
+  parentFtrId: string;
+}
+
+export function insertFtr(getState: IGetState, _payload: IInsertFtrPayload) {
+  return produce(getState(), (draftState) => {
+    //
+  });
+}
+
+export function updateEnterFtr(getState: IGetState, ftrId: string) {
   return {
     ...getState(),
-    root: {
-      ...getState().root,
-      children: [...getState().root.children, { component, children: [] }]
-    }
+    enterFtrId: ftrId
   };
 }
