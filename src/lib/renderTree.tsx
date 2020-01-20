@@ -33,11 +33,12 @@ export function renderTree(renderTreeparams: IRenderTreeProps) {
     const { compId, children, ftrId } = node;
     const Comp = id2CompMap[compId];
     return (
-      <Memo key={ftrId} x-children={children}>
-        <MouseEventCollect {...ftrCtx} idx={params.idx} registerDom={params.registerChildDom}>
+      <Memo key={ftrId} node={node}>
+        <MouseEventCollect {...ftrCtx} ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
           <Dropable {...ftrCtx} ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
             <CaptureDom
               {...ftrCtx}
+              ftrId={ftrId}
               idx={params.idx}
               parentIsMount={params.parentIsMount}
               registerParentMount={params.registerParentMount}

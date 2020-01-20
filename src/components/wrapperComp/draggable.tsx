@@ -1,4 +1,5 @@
 import { IDragItem } from '@/components/feature';
+import { useMount } from '@/hooks/useMount';
 import { ItemTypes } from '@/lib/itemTypes';
 import { IFtrCtx } from '@/lib/renderTree';
 import { useDrop } from 'dnd';
@@ -31,7 +32,7 @@ export function Dropable(props: IDropableProps) {
     }
   });
 
-  React.useEffect(() => {
+  useMount(() => {
     const unSubscribe = props.registerDom((dom, idx) => {
       if (!domRef.current && idx === props.idx) {
         domRef.current = dom;
@@ -39,7 +40,7 @@ export function Dropable(props: IDropableProps) {
         unSubscribe();
       }
     });
-  }, [props.registerDom]);
+  });
 
   return props.children as React.ReactElement;
 }

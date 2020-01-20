@@ -5,6 +5,7 @@ import { IRegiserDom } from './captureDom';
 
 interface IDropableProps extends React.Props<any>, IFtrCtx {
   registerDom: IRegiserDom;
+  ftrId: string;
   idx: number;
 }
 

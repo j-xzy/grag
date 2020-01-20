@@ -13,6 +13,7 @@ export interface ICaptureDomParams {
 
 export interface ICaptureDomProps extends React.Props<any>, IFtrCtx {
   idx: number;
+  ftrId: string;
   registerDom: IRegiserDom;
   registerParentMount: IRegiserParentMount;
   parentIsMount: boolean;
@@ -33,7 +34,7 @@ export function CaptureDom(props: ICaptureDomProps) {
     });
   }));
 
-  useMount(() => {
+  const unSubscribeRegierDom = React.useMemo(() => {
     // 注册本节点dom挂载事件
     const unSubscribe = props.registerDom((dom, idx) => {
       if (!domRef.current && idx === props.idx) {
@@ -48,19 +49,24 @@ export function CaptureDom(props: ICaptureDomProps) {
         myDomMount(dom);
       }
     });
-    return () => {
-      unSubscribe();
-      observer.current.disconnect();
-    };
-  });
+    return unSubscribe;
+  }, [props.registerDom]);
 
-  useMount(() => {
+  const unSubscribeParentMount = React.useMemo(() => {
     // 注册父亲节点dom挂载事件
     const unSubscribe = props.registerParentMount(() => {
       unSubscribe();
       setParentIsMount(true);
     });
     return unSubscribe;
+  }, []);
+
+  useMount(() => {
+    return () => {
+      unSubscribeRegierDom();
+      unSubscribeParentMount();
+      observer.current.disconnect();
+    };
   });
 
   return parentIsMount ? props.children({

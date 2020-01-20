@@ -4725,7 +4725,7 @@
         childDomReady(ch, idx);
       });
     }));
-    useMount(function () {
+    var unSubscribeRegierDom = React.useMemo(function () {
       var unSubscribe = props.registerDom(function (dom, idx) {
         if (!domRef.current && idx === props.idx) {
           domRef.current = dom;
@@ -4736,17 +4736,21 @@
           myDomMount(dom);
         }
       });
-      return function () {
-        unSubscribe();
-        observer.current.disconnect();
-      };
-    });
-    useMount(function () {
+      return unSubscribe;
+    }, [props.registerDom]);
+    var unSubscribeParentMount = React.useMemo(function () {
       var unSubscribe = props.registerParentMount(function () {
         unSubscribe();
         setParentIsMount(true);
       });
       return unSubscribe;
+    }, []);
+    useMount(function () {
+      return function () {
+        unSubscribeRegierDom();
+        unSubscribeParentMount();
+        observer.current.disconnect();
+      };
     });
     return parentIsMount ? props.children({
       registerChildDom: registerChildDom,
@@ -4789,7 +4793,7 @@
         _useDrop2 = _slicedToArray(_useDrop, 2),
         drop = _useDrop2[1];
 
-    React.useEffect(function () {
+    useMount(function () {
       var unSubscribe = props.registerDom(function (dom, idx) {
         if (!domRef.current && idx === props.idx) {
           domRef.current = dom;
@@ -4797,14 +4801,14 @@
           unSubscribe();
         }
       });
-    }, [props.registerDom]);
+    });
     return props.children;
   }
 
   var Memo = React.memo(function (props) {
     return props.children;
   }, function (pre, next) {
-    return pre['x-children'].length === next['x-children'].length;
+    return pre === next;
   });
 
   function MouseEventCollect(props) {
@@ -4848,8 +4852,9 @@
       var Comp = id2CompMap[compId];
       return React.createElement(Memo, {
         key: ftrId,
-        "x-children": children
+        node: node
       }, React.createElement(MouseEventCollect, Object.assign({}, ftrCtx, {
+        ftrId: ftrId,
         idx: params.idx,
         registerDom: params.registerChildDom
       }), React.createElement(Dropable, Object.assign({}, ftrCtx, {
@@ -4857,6 +4862,7 @@
         idx: params.idx,
         registerDom: params.registerChildDom
       }), React.createElement(CaptureDom, Object.assign({}, ftrCtx, {
+        ftrId: ftrId,
         idx: params.idx,
         parentIsMount: params.parentIsMount,
         registerParentMount: params.registerParentMount,
@@ -4875,6 +4881,24 @@
         }) : null);
       }))));
     }
+  }
+
+  function getNodeByFtrId(root, ftrId) {
+    var stack = [root];
+
+    while (stack.length) {
+      var node = stack.pop();
+
+      if (node.ftrId === ftrId) {
+        return node;
+      }
+
+      node.children.forEach(function (child) {
+        stack.push(child);
+      });
+    }
+
+    return null;
   }
 
   var _a;
@@ -6577,8 +6601,16 @@
   function ownKeys$7(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
   function _objectSpread$6(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$7(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$7(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-  function insertFtr(getState, _payload) {
-    return produce(getState(), function (_draftState) {});
+  function insertFtr(getState, payload) {
+    console.log(payload);
+    return produce(getState(), function (draftState) {
+      var parent = getNodeByFtrId(draftState.root, payload.parentFtrId);
+      parent === null || parent === void 0 ? void 0 : parent.children.push({
+        compId: payload.compId,
+        ftrId: payload.ftrId,
+        children: []
+      });
+    });
   }
   function updateEnterFtr(getState, ftrId) {
     return _objectSpread$6({}, getState(), {

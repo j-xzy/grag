@@ -1,11 +1,11 @@
 import * as React from 'react';
 
-interface IMemoProps {
+interface IMemoProps extends React.Props<any> {
+  node: IGrag.INode;
   children: React.ReactElement;
-  'x-children': IGrag.INode[];
 }
 
 export const Memo = React.memo(
   (props: IMemoProps) => props.children,
-  (pre, next) => pre['x-children'].length === next['x-children'].length
+  (pre, next) => pre === next
 );
