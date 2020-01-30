@@ -46,7 +46,7 @@ export function CaptureDom(props: ICaptureDomProps) {
         // 解除监听
         unSubscribe();
         // 本节点dom挂载完成
-        myDomMount(dom);
+        myDomMount(true);
       }
     });
     return unSubscribe;

@@ -6463,7 +6463,7 @@
             childList: true
           });
           unSubscribe();
-          myDomMount(dom);
+          myDomMount(true);
         }
       });
       return unSubscribe;
