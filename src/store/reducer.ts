@@ -1,6 +1,6 @@
 import * as treeUitl from '@/lib/treeUtil';
-import { produce } from 'produce';
 import { IGetState } from './state';
+import { produce } from 'produce';
 
 interface IInsertFtrPayload {
   compId: string;
@@ -9,9 +9,8 @@ interface IInsertFtrPayload {
 }
 
 export function insertFtr(getState: IGetState, payload: IInsertFtrPayload) {
-  console.log(payload);
-  return produce(getState(), (draftState) => {
-    const parent = treeUitl.getNodeByFtrId(draftState.root, payload.parentFtrId);
+  return produce(getState(), ({ root }) => {
+    const parent = treeUitl.getNodeByFtrId(root, payload.parentFtrId);
     parent?.children.push({
       compId: payload.compId,
       ftrId: payload.ftrId,

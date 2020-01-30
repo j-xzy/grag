@@ -3,13 +3,13 @@ import { Provider } from 'dnd';
 import React from 'react';
 
 export const Context = React.createContext({
-  id2CompMap: {} as IGrag.IId2CompMap
+  compMap: {} as IGrag.ICompMap
 });
 
 export function GragProvider(props: React.Props<any>) {
-  const id2CompMap = React.useRef({ [RootCompId]: Root } as IGrag.IId2CompMap);
+  const compMap = React.useRef({ [RootCompId]: Root } as IGrag.ICompMap);
   return (
-    <Context.Provider value={{ id2CompMap: id2CompMap.current }}>
+    <Context.Provider value={{ compMap: compMap.current }}>
       <Provider >
         {props.children}
       </Provider>

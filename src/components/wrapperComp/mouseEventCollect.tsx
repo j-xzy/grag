@@ -1,10 +1,10 @@
-import { useMount } from '@/hooks/useMount';
-import { IFtrCtx } from '@/lib/renderTree';
 import * as React from 'react';
-import { IRegiserDom } from './captureDom';
+import { IFtrCtx } from '@/lib/renderTree';
+import { IRegisterDom } from '@/hooks/useRegisterDom';
+import { useMount } from '@/hooks/useMount';
 
 interface IDropableProps extends React.Props<any>, IFtrCtx {
-  registerDom: IRegiserDom;
+  registerDom: IRegisterDom;
   ftrId: string;
   idx: number;
 }
@@ -17,8 +17,8 @@ export function MouseEventCollect(props: IDropableProps) {
       e.stopPropagation();
     }
 
-    const unSubscribe = props.registerDom((dom, idx) => {
-      if (!domRef.current && props.idx === idx) {
+    const unSubscribe = props.registerDom(props.idx, (dom) => {
+      if (!domRef.current) {
         domRef.current = dom;
         dom.addEventListener('click', handleClick);
         unSubscribe();

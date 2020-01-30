@@ -5,7 +5,7 @@ interface IMemoProps extends React.Props<any> {
   children: React.ReactElement;
 }
 
-export const Memo = React.memo(
+export const MemoNode = React.memo(
   (props: IMemoProps) => props.children,
-  (pre, next) => pre === next
+  (pre, next) => pre.node === next.node
 );

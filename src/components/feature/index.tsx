@@ -1,8 +1,8 @@
+import * as React from 'react';
+import { DragElementWrapper, DragSourceOptions, useDrag } from 'dnd';
 import { Context } from '@/components/provider';
 import { ItemTypes } from '@/lib/itemTypes';
 import { uuid } from '@/lib/uuid';
-import { DragElementWrapper, DragSourceOptions, useDrag } from 'dnd';
-import * as React from 'react';
 
 interface IProps extends React.Props<any> {
   component: IGrag.ICompFcClass;
@@ -16,12 +16,12 @@ export interface IDragItem {
 }
 
 export function Feature(props: IProps) {
-  const { id2CompMap } = React.useContext(Context);
+  const { compMap } = React.useContext(Context);
   let id = props.id ?? uuid();
-  while (id2CompMap[id]) {
+  while (compMap[id]) {
     id = uuid();
   }
-  id2CompMap[id] = props.component;
+  compMap[id] = props.component;
   const [, drag] = useDrag({
     item: { type: ItemTypes.CANVAS, compId: id } as IDragItem
   });

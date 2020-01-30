@@ -1,10 +1,10 @@
+import * as React from 'react';
 import { CaptureDom, ICaptureDomParams } from '@/components/wrapperComp/captureDom';
 import { Dropable } from '@/components/wrapperComp/draggable';
-import { Memo } from '@/components/wrapperComp/memo';
-import { MouseEventCollect } from '@/components/wrapperComp/mouseEventCollect';
 import { IEvtEmit } from '@/eventMonitor';
 import { IUseMappedState } from '@/store';
-import * as React from 'react';
+import { MemoNode } from '@/components/wrapperComp/memoNode';
+import { MouseEventCollect } from '@/components/wrapperComp/mouseEventCollect';
 
 export interface IFtrCtx {
   evtEmit: IEvtEmit;
@@ -17,13 +17,13 @@ interface IParams extends ICaptureDomParams {
 
 interface IRenderTreeProps {
   root: IGrag.INode | null;
-  id2CompMap: IGrag.IId2CompMap;
+  compMap: IGrag.ICompMap;
   ftrCtx: IFtrCtx;
   captureDomParams: IParams;
 }
 
 export function renderTree(renderTreeparams: IRenderTreeProps) {
-  const { id2CompMap, root, ftrCtx, captureDomParams } = renderTreeparams;
+  const { compMap, root, ftrCtx, captureDomParams } = renderTreeparams;
   return renderNode(root, captureDomParams);
 
   function renderNode(node: IGrag.INode | null, params: IParams) {
@@ -31,9 +31,9 @@ export function renderTree(renderTreeparams: IRenderTreeProps) {
       return null;
     }
     const { compId, children, ftrId } = node;
-    const Comp = id2CompMap[compId];
+    const Comp = compMap[compId];
     return (
-      <Memo key={ftrId} node={node}>
+      <MemoNode key={ftrId} node={node}>
         <MouseEventCollect {...ftrCtx} ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
           <Dropable {...ftrCtx} ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
             <CaptureDom
@@ -58,7 +58,7 @@ export function renderTree(renderTreeparams: IRenderTreeProps) {
             </CaptureDom>
           </Dropable>
         </MouseEventCollect>
-      </Memo>
+      </MemoNode>
     );
   }
 }

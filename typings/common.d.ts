@@ -5,7 +5,7 @@ declare namespace IGrag {
     [p in keyof M]: (params: M[p]) => void;
   };
 
-  interface IId2CompMap {
+  interface ICompMap {
     [id: string]: ICompFcClass;
   }
 }

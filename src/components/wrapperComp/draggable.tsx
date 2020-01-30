@@ -1,13 +1,13 @@
-import { IDragItem } from '@/components/feature';
-import { useMount } from '@/hooks/useMount';
-import { ItemTypes } from '@/lib/itemTypes';
-import { IFtrCtx } from '@/lib/renderTree';
-import { useDrop } from 'dnd';
 import * as React from 'react';
-import { IRegiserDom } from './captureDom';
+import { IDragItem } from '@/components/feature';
+import { IFtrCtx } from '@/lib/renderTree';
+import { IRegisterDom } from '@/hooks/useRegisterDom';
+import { ItemTypes } from '@/lib/itemTypes';
+import { useDrop } from 'dnd';
+import { useMount } from '@/hooks/useMount';
 
 interface IDropableProps extends React.Props<any>, IFtrCtx {
-  registerDom: IRegiserDom;
+  registerDom: IRegisterDom;
   ftrId: string;
   idx: number;
 }
@@ -33,8 +33,8 @@ export function Dropable(props: IDropableProps) {
   });
 
   useMount(() => {
-    const unSubscribe = props.registerDom((dom, idx) => {
-      if (!domRef.current && idx === props.idx) {
+    const unSubscribe = props.registerDom(props.idx, (dom) => {
+      if (!domRef.current) {
         domRef.current = dom;
         drop(dom);
         unSubscribe();

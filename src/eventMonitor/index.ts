@@ -1,5 +1,5 @@
-import { uuid } from '@/lib/uuid';
 import { IDispatch } from '@/store';
+import { uuid } from '@/lib/uuid';
 
 interface IEventMap {
   canvasMousemove: any;

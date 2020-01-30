@@ -1,12 +1,12 @@
+import * as React from 'react';
+import { IRegisterDom, useRegisterDom } from '@/hooks/useRegisterDom';
+import { IFtrCtx } from '@/lib/renderTree';
 import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
-import { IFtrCtx } from '@/lib/renderTree';
-import * as React from 'react';
 
-export type IRegiserDom = (cb: (dom: HTMLElement, idx: number) => void) => () => void;
 export type IRegiserParentMount = (cb: (mount: boolean) => void) => () => void;
 export interface ICaptureDomParams {
-  registerChildDom: IRegiserDom;
+  registerChildDom: IRegisterDom;
   registerParentMount: IRegiserParentMount;
   parentIsMount: boolean;
 }
@@ -14,7 +14,7 @@ export interface ICaptureDomParams {
 export interface ICaptureDomProps extends React.Props<any>, IFtrCtx {
   idx: number;
   ftrId: string;
-  registerDom: IRegiserDom;
+  registerDom: IRegisterDom;
   registerParentMount: IRegiserParentMount;
   parentIsMount: boolean;
   children: (params: ICaptureDomParams) => React.ReactElement;
@@ -23,21 +23,21 @@ export interface ICaptureDomProps extends React.Props<any>, IFtrCtx {
 export function CaptureDom(props: ICaptureDomProps) {
   const [parentIsMount, setParentIsMount] = React.useState(props.parentIsMount);
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
-  const [registerChildDom, childDomReady] = useListener();
+  const [registerChildDom, childDomReady] = useRegisterDom();
   const [registerMyDomMount, myDomMount] = useListener();
 
   const observer = React.useRef(new MutationObserver((records) => {
     records.forEach(({ addedNodes }) => {
       const ch = addedNodes[0];
       const idx = Array.prototype.indexOf.call(domRef.current?.children, ch);
-      childDomReady(ch, idx);
+      childDomReady(idx, ch);
     });
   }));
 
   const unSubscribeRegierDom = React.useMemo(() => {
     // 注册本节点dom挂载事件
-    const unSubscribe = props.registerDom((dom, idx) => {
-      if (!domRef.current && idx === props.idx) {
+    const unSubscribe = props.registerDom(props.idx, (dom) => {
+      if (!domRef.current) {
         domRef.current = dom;
         // 监听本节点子节点的新增删除事件
         observer.current.observe(domRef.current, {
