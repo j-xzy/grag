@@ -5,10 +5,12 @@ export type IGetState = () => ReturnType<typeof createInitState>;
 export function createInitState() {
   return {
     enterFtrId: null as string | null,
+    mouseCoord: { x: 0, y: 0 } as IGrag.IXYCoord,
     root: {
       compId: RootCompId,
       ftrId: RootFtrId,
-      children: []
+      children: [],
+      coord: { x: 0, y: 0 }
     } as IGrag.INode
   };
 }

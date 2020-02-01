@@ -6,6 +6,7 @@ interface IInsertFtrPayload {
   compId: string;
   ftrId: string;
   parentFtrId: string;
+  coord: IGrag.IXYCoord;
 }
 
 export function insertFtr(getState: IGetState, payload: IInsertFtrPayload) {
@@ -14,6 +15,7 @@ export function insertFtr(getState: IGetState, payload: IInsertFtrPayload) {
     parent?.children.push({
       compId: payload.compId,
       ftrId: payload.ftrId,
+      coord: payload.coord,
       children: []
     });
   });
@@ -23,5 +25,12 @@ export function updateEnterFtr(getState: IGetState, ftrId: string) {
   return {
     ...getState(),
     enterFtrId: ftrId
+  };
+}
+
+export function updateMouseCoord(getState: IGetState, coord: IGrag.IXYCoord) {
+  return {
+    ...getState(),
+    mouseCoord: coord
   };
 }

@@ -4,3 +4,5 @@ package-lock.json
 /lib
 babel.config.js
 dist
+rollup.config.js
+babel.config.js

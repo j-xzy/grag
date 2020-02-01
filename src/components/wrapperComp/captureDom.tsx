@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { IRegisterDom, useRegisterDom } from '@/hooks/useRegisterDom';
+import { Context } from '@/components/provider';
 import { IFtrCtx } from '@/lib/renderTree';
+import { useInitial } from '@/hooks/useInitial';
 import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
 
@@ -23,8 +25,11 @@ export interface ICaptureDomProps extends React.Props<any>, IFtrCtx {
 export function CaptureDom(props: ICaptureDomProps) {
   const [parentIsMount, setParentIsMount] = React.useState(props.parentIsMount);
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
+  
   const [registerChildDom, childDomReady] = useRegisterDom();
   const [registerMyDomMount, myDomMount] = useListener();
+  
+  const { domMap } = React.useContext(Context);
 
   const observer = React.useRef(new MutationObserver((records) => {
     records.forEach(({ addedNodes }) => {
@@ -34,7 +39,7 @@ export function CaptureDom(props: ICaptureDomProps) {
     });
   }));
 
-  const unSubscribeRegierDom = React.useMemo(() => {
+  const unSubscribeRegierDom = useInitial(() => {
     // 注册本节点dom挂载事件
     const unSubscribe = props.registerDom(props.idx, (dom) => {
       if (!domRef.current) {
@@ -47,25 +52,29 @@ export function CaptureDom(props: ICaptureDomProps) {
         unSubscribe();
         // 本节点dom挂载完成
         myDomMount(true);
+
+        domMap[props.ftrId] = dom;
       }
     });
     return unSubscribe;
-  }, [props.registerDom]);
+  });
 
-  const unSubscribeParentMount = React.useMemo(() => {
+  const unSubscribeParentMount = useInitial(() => {
     // 注册父亲节点dom挂载事件
     const unSubscribe = props.registerParentMount(() => {
       unSubscribe();
       setParentIsMount(true);
     });
     return unSubscribe;
-  }, []);
+  });
 
   useMount(() => {
     return () => {
+      delete domMap[props.ftrId];
       unSubscribeRegierDom();
       unSubscribeParentMount();
       observer.current.disconnect();
+      domRef.current = null;
     };
   });
 

@@ -5,7 +5,22 @@ declare namespace IGrag {
     [p in keyof M]: (params: M[p]) => void;
   };
 
+  type IFunction = (...params: any[]) => any;
+
+  interface IXYCoord {
+    x: number;
+    y: number;
+  }
+
   interface ICompMap {
     [id: string]: ICompFcClass;
   }
+
+  interface IDomMap {
+    canvas: HTMLElement | null;
+    root: HTMLElement | null;
+    [id: string]: HTMLElement | null;
+  }
+
+  type IReactCtxValue<T extends React.Context<any>> = T extends React.Context<infer R> ? R : any;
 }

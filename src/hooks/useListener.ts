@@ -1,9 +1,7 @@
 import * as React from 'react';
 
-type IFunc = (...params: any[]) => any;
-
-export function useListener(lis: IFunc[] = []) {
-  const listeners: React.MutableRefObject<IFunc[]> = React.useRef(lis);
+export function useListener(lis: IGrag.IFunction[] = []) {
+  const listeners: React.MutableRefObject<IGrag.IFunction[]> = React.useRef(lis);
   const subscribe = React.useCallback((cb: (...params: any[]) => any) => {
     listeners.current.push(cb);
     return function unSubscribe() {

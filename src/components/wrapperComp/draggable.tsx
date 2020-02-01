@@ -4,6 +4,7 @@ import { IFtrCtx } from '@/lib/renderTree';
 import { IRegisterDom } from '@/hooks/useRegisterDom';
 import { ItemTypes } from '@/lib/itemTypes';
 import { useDrop } from 'dnd';
+import { useInitial } from '@/hooks/useInitial';
 import { useMount } from '@/hooks/useMount';
 
 interface IDropableProps extends React.Props<any>, IFtrCtx {
@@ -22,17 +23,18 @@ export function Dropable(props: IDropableProps) {
       }
       props.evtEmit('ftrDrop', { compId: item.compId, parentFtrId: props.ftrId });
     },
-    hover(_item: IDragItem, monitor) {
+    hover(_: IDragItem, monitor) {
       if (!monitor.isOver({ shallow: true })) {
         return;
       }
       props.evtEmit('ftrHover', {
-        targetFtrId: props.ftrId
+        targetFtrId: props.ftrId,
+        clientOffset: monitor.getClientOffset()!
       });
     }
   });
 
-  useMount(() => {
+  const unSubscribeRegisterDom = useInitial(() => {
     const unSubscribe = props.registerDom(props.idx, (dom) => {
       if (!domRef.current) {
         domRef.current = dom;
@@ -40,6 +42,14 @@ export function Dropable(props: IDropableProps) {
         unSubscribe();
       }
     });
+    return unSubscribe;
+  });
+
+  useMount(() => {
+    return () => {
+      domRef.current = null;
+      unSubscribeRegisterDom();
+    };
   });
 
   return props.children as React.ReactElement;

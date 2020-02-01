@@ -13,7 +13,6 @@ import { useRegisterDom } from '@/hooks/useRegisterDom';
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
   evtEmit: IEvtEmit;
   useMappedState: IUseMappedState;
-  compMap: IGrag.ICompMap;
 }
 
 interface ICanvasProps {
@@ -25,26 +24,37 @@ function RawCanvas(props: IRawCanvasProps) {
   const { evtEmit, style, className, useMappedState } = props;
   const root = useMappedState((p) => p.root);
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
+
   const [registerChildDom, childDomReady] = useRegisterDom();
   const [registerMyDomMount, myDomMount] = useListener();
+
+  const { compMap, domMap } = React.useContext(Context);
+
   const observer = React.useRef(new MutationObserver((records) => {
     const node: any = records[0].addedNodes[0];
     childDomReady(0, node);
   }));
 
   useMount(() => {
-    function handleCanvasMousemmove(e: Event) {
+    function handleCanvasMousemmove(e: MouseEvent) {
       e.stopPropagation();
-      evtEmit('canvasMousemove', null);
-    }
-    if (domRef.current) {
-      observer.current.observe(domRef.current, {
-        childList: true
+      evtEmit('canvasMousemove', {
+        x: e.clientX,
+        y: e.clientY
       });
-      domRef.current.addEventListener('mousemove', handleCanvasMousemmove, true);
-      myDomMount(true);
     }
+    if (!domRef.current) {
+      return;
+    }
+    domMap.canvas = domRef.current;
+    observer.current.observe(domRef.current, {
+      childList: true
+    });
+    domRef.current.addEventListener('mousemove', handleCanvasMousemmove, true);
+    myDomMount(true);
+
     return () => {
+      delete domMap.canvas;
       observer.current.disconnect();
       domRef.current?.removeEventListener('mousemove', handleCanvasMousemmove, true);
     };
@@ -55,7 +65,7 @@ function RawCanvas(props: IRawCanvasProps) {
       {
         renderTree({
           root,
-          compMap: props.compMap,
+          compMap: compMap,
           ftrCtx: { useMappedState, evtEmit },
           captureDomParams: {
             idx: 0,
@@ -71,15 +81,19 @@ function RawCanvas(props: IRawCanvasProps) {
 
 export function Canvas(props: ICanvasProps) {
   const storeRef = React.useRef(createStore(createInitState(), reducers));
-  const browserEvtMonitor = React.useRef(new EventMonitor(storeRef.current.dispatch));
+  const ctx = React.useContext(Context);
+  const browserEvtMonitor = React.useRef(new EventMonitor(storeRef.current, ctx));
   const useMappedStateRef = React.useRef(createUseMappedState(storeRef.current));
-  const { compMap } = React.useContext(Context);
+
+  // debug
+  if (process.env.NODE_ENV === 'development') {
+    (window as any).__store = storeRef.current;
+  }
 
   return (
     <RawCanvas
       evtEmit={browserEvtMonitor.current.emit}
       useMappedState={useMappedStateRef.current}
-      compMap={compMap}
       {...props}
     />
   );
