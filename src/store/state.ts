@@ -10,7 +10,6 @@ export function createInitState() {
       compId: RootCompId,
       ftrId: RootFtrId,
       children: [],
-      coord: { x: 0, y: 0 }
     } as IGrag.INode
   };
 }

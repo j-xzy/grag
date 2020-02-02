@@ -1,33 +1,32 @@
 import * as React from 'react';
-import { IEvtEmit } from '@/eventMonitor';
 import { IRegisterDom } from '@/hooks/useRegisterDom';
 import { useInitial } from '@/hooks/useInitial';
 import { useMount } from '@/hooks/useMount';
 
-interface IDropableProps extends React.Props<any> {
+interface IMonitorProps extends React.Props<any> {
   registerDom: IRegisterDom;
   ftrId: string;
   idx: number;
-  evtEmit: IEvtEmit;
 }
 
-export function MouseEventCollect(props: IDropableProps) {
+export function Monitor(props: IMonitorProps) {
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
-  const handleClick = React.useCallback((e: Event) => {
-    e.stopPropagation();
-    props.evtEmit('ftrClick', { ftrId: props.ftrId });
-  }, []);
 
   useInitial(() => {
     props.registerDom(props.idx, (dom) => {
       domRef.current = dom;
-      dom.addEventListener('click', handleClick);
     });
   });
 
+  // useFtrSubscribe(props.ftrId, 'updatePosition', (coord: IGrag.IXYCoord) => {
+  //   if (domRef.current) {
+  //     domRef.current.style.left = coord.x;
+  //     domRef.current.style.top = coord.y;
+  //   }
+  // });
+
   useMount(() => {
     return () => {
-      domRef.current?.removeEventListener('click', handleClick);
       domRef.current = null;
     };
   });

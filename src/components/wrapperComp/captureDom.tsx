@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { IRegisterDom, useRegisterDom } from '@/hooks/useRegisterDom';
 import { Context } from '@/components/provider';
-import { IFtrCtx } from '@/lib/renderTree';
 import { useInitial } from '@/hooks/useInitial';
 import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
@@ -13,7 +12,7 @@ export interface ICaptureDomParams {
   parentIsMount: boolean;
 }
 
-export interface ICaptureDomProps extends React.Props<any>, IFtrCtx {
+export interface ICaptureDomProps extends React.Props<any> {
   idx: number;
   ftrId: string;
   registerDom: IRegisterDom;
@@ -39,24 +38,21 @@ export function CaptureDom(props: ICaptureDomProps) {
     });
   }));
 
-  const unSubscribeRegierDom = useInitial(() => {
+  useInitial(() => {
     // 注册本节点dom挂载事件
-    const unSubscribe = props.registerDom(props.idx, (dom) => {
+    props.registerDom(props.idx, (dom) => {
       if (!domRef.current) {
         domRef.current = dom;
         // 监听本节点子节点的新增删除事件
         observer.current.observe(domRef.current, {
           childList: true
         });
-        // 解除监听
-        unSubscribe();
         // 本节点dom挂载完成
         myDomMount(true);
 
         domMap[props.ftrId] = dom;
       }
     });
-    return unSubscribe;
   });
 
   const unSubscribeParentMount = useInitial(() => {
@@ -71,7 +67,6 @@ export function CaptureDom(props: ICaptureDomProps) {
   useMount(() => {
     return () => {
       delete domMap[props.ftrId];
-      unSubscribeRegierDom();
       unSubscribeParentMount();
       observer.current.disconnect();
       domRef.current = null;

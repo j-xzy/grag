@@ -1,3 +1,3 @@
 export function uuid() {
-  return 'uuid' + Math.ceil((Math.random() * 100000)) + Math.ceil((Math.random() * 100000));
+  return 'id' + Math.ceil((Math.random() * 100000)) + Math.ceil((Math.random() * 100000));
 }

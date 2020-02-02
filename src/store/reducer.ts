@@ -15,7 +15,6 @@ export function insertFtr(getState: IGetState, payload: IInsertFtrPayload) {
     parent?.children.push({
       compId: payload.compId,
       ftrId: payload.ftrId,
-      coord: payload.coord,
       children: []
     });
   });

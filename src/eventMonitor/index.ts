@@ -1,10 +1,11 @@
 import { ICtxValue } from '@/components/provider';
 import { IStore } from '@/store';
+import { RootFtrId } from '@/components/root';
 import { uuid } from '@/lib/uuid';
 
 interface IEventMap {
   canvasMousemove: IGrag.IXYCoord;
-  ftrMount: {
+  ftrDomDone: {
     ftrId: string;
   };
   ftrDrop: {
@@ -12,8 +13,11 @@ interface IEventMap {
     parentFtrId: string;
   };
   ftrHover: {
-    targetFtrId: string;
+    ftrId: string;
     clientOffset: IGrag.IXYCoord;
+  };
+  ftrClick: {
+    ftrId: string;
   };
 }
 
@@ -47,13 +51,15 @@ export class EventMonitor implements IGrag.IMap2Func<IEventMap>  {
     });
   }
 
-  public ftrMount(_param: IEventMap['ftrMount']) {
-    //
+  public ftrDomDone(param: IEventMap['ftrDomDone']) {
+    if (param.ftrId === RootFtrId) {
+      return;
+    }
   }
 
   public ftrHover(param: IEventMap['ftrHover']) {
-    if (this.store.getState().enterFtrId !== param.targetFtrId) {
-      this.store.dispatch('updateEnterFtr', param.targetFtrId);
+    if (this.store.getState().enterFtrId !== param.ftrId) {
+      this.store.dispatch('updateEnterFtr', param.ftrId);
     }
     const rootRect = this.ctx.domMap.root?.getBoundingClientRect();
     if (rootRect) {
@@ -63,5 +69,9 @@ export class EventMonitor implements IGrag.IMap2Func<IEventMap>  {
       };
       this.store.dispatch('updateMouseCoord', coord);
     }
+  }
+
+  public ftrClick(__param: IEventMap['ftrClick']) {
+    //
   }
 }

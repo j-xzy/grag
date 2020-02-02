@@ -65,8 +65,8 @@ function RawCanvas(props: IRawCanvasProps) {
       {
         renderTree({
           root,
-          compMap: compMap,
-          ftrCtx: { useMappedState, evtEmit },
+          compMap,
+          evtEmit,
           captureDomParams: {
             idx: 0,
             registerParentMount: registerMyDomMount,
@@ -82,7 +82,7 @@ function RawCanvas(props: IRawCanvasProps) {
 export function Canvas(props: ICanvasProps) {
   const storeRef = React.useRef(createStore(createInitState(), reducers));
   const ctx = React.useContext(Context);
-  const browserEvtMonitor = React.useRef(new EventMonitor(storeRef.current, ctx));
+  const evtMonitor = React.useRef(new EventMonitor(storeRef.current, ctx));
   const useMappedStateRef = React.useRef(createUseMappedState(storeRef.current));
 
   // debug
@@ -92,7 +92,7 @@ export function Canvas(props: ICanvasProps) {
 
   return (
     <RawCanvas
-      evtEmit={browserEvtMonitor.current.emit}
+      evtEmit={evtMonitor.current.emit}
       useMappedState={useMappedStateRef.current}
       {...props}
     />
