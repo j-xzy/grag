@@ -9,7 +9,8 @@ export function App() {
         <FtrClass />
         <FtrBox />
       </div>
-      <Canvas className='border' />
+      <Canvas className='border1' />
+      <Canvas className='border2' />
     </GragProvider>
   );
 }

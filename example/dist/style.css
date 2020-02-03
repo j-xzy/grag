@@ -14,10 +14,19 @@ tfoot {
   display: inline-block;
 }
 
-.border {
+.border1 {
   position: absolute;
   top: 50px;
   left: 50px;
+  width: 500px;
+  height: 500px;
+  border: 1px solid #000;
+}
+
+.border2 {
+  position: absolute;
+  top: 50px;
+  left: 600px;
   width: 500px;
   height: 500px;
   border: 1px solid #000;
