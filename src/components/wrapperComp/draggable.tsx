@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { IDragItem } from '@/components/feature';
-import { IEvtEmit } from '@/eventMonitor';
+import { IEvtEmit } from '@/EventCollect';
 import { IRegisterDom } from '@/hooks/useRegisterDom';
 import { ItemTypes } from '@/lib/itemTypes';
 import { useDrop } from 'dnd';

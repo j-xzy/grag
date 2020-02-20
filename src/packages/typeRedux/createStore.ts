@@ -1,4 +1,4 @@
-import { applyMiddleware, IEnhancer } from './applyMiddleware';
+import { IEnhancer, applyMiddleware } from './applyMiddleware';
 
 interface IKeyValue<T> {
   [p: string]: T;

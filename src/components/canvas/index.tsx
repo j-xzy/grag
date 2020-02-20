@@ -1,34 +1,34 @@
 import * as React from 'react';
-import * as reducers from '@/store/reducer';
-import { EventMonitor, IEvtEmit } from '@/eventMonitor';
-import { createStore, createUseMappedState } from 'typeRedux';
 import { Context } from '@/components/provider';
-import { IUseMappedState } from '@/store';
-import { createInitState } from '@/store/state';
+import { IEvtEmit } from '@/EventCollect';
+import { RootCompId } from '@/components/root';
 import { renderTree } from '@/lib/renderTree';
+import { useInitial } from '@/hooks/useInitial';
 import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
 import { useRegisterDom } from '@/hooks/useRegisterDom';
+import { uuid } from '@/lib/uuid';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
   evtEmit: IEvtEmit;
-  useMappedState: IUseMappedState;
+  compMap: IGrag.ICompMap;
+  domMap: IGrag.IDomMap;
+  id: string;
+  root: IGrag.INode;
 }
 
 interface ICanvasProps {
   style?: React.CSSProperties;
   className?: string;
+  id?: string;
 }
 
 function RawCanvas(props: IRawCanvasProps) {
-  const { evtEmit, style, className, useMappedState } = props;
-  const root = useMappedState((p) => p.root);
+  const { evtEmit, style, className, compMap, domMap, id, root } = props;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
 
   const [registerChildDom, childDomReady] = useRegisterDom();
   const [registerMyDomMount, myDomMount] = useListener();
-
-  const { compMap, domMap } = React.useContext(Context);
 
   const observer = React.useRef(new MutationObserver((records) => {
     const node: any = records[0].addedNodes[0];
@@ -46,7 +46,7 @@ function RawCanvas(props: IRawCanvasProps) {
     if (!domRef.current) {
       return;
     }
-    domMap.canvas = domRef.current;
+    domMap[id] = domRef.current;
     observer.current.observe(domRef.current, {
       childList: true
     });
@@ -54,7 +54,7 @@ function RawCanvas(props: IRawCanvasProps) {
     myDomMount(true);
 
     return () => {
-      delete domMap.canvas;
+      delete domMap[id];
       observer.current.disconnect();
       domRef.current?.removeEventListener('mousemove', handleCanvasMousemmove, true);
     };
@@ -80,21 +80,25 @@ function RawCanvas(props: IRawCanvasProps) {
 }
 
 export function Canvas(props: ICanvasProps) {
-  const storeRef = React.useRef(createStore(createInitState(), reducers));
-  const ctx = React.useContext(Context);
-  const evtMonitor = React.useRef(new EventMonitor(storeRef.current, ctx));
-  const useMappedStateRef = React.useRef(createUseMappedState(storeRef.current));
+  const { compMap, domMap, evtEmit, rootMap } = React.useContext(Context);
+  const canvasId = React.useRef(props.id ?? uuid());
 
-  // debug
-  if (process.env.NODE_ENV === 'development') {
-    (window as any).__store = storeRef.current;
-  }
+  const root = useInitial(() => {
+    return rootMap[canvasId.current] = {
+      compId: RootCompId,
+      ftrId: uuid(),
+      children: []
+    };
+  });
 
   return (
     <RawCanvas
-      evtEmit={evtMonitor.current.emit}
-      useMappedState={useMappedStateRef.current}
       {...props}
+      evtEmit={evtEmit}
+      compMap={compMap}
+      domMap={domMap}
+      root={root}
+      id={canvasId.current}
     />
   );
 }

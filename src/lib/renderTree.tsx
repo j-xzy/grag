@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { CaptureDom, ICaptureDomParams } from '@/components/wrapperComp/captureDom';
 import { Dropable } from '@/components/wrapperComp/draggable';
-import { IEvtEmit } from '@/eventMonitor';
+import { IEvtEmit } from '@/EventCollect';
 import { MemoNode } from '@/components/wrapperComp/memoNode';
 import { Monitor } from '@/components/wrapperComp/monitor';
 import { MouseEventCollect } from '@/components/wrapperComp/mouseEventCollect';

@@ -17,8 +17,6 @@ declare namespace IGrag {
   }
 
   interface IDomMap {
-    canvas: HTMLElement | null;
-    root: HTMLElement | null;
     [id: string]: HTMLElement | null;
   }
 

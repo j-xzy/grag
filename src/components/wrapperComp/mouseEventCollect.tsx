@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IEvtEmit } from '@/eventMonitor';
+import { IEvtEmit } from '@/EventCollect';
 import { IRegisterDom } from '@/hooks/useRegisterDom';
 import { useInitial } from '@/hooks/useInitial';
 import { useMount } from '@/hooks/useMount';
