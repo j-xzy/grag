@@ -1,3 +1,6 @@
+import { IFtrStoreDispatch } from '@/FeatureStore';
+import { uuid } from '@/lib/uuid';
+
 export interface IEventMap {
   canvasMousemove: IGrag.IXYCoord;
   ftrDomDone: {
@@ -18,8 +21,8 @@ export interface IEventMap {
 
 export type IEvtEmit = EventCollect['emit'];
 
-export class EventCollect implements IGrag.IMap2Func<IEventMap>  {
-  constructor() {
+export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
+  constructor(private ftrStoreDispatch: IFtrStoreDispatch) {
     this.emit = this.emit.bind(this);
   }
 
@@ -31,8 +34,8 @@ export class EventCollect implements IGrag.IMap2Func<IEventMap>  {
     //
   }
 
-  public ftrDrop(_param: IEventMap['ftrDrop']) {
-    //
+  public ftrDrop(param: IEventMap['ftrDrop']) {
+    this.ftrStoreDispatch('insertNewFtr', { ...param, ftrId: uuid() });
   }
 
   public ftrDomDone(_param: IEventMap['ftrDomDone']) {

@@ -1,37 +1,62 @@
 import * as React from 'react';
 import { EventCollect, IEvtEmit } from '@/EventCollect';
-import { Root, RootCompId } from '@/components/root';
+import { CanvaStore } from '@/CanvaStore';
+import { FeatureStore } from '@/FeatureStore';
 import { Provider } from 'dnd';
+import { RootCompId } from '@/components/root';
+import { buildNode } from '@/lib/treeUtil';
+import { useListener } from '@/hooks/useListener';
+import { uuid } from '@/lib/uuid';
+
+interface IRegisterCanvasParam {
+  canvasId: string;
+  forceUpdate: IGrag.IFunction;
+}
 
 export const Context = React.createContext({
-  compMap: {} as IGrag.ICompMap, // compId到react组件映射
-  domMap: {} as IGrag.IDomMap, // ftrId到dom的映射
-  rootMap: {} as { [canvsaId: string]: IGrag.INode }, // canvasId到root的映射
-  evtEmit: (() => { /** */ }) as IEvtEmit
+  canvaStore: {} as CanvaStore,
+  evtEmit: (() => { /** */ }) as IEvtEmit,
+  registerCanvas: (() => { /** */ }) as (param: IRegisterCanvasParam) => void
 });
 
 export type ICtxValue = IGrag.IReactCtxValue<typeof Context>;
 
 export function GragProvider(props: React.Props<any>) {
-  const compMap = React.useRef({ [RootCompId]: Root } as IGrag.ICompMap);
-  const domMap = React.useRef({} as IGrag.IDomMap);
-  const rootMap = React.useRef({} as { [canvsaId: string]: IGrag.INode });
-  const evtCollect = React.useRef(new EventCollect());
+  const canvasForceUpdateMap = React.useRef({} as IGrag.IIndexable<IGrag.IFunction>);
+  const refreshCanvas = React.useCallback((canvasId) => {
+    canvasForceUpdateMap.current[canvasId].call(null);
+  }, []);
+
+  const ftrId2CanvasId = React.useRef({} as IGrag.IIndexable<string>);
+  const canvaStore = React.useRef(new CanvaStore());
+
+  const featureStore = React.useRef(new FeatureStore(
+    canvaStore.current,
+    ftrId2CanvasId.current, refreshCanvas
+  ));
+  const evtCollect = React.useRef(new EventCollect(featureStore.current.dispatch));
+
+  const [, registerCanvas] = useListener((param: IRegisterCanvasParam) => {
+    const ftrId = uuid();
+    ftrId2CanvasId.current[ftrId] = param.canvasId;
+    canvaStore.current.setRoot(param.canvasId, buildNode({
+      compId: RootCompId,
+      ftrId  
+    }));
+    canvasForceUpdateMap.current[param.canvasId] = param.forceUpdate;
+  });
 
   // debug
   if (process.env.NODE_ENV === 'development') {
-    (window as any).__compMap = compMap.current;
-    (window as any).__domMap = domMap.current;
-    (window as any).__rootMap = rootMap.current;
+    (window as any).__featureStore = featureStore.current;
     (window as any).__evtCollect = evtCollect.current;
   }
 
   return (
     <Context.Provider value={{
-      compMap: compMap.current,
-      domMap: domMap.current,
+      canvaStore: canvaStore.current,
       evtEmit: evtCollect.current.emit,
-      rootMap: rootMap.current,
+      registerCanvas,
     }}>
       <Provider>
         {props.children}

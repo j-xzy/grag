@@ -1,8 +1,9 @@
 import * as React from 'react';
+import { CanvaStore } from '@/CanvaStore';
 import { Context } from '@/components/provider';
 import { IEvtEmit } from '@/EventCollect';
-import { RootCompId } from '@/components/root';
 import { renderTree } from '@/lib/renderTree';
+import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useInitial } from '@/hooks/useInitial';
 import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
@@ -11,10 +12,8 @@ import { uuid } from '@/lib/uuid';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
   evtEmit: IEvtEmit;
-  compMap: IGrag.ICompMap;
-  domMap: IGrag.IDomMap;
   id: string;
-  root: IGrag.INode;
+  canvaStore: CanvaStore;
 }
 
 interface ICanvasProps {
@@ -24,7 +23,8 @@ interface ICanvasProps {
 }
 
 function RawCanvas(props: IRawCanvasProps) {
-  const { evtEmit, style, className, compMap, domMap, id, root } = props;
+  const { evtEmit, style, className, id, canvaStore } = props;
+  const root = canvaStore.getRoot(id)!;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
 
   const [registerChildDom, childDomReady] = useRegisterDom();
@@ -46,7 +46,7 @@ function RawCanvas(props: IRawCanvasProps) {
     if (!domRef.current) {
       return;
     }
-    domMap[id] = domRef.current;
+    canvaStore.setDom(id, domRef.current);
     observer.current.observe(domRef.current, {
       childList: true
     });
@@ -54,7 +54,7 @@ function RawCanvas(props: IRawCanvasProps) {
     myDomMount(true);
 
     return () => {
-      delete domMap[id];
+      canvaStore.deleteDom(id);
       observer.current.disconnect();
       domRef.current?.removeEventListener('mousemove', handleCanvasMousemmove, true);
     };
@@ -65,7 +65,7 @@ function RawCanvas(props: IRawCanvasProps) {
       {
         renderTree({
           root,
-          compMap,
+          canvaStore,
           evtEmit,
           captureDomParams: {
             idx: 0,
@@ -80,24 +80,23 @@ function RawCanvas(props: IRawCanvasProps) {
 }
 
 export function Canvas(props: ICanvasProps) {
-  const { compMap, domMap, evtEmit, rootMap } = React.useContext(Context);
+  const { evtEmit, canvaStore, registerCanvas } = React.useContext(Context);
+
+  const forceUpdate = useForceUpdate();
   const canvasId = React.useRef(props.id ?? uuid());
 
-  const root = useInitial(() => {
-    return rootMap[canvasId.current] = {
-      compId: RootCompId,
-      ftrId: uuid(),
-      children: []
-    };
+  useInitial(() => {
+    registerCanvas({
+      canvasId: canvasId.current,
+      forceUpdate,
+    });
   });
 
   return (
     <RawCanvas
       {...props}
       evtEmit={evtEmit}
-      compMap={compMap}
-      domMap={domMap}
-      root={root}
+      canvaStore={canvaStore}
       id={canvasId.current}
     />
   );

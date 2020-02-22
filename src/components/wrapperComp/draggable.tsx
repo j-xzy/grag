@@ -12,6 +12,7 @@ interface IDropableProps extends React.Props<any> {
   ftrId: string;
   idx: number;
   evtEmit: IEvtEmit;
+  option: IGrag.ICompOption;
 }
 
 export function Dropable(props: IDropableProps) {
@@ -39,7 +40,9 @@ export function Dropable(props: IDropableProps) {
     props.registerDom(props.idx, (dom) => {
       if (!domRef.current) {
         domRef.current = dom;
-        drop(dom);
+        if (props.option.allowChild) {
+          drop(dom);
+        }
       }
     });
   });

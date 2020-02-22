@@ -33,7 +33,7 @@ function FtrClass() {
 
 function FtrBox() {
   return (
-    <Feature component={Box}>
+    <Feature allowChild={true} component={Box}>
       {(ref) => <div ref={ref} className='preview'>Box</div>}
     </Feature>
   );

@@ -6,6 +6,7 @@ import { uuid } from '@/lib/uuid';
 
 interface IProps extends React.Props<any> {
   component: IGrag.ICompFcClass;
+  allowChild?: boolean;
   id?: string;
   children: (ref: DragElementWrapper<DragSourceOptions>) => React.ReactNode;
 }
@@ -16,12 +17,14 @@ export interface IDragItem {
 }
 
 export function Feature(props: IProps) {
-  const { compMap } = React.useContext(Context);
-  let id = props.id ?? uuid();
-  while (compMap[id]) {
-    id = uuid();
-  }
-  compMap[id] = props.component;
+  const { canvaStore } = React.useContext(Context);
+  const id = props.id ?? uuid();
+  canvaStore.setCompInfo(id, {
+    Component: props.component,
+    option: {
+      allowChild: props.allowChild ?? false
+    }
+  });
   const [, drag] = useDrag({
     item: { type: ItemTypes.CANVAS, compId: id } as IDragItem
   });

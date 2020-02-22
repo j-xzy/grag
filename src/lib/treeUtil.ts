@@ -11,3 +11,15 @@ export function getNodeByFtrId(root: IGrag.INode, ftrId: string) {
   }
   return null;
 }
+
+export function buildNode(param: { ftrId: string; compId: string; children?: IGrag.INode[] }): IGrag.INode {
+  return {
+    ftrId: param.ftrId,
+    compId: param.compId,
+    children: param.children ?? []
+  };
+}
+
+export function appendChild(parent: IGrag.INode, child: IGrag.INode) {
+  return parent.children.push(child);
+}

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 interface IMemoProps extends React.Props<any> {
-  node: IGrag.INode;
+  node: IGrag.IDeepReadonly<IGrag.INode>;
   children: React.ReactElement;
 }
 

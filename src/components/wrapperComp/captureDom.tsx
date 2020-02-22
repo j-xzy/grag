@@ -28,7 +28,7 @@ export function CaptureDom(props: ICaptureDomProps) {
   const [registerChildDom, childDomReady] = useRegisterDom();
   const [registerMyDomMount, myDomMount] = useListener();
   
-  const { domMap } = React.useContext(Context);
+  const { canvaStore } = React.useContext(Context);
 
   const observer = React.useRef(new MutationObserver((records) => {
     records.forEach(({ addedNodes }) => {
@@ -50,7 +50,7 @@ export function CaptureDom(props: ICaptureDomProps) {
         // 本节点dom挂载完成
         myDomMount(true);
 
-        domMap[props.ftrId] = dom;
+        canvaStore.setDom(props.ftrId, dom);
       }
     });
   });
@@ -66,7 +66,7 @@ export function CaptureDom(props: ICaptureDomProps) {
 
   useMount(() => {
     return () => {
-      delete domMap[props.ftrId];
+      canvaStore.deleteDom(props.ftrId);
       unSubscribeParentMount();
       observer.current.disconnect();
       domRef.current = null;
