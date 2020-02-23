@@ -2,6 +2,8 @@ import * as React from 'react';
 import { CanvaStore } from '@/CanvaStore';
 import { Context } from '@/components/provider';
 import { IEvtEmit } from '@/EventCollect';
+import { RootCompId } from '@/components/root';
+import { buildNode } from '@/lib/treeUtil';
 import { renderTree } from '@/lib/renderTree';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useInitial } from '@/hooks/useInitial';
@@ -65,8 +67,7 @@ function RawCanvas(props: IRawCanvasProps) {
       {
         renderTree({
           root,
-          canvaStore,
-          evtEmit,
+          canvaStore, 
           captureDomParams: {
             idx: 0,
             registerParentMount: registerMyDomMount,
@@ -80,21 +81,25 @@ function RawCanvas(props: IRawCanvasProps) {
 }
 
 export function Canvas(props: ICanvasProps) {
-  const { evtEmit, canvaStore, registerCanvas } = React.useContext(Context);
+  const { id, ...restProps } = props;
+  const { evtEmit, canvaStore } = React.useContext(Context);
 
   const forceUpdate = useForceUpdate();
-  const canvasId = React.useRef(props.id ?? uuid());
+  const canvasId = React.useRef(id ?? uuid());
 
   useInitial(() => {
-    registerCanvas({
-      canvasId: canvasId.current,
-      forceUpdate,
-    });
+    const ftrId = uuid();
+    canvaStore.setFtrId2Canvas(ftrId, canvasId.current);
+    canvaStore.setRoot(canvasId.current, buildNode({
+      compId: RootCompId,
+      ftrId
+    }));
+    canvaStore.subscribeForceUpdate(canvasId.current, forceUpdate);
   });
 
   return (
     <RawCanvas
-      {...props}
+      {...restProps}
       evtEmit={evtEmit}
       canvaStore={canvaStore}
       id={canvasId.current}

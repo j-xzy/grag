@@ -1,6 +1,6 @@
 declare namespace IGrag {
   interface ICompOption {
-    allowChild: boolean;
+    allowChild?: boolean;
   }
 
   interface ICompInfo {

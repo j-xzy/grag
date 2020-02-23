@@ -60,11 +60,15 @@ function Box(props: React.Props<any>) {
 }
 
 function Table() {
+  const [title, setState] = React.useState('title');
+  React.useEffect(() => {
+    setState('xxxx');
+  }, []);
   return (
     <table>
       <thead>
         <tr>
-          <th colSpan={2}>The table header</th>
+          <th colSpan={2}>{title}</th>
         </tr>
       </thead>
       <tbody>

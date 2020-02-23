@@ -2,7 +2,6 @@ import * as React from 'react';
 import { CaptureDom, ICaptureDomParams } from '@/components/wrapperComp/captureDom';
 import { CanvaStore } from '@/CanvaStore';
 import { Dropable } from '@/components/wrapperComp/draggable';
-import { IEvtEmit } from '@/EventCollect';
 import { MemoNode } from '@/components/wrapperComp/memoNode';
 import { Monitor } from '@/components/wrapperComp/monitor';
 import { MouseEventCollect } from '@/components/wrapperComp/mouseEventCollect';
@@ -14,12 +13,11 @@ interface IParams extends ICaptureDomParams {
 interface IRenderTreeProps {
   root: IGrag.IDeepReadonly<IGrag.INode> | null;
   canvaStore: CanvaStore;
-  evtEmit: IEvtEmit;
   captureDomParams: IParams;
 }
 
 export function renderTree(renderTreeparams: IRenderTreeProps) {
-  const { canvaStore, root, captureDomParams, evtEmit } = renderTreeparams;
+  const { canvaStore, root, captureDomParams } = renderTreeparams;
   return renderNode(root, captureDomParams);
 
   function renderNode(node: IGrag.IDeepReadonly<IGrag.INode> | null, params: IParams) {
@@ -32,8 +30,8 @@ export function renderTree(renderTreeparams: IRenderTreeProps) {
     return (
       <MemoNode key={ftrId} node={node}>
         <Monitor ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
-          <MouseEventCollect ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom} evtEmit={evtEmit}>
-            <Dropable option={option} ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom} evtEmit={evtEmit}>
+          <MouseEventCollect ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
+            <Dropable option={option} ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
               <CaptureDom
                 ftrId={ftrId}
                 idx={params.idx}

@@ -1,6 +1,6 @@
 import * as treeUtil from '@/lib/treeUtil';
-import { produce } from 'produce';
 import { CanvaStore } from '@/CanvaStore';
+import { produce } from 'produce';
 
 interface IActionMap {
   insertNewFtr: {
@@ -13,11 +13,7 @@ interface IActionMap {
 export type IFtrStoreDispatch = FeatureStore['dispatch'];
 
 export class FeatureStore implements IGrag.IObj2Func<IActionMap> {
-  constructor(
-    private canvaStore: CanvaStore,
-    private ftrId2CanvasId: IGrag.IIndexable<string>,
-    private refreshCanvas: (canvasId: string) => void
-  ) {
+  constructor(private canvaStore: CanvaStore) {
     this.dispatch = this.dispatch.bind(this);
   }
 
@@ -27,7 +23,7 @@ export class FeatureStore implements IGrag.IObj2Func<IActionMap> {
 
   public insertNewFtr(param: IActionMap['insertNewFtr']) {
     const { parentFtrId, compId, ftrId } = param;
-    const canvasId = this.ftrId2CanvasId[parentFtrId];
+    const canvasId = this.canvaStore.getCanvasIdByFtrId(parentFtrId);
     const root = this.canvaStore.getRoot(canvasId);
     const nextRoot = produce(root, (draft) => {
       const parent = treeUtil.getNodeByFtrId(draft, parentFtrId);
@@ -36,8 +32,8 @@ export class FeatureStore implements IGrag.IObj2Func<IActionMap> {
         treeUtil.appendChild(parent, child);
       }
     });
-    this.ftrId2CanvasId[ftrId] = canvasId;
+    this.canvaStore.setFtrId2Canvas(ftrId, canvasId);
     this.canvaStore.setRoot(canvasId, nextRoot);
-    this.refreshCanvas(canvasId);
+    this.canvaStore.refreshCanvas(canvasId);
   }
 }

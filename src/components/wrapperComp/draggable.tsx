@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { Context } from '@/components/provider';
 import { IDragItem } from '@/components/feature';
-import { IEvtEmit } from '@/EventCollect';
 import { IRegisterDom } from '@/hooks/useRegisterDom';
 import { ItemTypes } from '@/lib/itemTypes';
 import { useDrop } from 'dnd';
@@ -11,11 +11,11 @@ interface IDropableProps extends React.Props<any> {
   registerDom: IRegisterDom;
   ftrId: string;
   idx: number;
-  evtEmit: IEvtEmit;
   option: IGrag.ICompOption;
 }
 
 export function Dropable(props: IDropableProps) {
+  const { evtEmit } = React.useContext(Context);
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
   const [, drop] = useDrop({
     accept: ItemTypes.CANVAS,
@@ -23,13 +23,13 @@ export function Dropable(props: IDropableProps) {
       if (monitor.didDrop()) {
         return;
       }
-      props.evtEmit('ftrDrop', { compId: item.compId, parentFtrId: props.ftrId });
+      evtEmit('ftrDrop', { compId: item.compId, parentFtrId: props.ftrId });
     },
     hover(_: IDragItem, monitor) {
       if (!monitor.isOver({ shallow: true })) {
         return;
       }
-      props.evtEmit('ftrHover', {
+      evtEmit('ftrHover', {
         ftrId: props.ftrId,
         clientOffset: monitor.getClientOffset()!
       });

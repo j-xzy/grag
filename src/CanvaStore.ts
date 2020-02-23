@@ -6,6 +6,8 @@ export class CanvaStore {
   }; // compId到react组件映射
   private domMap: IGrag.IDomMap = {}; // ftrId到dom的映射
   private rootMap: IGrag.IRootMap = {}; // canvasId到root的映射
+  private ftrId2CanvasId: IGrag.IIndexable<string> = {}; // ftrId到canvasId的映射
+  private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
 
   public getCompInfo(compId: string): IGrag.IDeepReadonly<IGrag.ICompInfo> {
     return this.compInfos[compId];
@@ -33,5 +35,21 @@ export class CanvaStore {
 
   public setRoot(canvasId: string, node: IGrag.INode) {
     this.rootMap[canvasId] = node;
+  }
+
+  public subscribeForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
+    this.canvasForceUpdateMap[canvasId] = forceUpdate;
+  }
+
+  public refreshCanvas(canvasId: string) {
+    this.canvasForceUpdateMap[canvasId].call(null);
+  }
+
+  public setFtrId2Canvas(ftrId: string, canvasId: string) {
+    this.ftrId2CanvasId[ftrId] = canvasId;
+  }
+
+  public getCanvasIdByFtrId(ftrId: string) {
+    return this.ftrId2CanvasId[ftrId];
   }
 }
