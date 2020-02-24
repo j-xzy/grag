@@ -24,11 +24,11 @@ export interface ICaptureDomProps extends React.Props<any> {
 export function CaptureDom(props: ICaptureDomProps) {
   const [parentIsMount, setParentIsMount] = React.useState(props.parentIsMount);
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
-  
+
   const [registerChildDom, childDomReady] = useRegisterDom();
   const [registerMyDomMount, myDomMount] = useListener();
-  
-  const { canvaStore } = React.useContext(Context);
+
+  const { evtEmit } = React.useContext(Context);
 
   const observer = React.useRef(new MutationObserver((records) => {
     records.forEach(({ addedNodes }) => {
@@ -49,8 +49,10 @@ export function CaptureDom(props: ICaptureDomProps) {
         });
         // 本节点dom挂载完成
         myDomMount(true);
-
-        canvaStore.setDom(props.ftrId, dom);
+        evtEmit('ftrDomDone', {
+          ftrId: props.ftrId,
+          dom
+        });
       }
     });
   });
@@ -66,10 +68,10 @@ export function CaptureDom(props: ICaptureDomProps) {
 
   useMount(() => {
     return () => {
-      canvaStore.deleteDom(props.ftrId);
       unSubscribeParentMount();
       observer.current.disconnect();
       domRef.current = null;
+      evtEmit('ftrUnmount', { ftrId: props.ftrId });
     };
   });
 

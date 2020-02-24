@@ -1,12 +1,13 @@
 import { RootCompId, RootInfo } from '@/components/root';
 
-export class CanvaStore {
+export class ProviderStore {
   private compInfos: IGrag.ICompInfos = {
     [RootCompId]: RootInfo
   }; // compId到react组件映射
   private domMap: IGrag.IDomMap = {}; // ftrId到dom的映射
-  private rootMap: IGrag.IRootMap = {}; // canvasId到root的映射
+  // private ftrStateMap: IGrag.IIndexable<IGrag.IFtrState> = {}; // ftrId到ftrState的映射
   private ftrId2CanvasId: IGrag.IIndexable<string> = {}; // ftrId到canvasId的映射
+  private rootMap: IGrag.IRootMap = {}; // canvasId到root的映射
   private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
 
   public getCompInfo(compId: string): IGrag.IDeepReadonly<IGrag.ICompInfo> {

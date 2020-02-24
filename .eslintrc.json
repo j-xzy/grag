@@ -37,7 +37,7 @@
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/triple-slash-reference": "off",
-        "sort-imports": "warn",
+        "sort-imports": "off",
         "@typescript-eslint/interface-name-prefix": [
             "warn",
             {

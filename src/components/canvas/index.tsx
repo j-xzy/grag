@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CanvaStore } from '@/CanvaStore';
+import { ProviderStore } from '@/ProviderStore';
 import { Context } from '@/components/provider';
 import { IEvtEmit } from '@/EventCollect';
 import { RootCompId } from '@/components/root';
@@ -15,7 +15,7 @@ import { uuid } from '@/lib/uuid';
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
   evtEmit: IEvtEmit;
   id: string;
-  canvaStore: CanvaStore;
+  providerStore: ProviderStore;
 }
 
 interface ICanvasProps {
@@ -25,8 +25,8 @@ interface ICanvasProps {
 }
 
 function RawCanvas(props: IRawCanvasProps) {
-  const { evtEmit, style, className, id, canvaStore } = props;
-  const root = canvaStore.getRoot(id)!;
+  const { evtEmit, style, className, id, providerStore } = props;
+  const root = providerStore.getRoot(id)!;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
 
   const [registerChildDom, childDomReady] = useRegisterDom();
@@ -48,7 +48,7 @@ function RawCanvas(props: IRawCanvasProps) {
     if (!domRef.current) {
       return;
     }
-    canvaStore.setDom(id, domRef.current);
+    providerStore.setDom(id, domRef.current);
     observer.current.observe(domRef.current, {
       childList: true
     });
@@ -56,7 +56,7 @@ function RawCanvas(props: IRawCanvasProps) {
     myDomMount(true);
 
     return () => {
-      canvaStore.deleteDom(id);
+      providerStore.deleteDom(id);
       observer.current.disconnect();
       domRef.current?.removeEventListener('mousemove', handleCanvasMousemmove, true);
     };
@@ -67,7 +67,7 @@ function RawCanvas(props: IRawCanvasProps) {
       {
         renderTree({
           root,
-          canvaStore, 
+          providerStore, 
           captureDomParams: {
             idx: 0,
             registerParentMount: registerMyDomMount,
@@ -82,26 +82,26 @@ function RawCanvas(props: IRawCanvasProps) {
 
 export function Canvas(props: ICanvasProps) {
   const { id, ...restProps } = props;
-  const { evtEmit, canvaStore } = React.useContext(Context);
+  const { evtEmit, providerStore } = React.useContext(Context);
 
   const forceUpdate = useForceUpdate();
   const canvasId = React.useRef(id ?? uuid());
 
   useInitial(() => {
     const ftrId = uuid();
-    canvaStore.setFtrId2Canvas(ftrId, canvasId.current);
-    canvaStore.setRoot(canvasId.current, buildNode({
+    providerStore.setFtrId2Canvas(ftrId, canvasId.current);
+    providerStore.setRoot(canvasId.current, buildNode({
       compId: RootCompId,
       ftrId
     }));
-    canvaStore.subscribeForceUpdate(canvasId.current, forceUpdate);
+    providerStore.subscribeForceUpdate(canvasId.current, forceUpdate);
   });
 
   return (
     <RawCanvas
       {...restProps}
       evtEmit={evtEmit}
-      canvaStore={canvaStore}
+      providerStore={providerStore}
       id={canvasId.current}
     />
   );

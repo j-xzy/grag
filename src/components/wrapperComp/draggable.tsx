@@ -23,7 +23,7 @@ export function Dropable(props: IDropableProps) {
       if (monitor.didDrop()) {
         return;
       }
-      evtEmit('ftrDrop', { compId: item.compId, parentFtrId: props.ftrId });
+      evtEmit('ftrDropEnd', { compId: item.compId, parentFtrId: props.ftrId });
     },
     hover(_: IDragItem, monitor) {
       if (!monitor.isOver({ shallow: true })) {

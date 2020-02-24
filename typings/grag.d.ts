@@ -19,4 +19,11 @@ declare namespace IGrag {
   interface IRootMap {
     [canvasId: string]: IGrag.INode;
   }
+
+  interface IFtrState {
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+  }
 }

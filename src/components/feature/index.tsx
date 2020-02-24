@@ -22,13 +22,16 @@ const PREVIEW_WRAPPER_ID = '__grag_preview_wrapper';
 export function Feature(props: IProps) {
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
   const compId = React.useRef(props.id ?? uuid());
-  const { canvaStore } = React.useContext(Context);
+  const { evtEmit } = React.useContext(Context);
 
   useInitial(() => {
-    canvaStore.setCompInfo(compId.current, {
-      Component: props.component,
-      option: {
-        allowChild: props.allowChild ?? false
+    evtEmit('ftrPreviewInit', {
+      compId: compId.current,
+      compInfo: {
+        Component: props.component,
+        option: {
+          allowChild: props.allowChild ?? false
+        }
       }
     });
   });
@@ -44,6 +47,9 @@ export function Feature(props: IProps) {
         offsetX: parseInt(width) / 2,
         offsetY:  parseInt(height) / 2
       });
+    },
+    end() {
+      ReactDOM.render(null as any, getPreviewWrapperEle());
     }
   });
 
