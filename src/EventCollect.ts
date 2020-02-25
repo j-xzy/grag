@@ -1,9 +1,14 @@
 import { ProviderStore } from '@/ProviderStore';
 import { IFtrStoreDispatch } from '@/FeatureStore';
 import { uuid } from '@/lib/uuid';
+import { ICanvasStore } from './canvaStore';
 
 export interface IEventMap {
   canvasMousemove: IGrag.IXYCoord;
+  canvasMouseEnter: { canvasId: string };
+  canvasMouseLeave: { canvasId: string };
+  canvasMount: { canvasId: string; dom: HTMLDivElement };
+  canvasUnMount: { canvasId: string };
   ftrDomDone: {
     ftrId: string;
     dom: HTMLElement;
@@ -23,15 +28,16 @@ export interface IEventMap {
     ftrId: string;
     clientOffset: IGrag.IXYCoord;
   };
-  ftrClick: {
-    ftrId: string;
-  };
 }
 
 export type IEvtEmit = EventCollect['emit'];
 
 export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
-  constructor(private ftrStoreDispatch: IFtrStoreDispatch, private providerStore: ProviderStore) {
+  constructor(
+    private ftrStoreDispatch: IFtrStoreDispatch,
+    private providerStore: ProviderStore,
+    private canvaStore: ICanvasStore
+  ) {
     this.emit = this.emit.bind(this);
   }
 
@@ -39,8 +45,32 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     (this[evtName] as any).call(this, params);
   }
 
-  public canvasMousemove(_param: IEventMap['canvasMousemove']) {
-    //
+  public canvasMousemove(param: IEventMap['canvasMousemove']) {
+    this.canvaStore.dispatch('updateMouseCoord', param);
+  }
+
+  public canvasMouseEnter(param: IEventMap['canvasMouseEnter']) {
+    if (param.canvasId !== this.canvaStore.getState().focusedCanvasId) {
+      this.canvaStore.dispatch('updateFocusedCanvasId', param.canvasId);
+    }
+  }
+
+  public canvasMouseLeave(param: IEventMap['canvasMouseLeave']) {
+    if (param.canvasId === this.canvaStore.getState().focusedCanvasId) {
+      this.canvaStore.dispatch('updateFocusedCanvasId', null);
+    }
+  }
+
+  public canvasMount(param: IEventMap['canvasMount']) {
+    this.providerStore.setDom(param.canvasId, param.dom);
+    this.canvaStore.dispatch('updateCanvasRect', {
+      id: param.canvasId,
+      rect: param.dom.getBoundingClientRect()
+    });
+  }
+
+  public canvasUnMount(param: IEventMap['canvasUnMount']) {
+    this.providerStore.deleteDom(param.canvasId);
   }
 
   public ftrDropEnd(param: IEventMap['ftrDropEnd']) {
@@ -49,6 +79,10 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
 
   public ftrDomDone(param: IEventMap['ftrDomDone']) {
     this.providerStore.setDom(param.ftrId, param.dom);
+    this.ftrStoreDispatch('updateCoord', {
+      ftrId: param.ftrId,
+      coord: { x: 100, y: 100 }
+    });
   }
 
   public ftrUnmount(param: IEventMap['ftrUnmount']) {
@@ -60,11 +94,7 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     this.providerStore.setCompInfo(compId, compInfo);
   }
 
-  public ftrHover(_param: IEventMap['ftrHover']) {
-    //
-  }
-
-  public ftrClick(__param: IEventMap['ftrClick']) {
-    //
+  public ftrHover(param: IEventMap['ftrHover']) {
+    this.canvaStore.dispatch('updateMouseCoord', param.clientOffset);
   }
 }

@@ -41,11 +41,22 @@ export function Feature(props: IProps) {
     begin() {
       const WrapperEle = getPreviewWrapperEle();
       ReactDOM.render(React.createElement(props.component), WrapperEle);
-      const {width, height} = window.getComputedStyle(WrapperEle);
-      
+
+      const computedStyle = window.getComputedStyle(WrapperEle);
+      const width = props.width ?? parseInt(computedStyle.width, 10);
+      const height = props.height ?? parseInt(computedStyle.height, 10);
+      if (props.img) {
+        ReactDOM.render(
+          <div style={{
+            width,height,backgroundImage: `url(${props.img})`,
+            backgroundRepeat: 'no-repeat', backgroundSize: 'cover'
+          }}/>,
+          WrapperEle
+        );
+      }
       connectPreview(WrapperEle.firstElementChild, {
-        offsetX: parseInt(width) / 2,
-        offsetY:  parseInt(height) / 2
+        offsetX: width / 2,
+        offsetY: height / 2
       });
     },
     end() {

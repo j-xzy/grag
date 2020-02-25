@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Context } from '@/components/provider';
 import { IRegisterDom } from '@/hooks/useRegisterDom';
 import { useInitial } from '@/hooks/useInitial';
 import { useMount } from '@/hooks/useMount';
@@ -11,11 +10,9 @@ interface IDropableProps extends React.Props<any> {
 }
 
 export function MouseEventCollect(props: IDropableProps) {
-  const { evtEmit } = React.useContext(Context);
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
   const handleClick = React.useCallback((e: Event) => {
     e.stopPropagation();
-    evtEmit('ftrClick', { ftrId: props.ftrId });
   }, []);
 
   useInitial(() => {

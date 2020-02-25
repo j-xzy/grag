@@ -1,6 +1,9 @@
 declare namespace IGrag {
   interface ICompOption {
     allowChild?: boolean;
+    width?: number;
+    height?: number;
+    img?: string;
   }
 
   interface ICompInfo {

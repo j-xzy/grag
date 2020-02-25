@@ -8,9 +8,10 @@ export function App() {
         <FtrFunc />
         <FtrClass />
         <FtrBox />
+        <FtrChart />
       </div>
       <Canvas className='border1' />
-      <Canvas className='border2' />
+      {/* <Canvas className='border2' /> */}
     </GragProvider>
   );
 }
@@ -35,6 +36,14 @@ function FtrBox() {
   return (
     <Feature allowChild={true} component={Box}>
       {(ref) => <div ref={ref} className='preview'>Box</div>}
+    </Feature>
+  );
+}
+
+function FtrChart() {
+  return (
+    <Feature img="/preview.png" component={Chart}>
+      {(ref) => <div ref={ref} className='preview'>chart</div>}
     </Feature>
   );
 }
@@ -79,4 +88,29 @@ function Table() {
       </tbody>
     </table>
   );
+}
+
+function Chart() {
+  const domRef = React.useRef(null);
+  const myChart: any = React.useRef(null);
+  React.useEffect(() => {
+    if (domRef.current) {
+      myChart.current = (window as any).echarts.init(domRef.current);
+      myChart.current.setOption({
+        grid: {
+          top: 10,
+        },
+        xAxis: {
+          data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+        },
+        yAxis: {},
+        series: [{
+          name: '销量',
+          type: 'bar',
+          data: [5, 20, 36, 10, 10, 20]
+        }]
+      });
+    }
+  }, []);
+  return <div ref={domRef} style={{ width: 200, height: 200 }}></div>;
 }

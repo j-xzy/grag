@@ -10,6 +10,7 @@ import { useInitial } from '@/hooks/useInitial';
 import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
 import { useRegisterDom } from '@/hooks/useRegisterDom';
+import { useMutationObserver } from '@/hooks/useMutationObserver';
 import { uuid } from '@/lib/uuid';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
@@ -32,42 +33,71 @@ function RawCanvas(props: IRawCanvasProps) {
   const [registerChildDom, childDomReady] = useRegisterDom();
   const [registerMyDomMount, myDomMount] = useListener();
 
-  const observer = React.useRef(new MutationObserver((records) => {
+  const observeChildMutationRef = useMutationObserver((records) => {
     const node: any = records[0].addedNodes[0];
     childDomReady(0, node);
-  }));
+  }, { childList: true });
 
+  // const observeAttrMuationRef = useMutationObserver((e) => {
+  //   console.log('!!!!!!', e);
+  // }, { attributeFilter: ['style'] });
+
+  // 监听事件
   useMount(() => {
-    function handleCanvasMousemmove(e: MouseEvent) {
-      e.stopPropagation();
+    function handleMousemove(e: MouseEvent) {
       evtEmit('canvasMousemove', {
         x: e.clientX,
         y: e.clientY
       });
     }
-    if (!domRef.current) {
-      return;
+    function handleMouseEnter() {
+      evtEmit('canvasMouseEnter', { canvasId: props.id });
     }
-    providerStore.setDom(id, domRef.current);
-    observer.current.observe(domRef.current, {
-      childList: true
-    });
-    domRef.current.addEventListener('mousemove', handleCanvasMousemmove, true);
-    myDomMount(true);
+    function handleMouseLeave() {
+      evtEmit('canvasMouseLeave', { canvasId: props.id });
+    }
+    domRef.current?.addEventListener('mousemove', handleMousemove, true);
+    domRef.current?.addEventListener('mouseenter', handleMouseEnter, true);
+    domRef.current?.addEventListener('mouseleave', handleMouseLeave, true);
 
     return () => {
-      providerStore.deleteDom(id);
-      observer.current.disconnect();
-      domRef.current?.removeEventListener('mousemove', handleCanvasMousemmove, true);
+      domRef.current?.removeEventListener('mousemove', handleMousemove, true);
+      domRef.current?.removeEventListener('mouseenter', handleMouseEnter, true);
+      domRef.current?.removeEventListener('mouseleave', handleMouseLeave, true);
     };
   });
 
+  // evtEmit
+  useMount(() => {
+    evtEmit('canvasMount', { canvasId: id, dom: domRef.current! });
+    return () => {
+      evtEmit('canvasUnMount', { canvasId: id });
+    };
+  });
+
+  useMount(() => {
+    myDomMount(true);
+  });
+
+  React.useEffect(() => {
+    return () => {
+      console.log('!!!1');
+    };
+  }, [domRef.current]);
+
   return (
-    <div ref={domRef} style={style} className={className} >
+    <div ref={(dom) => {
+      if (dom) {
+        domRef.current = dom;
+        observeChildMutationRef.current = dom;
+        // observeAttrMuationRef.current = dom;
+      }
+    }}
+    style={style} className={className} >
       {
         renderTree({
           root,
-          providerStore, 
+          providerStore,
           captureDomParams: {
             idx: 0,
             registerParentMount: registerMyDomMount,

@@ -18,6 +18,7 @@ interface IRenderTreeProps {
 
 export function renderTree(renderTreeparams: IRenderTreeProps) {
   const { providerStore, root, captureDomParams } = renderTreeparams;
+  const rootId = root?.ftrId;
   return renderNode(root, captureDomParams);
 
   function renderNode(node: IGrag.IDeepReadonly<IGrag.INode> | null, params: IParams) {
@@ -29,7 +30,7 @@ export function renderTree(renderTreeparams: IRenderTreeProps) {
 
     return (
       <MemoNode key={ftrId} node={node}>
-        <Monitor ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
+        <Monitor isRoot={ftrId === rootId} ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
           <MouseEventCollect ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
             <Dropable option={option} ftrId={ftrId} idx={params.idx} registerDom={params.registerChildDom}>
               <CaptureDom
