@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { CaptureDom, ICaptureDomParams } from '@/components/wrapperComp/captureDom';
-import { ProviderStore } from '@/ProviderStore';
+import { GlobalStore } from '@/GlobalStore';
 import { Dropable } from '@/components/wrapperComp/draggable';
 import { MemoNode } from '@/components/wrapperComp/memoNode';
 import { Monitor } from '@/components/wrapperComp/monitor';
@@ -12,12 +12,12 @@ interface IParams extends ICaptureDomParams {
 
 interface IRenderTreeProps {
   root: IGrag.IDeepReadonly<IGrag.INode> | null;
-  providerStore: ProviderStore;
+  globalStore: GlobalStore;
   captureDomParams: IParams;
 }
 
 export function renderTree(renderTreeparams: IRenderTreeProps) {
-  const { providerStore, root, captureDomParams } = renderTreeparams;
+  const { globalStore, root, captureDomParams } = renderTreeparams;
   const rootId = root?.ftrId;
   return renderNode(root, captureDomParams);
 
@@ -26,7 +26,7 @@ export function renderTree(renderTreeparams: IRenderTreeProps) {
       return null;
     }
     const { compId, children, ftrId } = node;
-    const { Component, option } = providerStore.getCompInfo(compId);
+    const { Component, option } = globalStore.getCompInfo(compId);
 
     return (
       <MemoNode key={ftrId} node={node}>

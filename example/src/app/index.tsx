@@ -11,7 +11,7 @@ export function App() {
         <FtrChart />
       </div>
       <Canvas className='border1' />
-      {/* <Canvas className='border2' /> */}
+      <Canvas className='border2' />
     </GragProvider>
   );
 }

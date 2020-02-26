@@ -1,12 +1,17 @@
-import * as treeUtil from '@/lib/treeUtil';
-import { ProviderStore } from '@/ProviderStore';
+import * as util from '@/lib/util';
+import { GlobalStore } from '@/GlobalStore';
 import { produce } from 'produce';
+import { ICanvasStore } from '@/canvaStore';
 
 interface IActionMap {
   insertNewFtr: {
     parentFtrId: string;
     compId: string;
     ftrId: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
   };
   updateCoord: {
     ftrId: string;
@@ -18,33 +23,39 @@ export interface IFtrSubActMap {
   updateCoord: IGrag.IXYCoord;
 }
 
-export type IFtrStoreDispatch = FeatureStore['dispatch'];
+export type IFtrMutate = FeatureMutater['mutate'];
 
-export class FeatureStore implements IGrag.IObj2Func<IActionMap> {
+export class FeatureMutater implements IGrag.IObj2Func<IActionMap> {
   private listeners: IGrag.IIndexable<IGrag.IIndexable<IGrag.IFunction[]>> = {};
-  constructor(private providerStore: ProviderStore) {
-    this.dispatch = this.dispatch.bind(this);
+  constructor(private globalStore: GlobalStore, private canvaStore: ICanvasStore) {
+    this.mutate = this.mutate.bind(this);
     this.subscribe = this.subscribe.bind(this);
   }
 
-  public dispatch<T extends keyof IActionMap>(action: T, params: IActionMap[T]) {
+  public mutate<T extends keyof IActionMap>(action: T, params: IActionMap[T]) {
     (this[action] as any).call(this, params);
   }
 
   public insertNewFtr(param: IActionMap['insertNewFtr']) {
     const { parentFtrId, compId, ftrId } = param;
-    const canvasId = this.providerStore.getCanvasIdByFtrId(parentFtrId);
-    const root = this.providerStore.getRoot(canvasId);
+
+    // 更新ftrState
+    const ftrState = util.calcFtrStateByStyle(param);
+    this.canvaStore.dispatch('updateFtrState', { ftrId, ftrState });
+
+    // 插入node到tree
+    const canvasId = this.globalStore.getCanvasIdByFtrId(parentFtrId);
+    const root = this.globalStore.getRoot(canvasId);
     const nextRoot = produce(root, (draft) => {
-      const parent = treeUtil.getNodeByFtrId(draft, parentFtrId);
+      const parent = util.getNodeByFtrId(draft, parentFtrId);
       if (parent) {
-        const child = treeUtil.buildNode({ compId, ftrId });
-        treeUtil.appendChild(parent, child);
+        const child = util.buildNode({ compId, ftrId });
+        util.appendChild(parent, child);
       }
     });
-    this.providerStore.setFtrId2Canvas(ftrId, canvasId);
-    this.providerStore.setRoot(canvasId, nextRoot);
-    this.providerStore.refreshCanvas(canvasId);
+    this.globalStore.setFtrId2Canvas(ftrId, canvasId);
+    this.globalStore.setRoot(canvasId, nextRoot);
+    this.globalStore.refreshCanvas(canvasId);
   }
 
   public updateCoord(param: IActionMap['updateCoord']) {

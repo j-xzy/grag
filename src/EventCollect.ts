@@ -1,14 +1,29 @@
-import { ProviderStore } from '@/ProviderStore';
-import { IFtrStoreDispatch } from '@/FeatureStore';
-import { uuid } from '@/lib/uuid';
+import { GlobalStore } from '@/GlobalStore';
+import { IFtrMutate } from '@/featureMutater';
+import * as util from '@/lib/util';
 import { ICanvasStore } from './canvaStore';
 
 export interface IEventMap {
-  canvasMousemove: IGrag.IXYCoord;
-  canvasMouseEnter: { canvasId: string };
-  canvasMouseLeave: { canvasId: string };
-  canvasMount: { canvasId: string; dom: HTMLDivElement };
-  canvasUnMount: { canvasId: string };
+  canvasMousemove: {
+    coord: IGrag.IXYCoord;
+    canvasId: string;
+  };
+  canvasMouseEnter: {
+    canvasId: string;
+  };
+  canvasMouseLeave: {
+    canvasId: string;
+  };
+  canvasMount: {
+    canvasId: string;
+    dom: HTMLDivElement;
+  };
+  canvasUnMount: {
+    canvasId: string;
+  };
+  canvasStyleChange: {
+    canvasId: string;
+  };
   ftrDomDone: {
     ftrId: string;
     dom: HTMLElement;
@@ -28,14 +43,22 @@ export interface IEventMap {
     ftrId: string;
     clientOffset: IGrag.IXYCoord;
   };
+  compBeginDrag: {
+    compId: string;
+    width: number;
+    height: number;
+  };
+  compDragEnd: {
+    compId: string;
+  };
 }
 
 export type IEvtEmit = EventCollect['emit'];
 
 export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
   constructor(
-    private ftrStoreDispatch: IFtrStoreDispatch,
-    private providerStore: ProviderStore,
+    private ftrMutate: IFtrMutate,
+    private globalStore: GlobalStore,
     private canvaStore: ICanvasStore
   ) {
     this.emit = this.emit.bind(this);
@@ -46,7 +69,7 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
   }
 
   public canvasMousemove(param: IEventMap['canvasMousemove']) {
-    this.canvaStore.dispatch('updateMouseCoord', param);
+    this.canvaStore.dispatch('mouseMove', param);
   }
 
   public canvasMouseEnter(param: IEventMap['canvasMouseEnter']) {
@@ -62,39 +85,78 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
   }
 
   public canvasMount(param: IEventMap['canvasMount']) {
-    this.providerStore.setDom(param.canvasId, param.dom);
-    this.canvaStore.dispatch('updateCanvasRect', {
-      id: param.canvasId,
-      rect: param.dom.getBoundingClientRect()
-    });
+    this.globalStore.setDom(param.canvasId, param.dom);
   }
 
   public canvasUnMount(param: IEventMap['canvasUnMount']) {
-    this.providerStore.deleteDom(param.canvasId);
+    this.globalStore.deleteDom(param.canvasId);
+  }
+
+  public canvasStyleChange(param: IEventMap['canvasStyleChange']) {
+    const rect = this.globalStore.getDom(param.canvasId)?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
+
+    this.canvaStore.dispatch('updateCanvasRect', {
+      id: param.canvasId,
+      rect
+    });
+
+    const rootId = this.globalStore.getRootIdByCanvasId(param.canvasId);
+    this.canvaStore.dispatch('updateFtrState', {
+      ftrId: rootId,
+      ftrState: util.calcFtrStateByStyle({
+        x: 0, y: 0,
+        width: rect.width,
+        height: rect.height
+      })
+    });
   }
 
   public ftrDropEnd(param: IEventMap['ftrDropEnd']) {
-    this.ftrStoreDispatch('insertNewFtr', { ...param, ftrId: uuid() });
+    const { dragCompState } = this.canvaStore.getState();
+    if (dragCompState) {
+      this.ftrMutate('insertNewFtr', {
+        ftrId: util.uuid(),
+        ...param,
+        ...dragCompState
+      });
+    }
+    this.canvaStore.dispatch('dragEnd');
   }
 
   public ftrDomDone(param: IEventMap['ftrDomDone']) {
-    this.providerStore.setDom(param.ftrId, param.dom);
-    this.ftrStoreDispatch('updateCoord', {
+    this.globalStore.setDom(param.ftrId, param.dom);
+    const { x, y } = this.canvaStore.getState().ftrStateMap[param.ftrId];
+    this.ftrMutate('updateCoord', {
       ftrId: param.ftrId,
-      coord: { x: 100, y: 100 }
+      coord: { x, y }
     });
   }
 
   public ftrUnmount(param: IEventMap['ftrUnmount']) {
-    this.providerStore.deleteDom(param.ftrId);
+    this.globalStore.deleteDom(param.ftrId);
   }
 
   public ftrPreviewInit(param: IEventMap['ftrPreviewInit']) {
     const { compId, compInfo } = param;
-    this.providerStore.setCompInfo(compId, compInfo);
+    this.globalStore.setCompInfo(compId, compInfo);
   }
 
   public ftrHover(param: IEventMap['ftrHover']) {
-    this.canvaStore.dispatch('updateMouseCoord', param.clientOffset);
+    this.canvaStore.dispatch('updateHoverFtrId', param.ftrId);
+    this.canvaStore.dispatch('mouseMove', {
+      coord: param.clientOffset,
+      canvasId: this.globalStore.getCanvasIdByFtrId(param.ftrId)
+    });
+  }
+
+  public compBeginDrag(param: IEventMap['compBeginDrag']) {
+    this.canvaStore.dispatch('updateDragCompSize', param);
+  }
+
+  public compDragEnd() {
+    this.canvaStore.dispatch('dragEnd');
   }
 }

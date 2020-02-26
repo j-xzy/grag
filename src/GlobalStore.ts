@@ -1,6 +1,6 @@
 import { RootCompId, RootInfo } from '@/components/root';
 
-export class ProviderStore {
+export class GlobalStore {
   private compInfos: IGrag.ICompInfos = {
     [RootCompId]: RootInfo
   }; // compId到react组件映射
@@ -52,5 +52,10 @@ export class ProviderStore {
 
   public getCanvasIdByFtrId(ftrId: string) {
     return this.ftrId2CanvasId[ftrId];
+  }
+
+  public getRootIdByCanvasId(canvsaId: string) {
+    const node = this.rootMap[canvsaId];
+    return node.ftrId;
   }
 }

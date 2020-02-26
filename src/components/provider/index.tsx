@@ -3,14 +3,14 @@ import { createStore } from 'typeRedux';
 import { createInitState } from '@/canvaStore/state';
 import * as reducers from '@/canvaStore/reducer';
 import { EventCollect, IEvtEmit } from '@/EventCollect';
-import { ProviderStore } from '@/ProviderStore';
-import { FeatureStore } from '@/FeatureStore';
+import { GlobalStore } from '@/GlobalStore';
+import { FeatureMutater } from '@/featureMutater';
 
 import { Provider } from 'dnd';
-import { createFtrSubscribe } from '@/featureStore/useFtrSubscribe';
+import { createFtrSubscribe } from '@/featureMutater/useFtrSubscribe';
 
 export const Context = React.createContext({
-  providerStore: {} as ProviderStore,
+  globalStore: {} as GlobalStore,
   evtEmit: {} as IEvtEmit,
   useFtrSubscribe: {} as ReturnType<typeof createFtrSubscribe>
 });
@@ -18,27 +18,27 @@ export const Context = React.createContext({
 export type ICtxValue = IGrag.IReactCtxValue<typeof Context>;
 
 export function GragProvider(props: React.Props<any>) {
+  const globalStore = React.useRef(new GlobalStore());
   const canvaStore = React.useRef(createStore(createInitState(), reducers));
-  const providerStore = React.useRef(new ProviderStore());
-  const featureStore = React.useRef(new FeatureStore(providerStore.current));
-  const useFtrSubscribe = React.useRef(createFtrSubscribe(featureStore.current));
+  const featureMutater = React.useRef(new FeatureMutater(globalStore.current, canvaStore.current));
+  const useFtrSubscribe = React.useRef(createFtrSubscribe(featureMutater.current));
   const evtCollect = React.useRef(new EventCollect(
-    featureStore.current.dispatch,
-    providerStore.current,
+    featureMutater.current.mutate,
+    globalStore.current,
     canvaStore.current
   ));
 
   // debug
   if (process.env.NODE_ENV === 'development') {
     (window as any).__canvaStore = canvaStore.current;
-    (window as any).__providerStore = providerStore.current;
-    (window as any).__featureStore = featureStore.current;
+    (window as any).__globalStore = globalStore.current;
+    (window as any).__featureMutater = featureMutater.current;
     (window as any).__evtCollect = evtCollect.current;
   }
 
   return (
     <Context.Provider value={{
-      providerStore: providerStore.current,
+      globalStore: globalStore.current,
       evtEmit: evtCollect.current.emit,
       useFtrSubscribe: useFtrSubscribe.current
     }}>

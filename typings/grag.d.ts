@@ -23,10 +23,21 @@ declare namespace IGrag {
     [canvasId: string]: IGrag.INode;
   }
 
-  interface IFtrState {
+  interface IFtrStyle {
     width: number;
     height: number;
     x: number;
     y: number;
   }
+
+  interface IAuxiliaryState {
+    ht: number;
+    hm: number;
+    hb: number;
+    vl: number;
+    vm: number;
+    vr: number;
+  }
+
+  type IFtrState = IFtrStyle & IAuxiliaryState;
 }

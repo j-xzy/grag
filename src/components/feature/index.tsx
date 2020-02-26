@@ -4,7 +4,7 @@ import { Context } from '@/components/provider';
 import { ItemTypes } from '@/lib/itemTypes';
 import { useDrag } from 'dnd';
 import { useInitial } from '@/hooks/useInitial';
-import { uuid } from '@/lib/uuid';
+import { uuid } from '@/lib/util';
 
 interface IProps extends React.Props<any>, IGrag.ICompOption {
   component: IGrag.ICompFcClass;
@@ -48,9 +48,9 @@ export function Feature(props: IProps) {
       if (props.img) {
         ReactDOM.render(
           <div style={{
-            width,height,backgroundImage: `url(${props.img})`,
+            width, height, backgroundImage: `url(${props.img})`,
             backgroundRepeat: 'no-repeat', backgroundSize: 'cover'
-          }}/>,
+          }} />,
           WrapperEle
         );
       }
@@ -58,9 +58,15 @@ export function Feature(props: IProps) {
         offsetX: width / 2,
         offsetY: height / 2
       });
+      evtEmit('compBeginDrag', {
+        compId: compId.current,
+        width,
+        height
+      });
     },
     end() {
       ReactDOM.render(null as any, getPreviewWrapperEle());
+      evtEmit('compDragEnd', { compId: compId.current });
     }
   });
 

@@ -12,6 +12,11 @@ declare namespace IGrag {
     y: number;
   }
 
+  interface ISize {
+    width: number;
+    height: number;
+  }
+
   interface IIndexable<T> {
     [p: string]: T;
   }
