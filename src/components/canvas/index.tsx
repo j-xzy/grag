@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Context } from '@/components/provider';
-import { RootCompId } from '@/components/root';
-import { buildNode, uuid } from '@/lib/util';
+import { uuid } from '@/lib/util';
 import { RenderLayer } from '@/components/renderLayer';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useInitial } from '@/hooks/useInitial';
@@ -44,7 +43,7 @@ function RawCanvas(props: IRawCanvasProps) {
   return (
     <div ref={domRef} style={style} className={className} >
       <EventCollect registerCanvasMount={registerMyDomMount} id={id}>
-        <RenderLayer id={id}
+        <RenderLayer canvasId={id}
           captureDomParams={{
             idx: 0, registerChildDom,
             registerParentMount: registerMyDomMount,
@@ -58,18 +57,11 @@ function RawCanvas(props: IRawCanvasProps) {
 export function Canvas(props: ICanvasProps) {
   const { id, ...restProps } = props;
   const { globalStore } = React.useContext(Context);
-
   const forceUpdate = useForceUpdate();
   const canvasId = React.useRef(id ?? uuid());
 
   useInitial(() => {
-    const ftrId = uuid();
-    globalStore.setFtrId2Canvas(ftrId, canvasId.current);
-    globalStore.setRoot(canvasId.current, buildNode({
-      compId: RootCompId,
-      ftrId
-    }));
-    globalStore.subscribeForceUpdate(canvasId.current, forceUpdate);
+    globalStore.subscribeCanvasForceUpdate(canvasId.current, forceUpdate);
   });
 
   return  <RawCanvas {...restProps} id={canvasId.current}/>;

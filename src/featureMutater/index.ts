@@ -55,7 +55,7 @@ export class FeatureMutater implements IGrag.IObj2Func<IActionMap> {
     });
     this.globalStore.setFtrId2Canvas(ftrId, canvasId);
     this.globalStore.setRoot(canvasId, nextRoot);
-    this.globalStore.refreshCanvas(canvasId);
+    this.globalStore.refreshRenderLayer(canvasId);
   }
 
   public updateCoord(param: IActionMap['updateCoord']) {

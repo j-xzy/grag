@@ -8,6 +8,7 @@ export class GlobalStore {
   private ftrId2CanvasId: IGrag.IIndexable<string> = {}; // ftrId到canvasId的映射
   private rootMap: IGrag.IRootMap = {}; // canvasId到root的映射
   private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
+  private renderLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
 
   public getCompInfo(compId: string): IGrag.IDeepReadonly<IGrag.ICompInfo> {
     return this.compInfos[compId];
@@ -37,12 +38,20 @@ export class GlobalStore {
     this.rootMap[canvasId] = node;
   }
 
-  public subscribeForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
+  public subscribeCanvasForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
     this.canvasForceUpdateMap[canvasId] = forceUpdate;
+  }
+
+  public subscribeRenderLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
+    this.renderLayerForceUpdateMap[canvasId] = forceUpdate;
   }
 
   public refreshCanvas(canvasId: string) {
     this.canvasForceUpdateMap[canvasId].call(null);
+  }
+
+  public refreshRenderLayer(canvasId: string) {
+    this.renderLayerForceUpdateMap[canvasId].call(null);
   }
 
   public setFtrId2Canvas(ftrId: string, canvasId: string) {

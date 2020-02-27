@@ -6,19 +6,35 @@ import { FtrSubscribe } from '@/components/renderLayer/ftrSubscribe';
 import { MouseEventCollect } from '@/components/renderLayer/mouseEventCollect';
 import { DomStyle } from '@/components/renderLayer/domStyle';
 import { Context } from '@/components/provider';
+import { useInitial } from '@/hooks/useInitial';
+import * as util from '@/lib/util';
+import { RootCompId } from '@/components/root';
+import { useForceUpdate } from '@/hooks/useForceUpdate';
 
 interface IParams extends ICaptureDomParams {
   idx: number;
 }
 
 interface IProps {
-  id: string;
+  canvasId: string;
   captureDomParams: IParams;
 }
 
 export function RenderLayer(props: IProps) {
   const { globalStore } = React.useContext(Context);
-  const root = globalStore.getRoot(props.id);
+  const forceUpdate = useForceUpdate();
+
+  useInitial(() => {
+    const ftrId = util.uuid();
+    globalStore.setFtrId2Canvas(ftrId, props.canvasId);
+    globalStore.setRoot(props.canvasId, util.buildNode({
+      compId: RootCompId,
+      ftrId
+    }));
+    globalStore.subscribeRenderLayerForceUpdate(props.canvasId, forceUpdate);
+  });
+
+  const root = globalStore.getRoot(props.canvasId);
   const rootId = root.ftrId;
 
   const renderNode = React.useCallback((node: IGrag.INode, params: IParams) => {
