@@ -11,16 +11,13 @@ interface IMonitorProps extends React.Props<any> {
   isRoot: boolean;
 }
 
-export function Monitor(props: IMonitorProps) {
+export function FtrSubscribe(props: IMonitorProps) {
   const { useFtrSubscribe } = React.useContext(Context);
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
 
   useInitial(() => {
     props.registerDom(props.idx, (dom) => {
       domRef.current = dom;
-      if (!props.isRoot) {
-        domRef.current.style.position = 'absolute';
-      }
     });
   });
 

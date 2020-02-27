@@ -50,13 +50,7 @@ function FtrChart() {
 
 class Select extends React.Component {
   public render() {
-    return (
-      <select style={{ width: '60px', height: '30px' }}>
-        <option>opt1</option>
-        <option>opt2</option>
-        <option>opt3</option>
-      </select>
-    );
+    return (<span style={{border: '1px solid #000'}}>select</span>);
   }
 }
 

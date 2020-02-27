@@ -8,6 +8,7 @@ export function createInitState() {
     hoverFtrId: null as string | null, // drag时hove的ftrId
     dragCompState: null as IGrag.IFtrState | null, // 当前拖拽组件的state
     canvasRectMap: {}  as IGrag.IIndexable<DOMRect>, // canvasId到domrect映射
-    ftrStateMap: {} as IGrag.IIndexable<IGrag.IFtrState>
+    ftrStateMap: {} as IGrag.IIndexable<IGrag.IFtrState>, //ftrId到state的映射
+    selectedFtrIds: [] as string[], // 当前选中的ftrid
   };
 }

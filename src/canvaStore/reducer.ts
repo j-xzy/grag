@@ -89,3 +89,17 @@ export function updateFtrState(getState: IGetState, param: { ftrId: string; ftrS
     ftrStateMap
   };
 }
+
+export function updateSelectedFtrs(getState: IGetState, ftrIds: string[]) {
+  return {
+    ...getState(),
+    selectedFtrIds: ftrIds
+  };
+}
+
+export function clearSelectedFtrs(getState: IGetState) {
+  return {
+    ...getState(),
+    selectedFtrIds: []
+  };
+}

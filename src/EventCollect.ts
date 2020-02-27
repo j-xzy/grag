@@ -14,9 +14,12 @@ export interface IEventMap {
   canvasMouseLeave: {
     canvasId: string;
   };
+  canvasMousedown: {
+    canvasId: string;
+  };
   canvasMount: {
     canvasId: string;
-    dom: HTMLDivElement;
+    dom: HTMLElement;
   };
   canvasUnMount: {
     canvasId: string;
@@ -42,6 +45,12 @@ export interface IEventMap {
   ftrHover: {
     ftrId: string;
     clientOffset: IGrag.IXYCoord;
+  };
+  ftrMousedown: {
+    ftrId: string;
+  };
+  ftrMouseup: {
+    ftrId: string;
   };
   compBeginDrag: {
     compId: string;
@@ -84,6 +93,10 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     }
   }
 
+  public canvasMousedown() {
+    this.canvaStore.dispatch('clearSelectedFtrs');
+  }
+
   public canvasMount(param: IEventMap['canvasMount']) {
     this.globalStore.setDom(param.canvasId, param.dom);
   }
@@ -117,11 +130,13 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
   public ftrDropEnd(param: IEventMap['ftrDropEnd']) {
     const { dragCompState } = this.canvaStore.getState();
     if (dragCompState) {
+      const ftrId = util.uuid();
       this.ftrMutate('insertNewFtr', {
-        ftrId: util.uuid(),
+        ftrId,
         ...param,
         ...dragCompState
       });
+      this.canvaStore.dispatch('updateSelectedFtrs', [ftrId]);
     }
     this.canvaStore.dispatch('dragEnd');
   }
@@ -150,6 +165,14 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
       coord: param.clientOffset,
       canvasId: this.globalStore.getCanvasIdByFtrId(param.ftrId)
     });
+  }
+
+  public ftrMousedown(param: IEventMap['ftrMousedown']) {
+    this.canvaStore.dispatch('updateSelectedFtrs', [param.ftrId]);
+  }
+
+  public ftrMouseup(param: IEventMap['ftrMouseup']) {
+    console.log('up', param.ftrId);
   }
 
   public compBeginDrag(param: IEventMap['compBeginDrag']) {

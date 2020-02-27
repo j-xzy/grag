@@ -5,7 +5,6 @@ import { IRegisterDom } from '@/hooks/useRegisterDom';
 import { ItemTypes } from '@/lib/itemTypes';
 import { useDrop } from 'dnd';
 import { useInitial } from '@/hooks/useInitial';
-import { useMount } from '@/hooks/useMount';
 
 interface IDropableProps extends React.Props<any> {
   registerDom: IRegisterDom;
@@ -16,7 +15,6 @@ interface IDropableProps extends React.Props<any> {
 
 export function Dropable(props: IDropableProps) {
   const { evtEmit } = React.useContext(Context);
-  const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
   const [, drop] = useDrop({
     accept: ItemTypes.CANVAS,
     drop(item: IDragItem, monitor) {
@@ -38,19 +36,10 @@ export function Dropable(props: IDropableProps) {
 
   useInitial(() => {
     props.registerDom(props.idx, (dom) => {
-      if (!domRef.current) {
-        domRef.current = dom;
-        if (props.option.allowChild) {
-          drop(dom);
-        }
+      if (props.option.allowChild) {
+        drop(dom);
       }
     });
-  });
-
-  useMount(() => {
-    return () => {
-      domRef.current = null;
-    };
   });
 
   return props.children as React.ReactElement;

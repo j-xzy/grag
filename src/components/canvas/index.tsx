@@ -1,21 +1,18 @@
 import * as React from 'react';
-import { GlobalStore } from '@/GlobalStore';
 import { Context } from '@/components/provider';
-import { IEvtEmit } from '@/EventCollect';
 import { RootCompId } from '@/components/root';
 import { buildNode, uuid } from '@/lib/util';
-import { renderTree } from '@/lib/renderTree';
+import { RenderLayer } from '@/components/renderLayer';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useInitial } from '@/hooks/useInitial';
 import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
 import { useRegisterDom } from '@/hooks/useRegisterDom';
 import { useMutationObserver } from '@/hooks/useMutationObserver';
+import { EventCollect } from '@/components/canvas/eventCollect';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
-  evtEmit: IEvtEmit;
   id: string;
-  globalStore: GlobalStore;
 }
 
 interface ICanvasProps {
@@ -25,8 +22,7 @@ interface ICanvasProps {
 }
 
 function RawCanvas(props: IRawCanvasProps) {
-  const { evtEmit, style, className, id, globalStore } = props;
-  const root = globalStore.getRoot(id)!;
+  const { style, className, id } = props;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
 
   const [registerChildDom, childDomReady] = useRegisterDom();
@@ -37,80 +33,31 @@ function RawCanvas(props: IRawCanvasProps) {
     childDomReady(0, node);
   }, { childList: true });
 
-  const observeAttrMuationRef = useMutationObserver(() => {
-    evtEmit('canvasStyleChange', { canvasId: id });
-  }, { attributeFilter: ['style'] });
-
-  // 监听事件
   useMount(() => {
-    function handleMousemove(e: MouseEvent) {
-      evtEmit('canvasMousemove', {
-        coord: {
-          x: e.clientX,
-          y: e.clientY
-        },
-        canvasId: props.id
-      });
-    }
-    function handleMouseEnter() {
-      evtEmit('canvasMouseEnter', { canvasId: props.id });
-    }
-    function handleMouseLeave() {
-      evtEmit('canvasMouseLeave', { canvasId: props.id });
-    }
-    domRef.current?.addEventListener('mousemove', handleMousemove, true);
-    domRef.current?.addEventListener('mouseenter', handleMouseEnter, true);
-    domRef.current?.addEventListener('mouseleave', handleMouseLeave, true);
-
+    myDomMount(domRef.current);
+    observeChildMutationRef(domRef.current!);
     return () => {
-      domRef.current?.removeEventListener('mousemove', handleMousemove, true);
-      domRef.current?.removeEventListener('mouseenter', handleMouseEnter, true);
-      domRef.current?.removeEventListener('mouseleave', handleMouseLeave, true);
+      domRef.current = null;
     };
-  });
-
-  // evtEmit
-  useMount(() => {
-    evtEmit('canvasMount', { canvasId: id, dom: domRef.current! });
-    // 初始时同步canvasRect
-    evtEmit('canvasStyleChange', { canvasId: id });
-    return () => {
-      evtEmit('canvasUnMount', { canvasId: id });
-    };
-  });
-
-  useMount(() => {
-    myDomMount(true);
   });
 
   return (
-    <div ref={(dom) => {
-      if (dom) {
-        domRef.current = dom;
-        observeChildMutationRef(dom);
-        observeAttrMuationRef(dom);
-      }
-    }}
-    style={style} className={className} >
-      {
-        renderTree({
-          root,
-          globalStore,
-          captureDomParams: {
-            idx: 0,
+    <div ref={domRef} style={style} className={className} >
+      <EventCollect registerCanvasMount={registerMyDomMount} id={id}>
+        <RenderLayer id={id}
+          captureDomParams={{
+            idx: 0, registerChildDom,
             registerParentMount: registerMyDomMount,
             parentIsMount: !!domRef.current,
-            registerChildDom
-          }
-        })
-      }
+          }} />
+      </EventCollect>
     </div>
   );
 }
 
 export function Canvas(props: ICanvasProps) {
   const { id, ...restProps } = props;
-  const { evtEmit, globalStore } = React.useContext(Context);
+  const { globalStore } = React.useContext(Context);
 
   const forceUpdate = useForceUpdate();
   const canvasId = React.useRef(id ?? uuid());
@@ -125,12 +72,5 @@ export function Canvas(props: ICanvasProps) {
     globalStore.subscribeForceUpdate(canvasId.current, forceUpdate);
   });
 
-  return (
-    <RawCanvas
-      {...restProps}
-      evtEmit={evtEmit}
-      globalStore={globalStore}
-      id={canvasId.current}
-    />
-  );
+  return  <RawCanvas {...restProps} id={canvasId.current}/>;
 }
