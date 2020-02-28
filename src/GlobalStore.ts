@@ -18,7 +18,7 @@ export class GlobalStore {
     this.compInfos[compId] = info;
   }
 
-  public getDom(ftrId: string): HTMLElement | null {
+  public getDom(ftrId: string): HTMLElement {
     return this.domMap[ftrId];
   }
 
@@ -65,5 +65,21 @@ export class GlobalStore {
   public getRootIdByCanvasId(canvsaId: string) {
     const node = this.rootMap[canvsaId];
     return node.ftrId;
+  }
+
+  public getFtrStyle(ftrId: string) {
+    const canvasId = this.getCanvasIdByFtrId(ftrId);
+    const canvasRect = this.getDom(canvasId)?.getBoundingClientRect();
+    const ftrRect = this.getDom(ftrId)?.getBoundingClientRect();
+    return {
+      width: ftrRect.width,
+      height: ftrRect.height,
+      x: ftrRect.x - canvasRect.x,
+      y: ftrRect.y - canvasRect.y
+    };
+  }
+
+  public isFtrInCanvas(ftrId: string, canvasId: string) {
+    return this.getCanvasIdByFtrId(ftrId) === canvasId;
   }
 }

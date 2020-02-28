@@ -52,6 +52,12 @@ export interface IEventMap {
   ftrMouseup: {
     ftrId: string;
   };
+  ftrMouseover: {
+    ftrId: string;
+  };
+  ftrMouseleave: {
+    ftrId: string;
+  };
   compBeginDrag: {
     compId: string;
     width: number;
@@ -60,6 +66,7 @@ export interface IEventMap {
   compDragEnd: {
     compId: string;
   };
+  highLightLayerBlur: any;
 }
 
 export type IEvtEmit = EventCollect['emit'];
@@ -171,8 +178,16 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     this.canvaStore.dispatch('updateSelectedFtrs', [param.ftrId]);
   }
 
-  public ftrMouseup(param: IEventMap['ftrMouseup']) {
-    console.log('up', param.ftrId);
+  public ftrMouseup() {
+    //
+  }
+
+  public ftrMouseover(param: IEventMap['ftrMouseover']) {
+    this.canvaStore.dispatch('mouseEnterFtr', param.ftrId);
+  }
+
+  public ftrMouseleave() {
+    this.canvaStore.dispatch('mouseLeaveFtr');
   }
 
   public compBeginDrag(param: IEventMap['compBeginDrag']) {
@@ -181,5 +196,9 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
 
   public compDragEnd() {
     this.canvaStore.dispatch('dragEnd');
+  }
+
+  public highLightLayerBlur() {
+    this.canvaStore.dispatch('mouseLeaveFtr');
   }
 }

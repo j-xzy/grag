@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Context } from '@/components/provider';
 import { uuid } from '@/lib/util';
-import { RenderLayer } from '@/components/renderLayer';
+import { FeatureLayer } from '@/components/featureLayer';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useInitial } from '@/hooks/useInitial';
 import { useListener } from '@/hooks/useListener';
@@ -9,19 +9,25 @@ import { useMount } from '@/hooks/useMount';
 import { useRegisterDom } from '@/hooks/useRegisterDom';
 import { useMutationObserver } from '@/hooks/useMutationObserver';
 import { EventCollect } from '@/components/canvas/eventCollect';
+import { InteractionLayer } from '@/components/interactionLayer';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
   id: string;
 }
 
 interface ICanvasProps {
-  style?: React.CSSProperties;
-  className?: string;
+  style?: { 
+    position?: React.CSSProperties['position'];
+    width?: React.CSSProperties['width'];
+    height?: React.CSSProperties['height'];
+    left?: React.CSSProperties['left'];
+    top?: React.CSSProperties['top'];
+  };
   id?: string;
 }
 
 function RawCanvas(props: IRawCanvasProps) {
-  const { style, className, id } = props;
+  const { style, id } = props;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
 
   const [registerChildDom, childDomReady] = useRegisterDom();
@@ -41,14 +47,16 @@ function RawCanvas(props: IRawCanvasProps) {
   });
 
   return (
-    <div ref={domRef} style={style} className={className} >
+    <div ref={domRef} style={{ position: 'relative', overflow: 'hidden', boxSizing: 'border-box', ...style }} >
       <EventCollect registerCanvasMount={registerMyDomMount} id={id}>
-        <RenderLayer canvasId={id}
+        <FeatureLayer 
+          canvasId={id}
           captureDomParams={{
             idx: 0, registerChildDom,
             registerParentMount: registerMyDomMount,
             parentIsMount: !!domRef.current,
           }} />
+        <InteractionLayer canvasId={id} />
       </EventCollect>
     </div>
   );
@@ -64,5 +72,5 @@ export function Canvas(props: ICanvasProps) {
     globalStore.subscribeCanvasForceUpdate(canvasId.current, forceUpdate);
   });
 
-  return  <RawCanvas {...restProps} id={canvasId.current}/>;
+  return <RawCanvas {...restProps} id={canvasId.current} />;
 }

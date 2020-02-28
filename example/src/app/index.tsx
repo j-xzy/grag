@@ -10,8 +10,12 @@ export function App() {
         <FtrBox />
         <FtrChart />
       </div>
-      <Canvas className='border1' />
-      <Canvas className='border2' />
+      <div className='border1'>
+        <Canvas style={{ width: '100%', height: '100%' }} />
+      </div>
+      <div className='border2'>
+        <Canvas style={{ width: '100%', height: '100%' }} />
+      </div>
     </GragProvider>
   );
 }
@@ -50,7 +54,7 @@ function FtrChart() {
 
 class Select extends React.Component {
   public render() {
-    return (<span style={{border: '1px solid #000'}}>select</span>);
+    return (<span style={{ border: '1px solid #000' }}>select</span>);
   }
 }
 

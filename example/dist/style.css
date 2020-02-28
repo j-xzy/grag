@@ -15,7 +15,7 @@ tfoot {
 }
 
 .border1 {
-  position: absolute;
+  position: absolute !important;
   top: 50px;
   left: 50px;
   width: 500px;
@@ -24,7 +24,7 @@ tfoot {
 }
 
 .border2 {
-  position: absolute;
+  position: absolute !important;
   top: 50px;
   left: 600px;
   width: 500px;

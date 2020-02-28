@@ -16,7 +16,7 @@ declare namespace IGrag {
   }
 
   interface IDomMap {
-    [ftrid: string]: HTMLElement | null;
+    [ftrid: string]: HTMLElement;
   }
 
   interface IRootMap {
@@ -40,4 +40,15 @@ declare namespace IGrag {
   }
 
   type IFtrState = IFtrStyle & IAuxiliaryState;
+
+  interface IProviderConfig {
+    color?: string;
+    id?: string;
+  }
+
+  interface IHighLightState {
+    ftrId: string;
+    id: string;
+    color: string;
+  }
 }

@@ -103,3 +103,47 @@ export function clearSelectedFtrs(getState: IGetState) {
     selectedFtrIds: []
   };
 }
+
+export function highLightFtrs(getState: IGetState, ftrs: IGrag.IHighLightState[]) {
+  return {
+    ...getState(),
+    highLightFtrs: ftrs
+  };
+}
+
+export function mouseEnterFtr(getState: IGetState, ftrId: string) {
+  if (getState().mouseInFtrId === ftrId) {
+    return getState();
+  }
+  const highLightFtrs = [...getState().highLightFtrs];
+  const idx = highLightFtrs.findIndex((p) => p.id === getState().config.id);
+  if (idx >= 0) {
+    // 已存在
+    highLightFtrs.splice(idx, 1);
+  }
+  highLightFtrs.push({
+    color: getState().config.color,
+    id: getState().config.id,
+    ftrId
+  });
+
+  return {
+    ...getState(),
+    mouseInFtrId: ftrId,
+    highLightFtrs
+  };
+}
+
+export function mouseLeaveFtr(getState: IGetState) {
+  const highLightFtrs = [...getState().highLightFtrs];
+  const idx = highLightFtrs.findIndex((p) => p.id === getState().config.id);
+  if (idx >= 0) {
+    // 已存在
+    highLightFtrs.splice(idx, 1);
+  }
+  return {
+    ...getState(),
+    mouseInFtrId: null,
+    highLightFtrs
+  };
+}

@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { CaptureDom, ICaptureDomParams } from '@/components/renderLayer/captureDom';
-import { Dropable } from '@/components/renderLayer/draggable';
-import { MemoNode } from '@/components/renderLayer/memoNode';
-import { FtrSubscribe } from '@/components/renderLayer/ftrSubscribe';
-import { MouseEventCollect } from '@/components/renderLayer/mouseEventCollect';
-import { DomStyle } from '@/components/renderLayer/domStyle';
+import { CaptureDom, ICaptureDomParams } from '@/components/featureLayer/captureDom';
+import { Dropable } from '@/components/featureLayer/draggable';
+import { MemoNode } from '@/components/featureLayer/memoNode';
+import { FtrSubscribe } from '@/components/featureLayer/ftrSubscribe';
+import { MouseEventCollect } from '@/components/featureLayer/mouseEventCollect';
+import { DomStyle } from '@/components/featureLayer/domStyle';
 import { Context } from '@/components/provider';
 import { useInitial } from '@/hooks/useInitial';
 import * as util from '@/lib/util';
@@ -20,7 +20,7 @@ interface IProps {
   captureDomParams: IParams;
 }
 
-export function RenderLayer(props: IProps) {
+export function FeatureLayer(props: IProps) {
   const { globalStore } = React.useContext(Context);
   const forceUpdate = useForceUpdate();
 

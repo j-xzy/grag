@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IRegiserParentMount } from '@/components/renderLayer/captureDom';
+import { IRegiserParentMount } from '@/components/featureLayer/captureDom';
 import { useInitial } from '@/hooks/useInitial';
 import { useMount } from '@/hooks/useMount';
 import { Context } from '@/components/provider';

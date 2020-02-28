@@ -23,6 +23,14 @@ export function MouseEventCollect(props: IProps) {
     evtEmit('ftrMouseup', {ftrId: props.ftrId});
     e.stopPropagation();
   }, []);
+  const handleMouseover = React.useCallback((e: Event) => {
+    evtEmit('ftrMouseover', { ftrId: props.ftrId });
+    e.stopPropagation();
+  }, []);
+  const handleMouseleave = React.useCallback((e: Event) => {
+    evtEmit('ftrMouseleave', { ftrId: props.ftrId });
+    e.stopPropagation();
+  }, []);
 
   useInitial(() => {
     props.registerDom(props.idx, (dom) => {
@@ -30,6 +38,8 @@ export function MouseEventCollect(props: IProps) {
       if (!props.isRoot) {
         dom.addEventListener('mousedown', handleMousedown);
         dom.addEventListener('mouseup', handleMouseup);
+        dom.addEventListener('mouseover', handleMouseover);
+        dom.addEventListener('mouseleave', handleMouseleave);
       }
     });
   });
@@ -38,6 +48,8 @@ export function MouseEventCollect(props: IProps) {
     return () => {
       domRef.current?.removeEventListener('mousedown', handleMousedown);
       domRef.current?.removeEventListener('mouseup', handleMouseup);
+      domRef.current?.removeEventListener('mouseover', handleMouseover);
+      domRef.current?.removeEventListener('mouseleave', handleMouseleave);
       domRef.current = null;
     };
   });

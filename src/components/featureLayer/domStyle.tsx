@@ -16,6 +16,7 @@ export function DomStyle(props: IDomStyleProps) {
         dom.style.position = 'absolute';
       }
       dom.style.userSelect = 'none';
+      dom.setAttribute('ftrid', props.ftrId);
     });
   });
 
