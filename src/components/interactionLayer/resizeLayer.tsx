@@ -16,7 +16,10 @@ interface IRect {
 
 export function ResizeLayer(props: { canvasId: string }) {
   const { useMappedState, globalStore, evtEmit } = React.useContext(Context);
-  const selectedFtrIds = useMappedState((s) => s.selectedFtrIds);
+  const { selectedFtrIds, isMoving } = useMappedState((s) => ({
+    selectedFtrIds: s.selectedFtrIds,
+    isMoving: s.isMoving
+  }));
 
   if (!selectedFtrIds.length) {
     return null;
@@ -40,17 +43,22 @@ export function ResizeLayer(props: { canvasId: string }) {
     rect.rb.x = Math.max(rect.rb.x, style.x + style.width);
     rect.rb.y = Math.max(rect.rb.y, style.y + style.height);
   });
+
   return (
     <div style={style}>
       <Border rect={rect} />
-      <Handler evtEmit={evtEmit} rect={rect} type='nw' />
-      <Handler evtEmit={evtEmit} rect={rect} type='n' />
-      <Handler evtEmit={evtEmit} rect={rect} type='ne' />
-      <Handler evtEmit={evtEmit} rect={rect} type='w' />
-      <Handler evtEmit={evtEmit} rect={rect} type='e' />
-      <Handler evtEmit={evtEmit} rect={rect} type='sw' />
-      <Handler evtEmit={evtEmit} rect={rect} type='s' />
-      <Handler evtEmit={evtEmit} rect={rect} type='se' />
+      {
+        !isMoving && <>
+          <Handler evtEmit={evtEmit} rect={rect} type='nw' />
+          <Handler evtEmit={evtEmit} rect={rect} type='n' />
+          <Handler evtEmit={evtEmit} rect={rect} type='ne' />
+          <Handler evtEmit={evtEmit} rect={rect} type='w' />
+          <Handler evtEmit={evtEmit} rect={rect} type='e' />
+          <Handler evtEmit={evtEmit} rect={rect} type='sw' />
+          <Handler evtEmit={evtEmit} rect={rect} type='s' />
+          <Handler evtEmit={evtEmit} rect={rect} type='se' />
+        </>
+      }
     </div>
   );
 }
@@ -59,10 +67,11 @@ function Border(props: { rect: IRect }) {
   const { rect: { lt, rb } } = props;
   const style: React.CSSProperties = {
     position: 'absolute',
-    width: rb.x - lt.x - 2,
-    height: rb.y - lt.y - 2,
-    left: lt.x,
-    top: lt.y,
+    boxSizing: 'border-box',
+    width: rb.x - lt.x + 2,
+    height: rb.y - lt.y + 2,
+    left: lt.x - 1,
+    top: lt.y - 1,
     backgroundColor: 'rgba(0,0,0,0)',
     border: '1px solid #d8d8d8'
   };
@@ -113,10 +122,10 @@ function Handler(props: IHandlerProps) {
     height: 8,
     backgroundColor: '#f0f0f0',
     border: '1px solid #ededed',
-    boxShadow: '0px 0px 4px #b9b9b9',
+    boxShadow: '0px 0px 2px #b9b9b9',
     cursor: `${resizeType}-resize`,
     top: top - 4,
-    left: left - 4
+    left: left - 4,
   };
 
   // const handleMousedown = React.useCallback((e: React.MouseEvent) => {

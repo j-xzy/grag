@@ -193,3 +193,38 @@ export function updateMousedownCoord(getState: IGetState) {
     mousedownCoord: mouseCoordInCanvas
   };
 }
+
+export function updateIsMousedown(getState: IGetState, isMousedown: boolean) {
+  return {
+    ...getState(),
+    isMousedown
+  };
+}
+
+export function updateMouseInFtrId(getState: IGetState, mouseInFtrId: string) {
+  return {
+    ...getState(),
+    mouseInFtrId
+  };
+}
+
+export function ftrMousedown(getState: IGetState, ftrId: string) {
+  const highLightFtrs = getState().highLightFtrs.filter((p) => p.ftrId !== ftrId);
+  return {
+    ...getState(),
+    mousedownCoord: getState().mouseCoordInCanvas,
+    isMousedown: true,
+    mouseInFtrId: ftrId,
+    selectedFtrIds: [ftrId],
+    highLightFtrs
+  };
+}
+
+export function canvasMousedown(getState: IGetState) {
+  return {
+    ...getState(),
+    isMousedown: true,
+    selectedFtrIds: [],
+    mousedownCoord: getState().mouseCoordInCanvas
+  };
+}

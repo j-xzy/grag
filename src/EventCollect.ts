@@ -19,6 +19,9 @@ export interface IEventMap {
     x: number;
     y: number;
   };
+  canvasMouseup: {
+    canvasId: string;
+  };
   canvasMount: {
     canvasId: string;
     dom: HTMLElement;
@@ -89,10 +92,14 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
   }
 
   public canvasMousemove(param: IEventMap['canvasMousemove']) {
+    const getState = this.canvaStore.getState;
+    if (!getState().isMoving && getState().isMousedown && getState().mouseInFtrId) {
+      this.canvaStore.dispatch('beginMoving');
+    }
     this.canvaStore.dispatch('mouseMove', param);
-    const state = this.canvaStore.getState();
-    if (state.isMoving && state.selectedFtrIds.length > 0) {
+    if (getState().isMoving && getState().selectedFtrIds.length > 0) {
       this.moveFtrs();
+      this.globalStore.refreshInteractionLayer(getState().focusedCanvasId!);
     }
   }
 
@@ -106,12 +113,16 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     if (param.canvasId === this.canvaStore.getState().focusedCanvasId) {
       this.canvaStore.dispatch('updateFocusedCanvasId', null);
     }
+    this.canvaStore.dispatch('updateIsMousedown', false);
     this.canvaStore.dispatch('stopMoving');
   }
 
   public canvasMousedown() {
-    this.canvaStore.dispatch('clearSelectedFtrs');
-    this.canvaStore.dispatch('updateMousedownCoord');
+    this.canvaStore.dispatch('canvasMousedown');
+  }
+
+  public canvasMouseup() {
+    this.canvaStore.dispatch('updateIsMousedown', false);
   }
 
   public canvasMount(param: IEventMap['canvasMount']) {
@@ -153,6 +164,7 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
         ...param,
         ...dragCompState
       });
+      this.canvaStore.dispatch('updateMouseInFtrId', ftrId);
     }
     this.canvaStore.dispatch('dragEnd');
   }
@@ -187,12 +199,11 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
   }
 
   public ftrMousedown(param: IEventMap['ftrMousedown']) {
-    this.canvaStore.dispatch('updateSelectedFtrs', [param.ftrId]);
-    this.canvaStore.dispatch('updateMousedownCoord');
-    this.canvaStore.dispatch('beginMoving');
+    this.canvaStore.dispatch('ftrMousedown', param.ftrId);
   }
 
   public ftrMouseup() {
+    this.canvaStore.dispatch('updateIsMousedown', false);
     this.canvaStore.dispatch('stopMoving');
   }
 

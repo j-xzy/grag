@@ -38,6 +38,10 @@ export function EventCollect(props: IProps) {
     evtEmit('canvasMousedown', { canvasId: props.id, x: e.x, y: e.y });
   }, []);
 
+  const handleMouseup = React.useCallback(() => {
+    evtEmit('canvasMouseup', { canvasId: props.id });
+  }, []);
+
   useInitial(() => {
     props.registerCanvasMount((dom) => {
       observeAttrMuationRef(dom);
@@ -46,6 +50,7 @@ export function EventCollect(props: IProps) {
       domRef.current.addEventListener('mouseenter', handleMouseEnter);
       domRef.current.addEventListener('mouseleave', handleMouseLeave);
       domRef.current.addEventListener('mousedown', handleMousedown);
+      domRef.current.addEventListener('mouseup', handleMouseup);
 
       evtEmit('canvasMount', { canvasId: props.id, dom: domRef.current! });
       // 初始时同步canvasRect
@@ -60,6 +65,7 @@ export function EventCollect(props: IProps) {
       domRef.current?.removeEventListener('mouseenter', handleMouseEnter, true);
       domRef.current?.removeEventListener('mouseleave', handleMouseLeave, true);
       domRef.current?.removeEventListener('mousedown', handleMousedown);
+      domRef.current?.removeEventListener('mouseup', handleMouseup);
       domRef.current = null;
     };
   });

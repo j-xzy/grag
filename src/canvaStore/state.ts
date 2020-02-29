@@ -12,9 +12,10 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     ftrStateMap: {} as IGrag.IIndexable<IGrag.IFtrStyle>, //ftrId到state的映射
     selectedFtrIds: [] as string[], // 当前选中的ftrid
     beforeMoveFtrStyleMap: {} as IGrag.IIndexable<IGrag.IFtrStyle>, //开始移动之前的ftrStateMap
-    isMoving: false, // 是否拖动
+    isMoving: false, // 是否正在拖动
     mousedownCoord: {x: 0, y: 0} as IGrag.IXYCoord, // 最近一次mousedown鼠标位置
     highLightFtrs: [] as IGrag.IHighLightState[], // 高亮的ftr
-    mouseInFtrId: null as string | null // 鼠标在ftr中的ftrid
+    mouseInFtrId: null as string | null, // 鼠标在ftr中的ftrid
+    isMousedown: false
   };
 }
