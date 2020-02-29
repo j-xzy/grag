@@ -67,7 +67,15 @@ export class GlobalStore {
     return node.ftrId;
   }
 
-  public getFtrStyle(ftrId: string) {
+  public getRootFtrIdByFtrId(ftrId: string) {
+    return this.getRootIdByCanvasId(this.getCanvasIdByFtrId(ftrId));
+  }
+
+  public isRoot(ftrId: string) {
+    return this.getRootFtrIdByFtrId(ftrId) === ftrId;
+  }
+
+  public getFtrStyleInCanvas(ftrId: string) {
     const canvasId = this.getCanvasIdByFtrId(ftrId);
     const canvasRect = this.getDom(canvasId)?.getBoundingClientRect();
     const ftrRect = this.getDom(ftrId)?.getBoundingClientRect();

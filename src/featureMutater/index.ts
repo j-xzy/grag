@@ -37,11 +37,10 @@ export class FeatureMutater implements IGrag.IObj2Func<IActionMap> {
   }
 
   public insertNewFtr(param: IActionMap['insertNewFtr']) {
-    const { parentFtrId, compId, ftrId } = param;
+    const { parentFtrId, compId, ftrId, x, y, width, height } = param;
 
     // 更新ftrState
-    const ftrState = util.calcFtrStateByStyle(param);
-    this.canvaStore.dispatch('updateFtrState', { ftrId, ftrState });
+    this.canvaStore.dispatch('updateFtrStyle', { ftrId, style: { x, y, width, height } });
 
     // 插入node到tree
     const canvasId = this.globalStore.getCanvasIdByFtrId(parentFtrId);
@@ -59,6 +58,7 @@ export class FeatureMutater implements IGrag.IObj2Func<IActionMap> {
   }
 
   public updateCoord(param: IActionMap['updateCoord']) {
+    this.canvaStore.dispatch('updateFtrCoord', param);
     this.notify(param.ftrId, 'updateCoord', param.coord);
   }
 

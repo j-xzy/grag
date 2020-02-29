@@ -7,10 +7,13 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     mouseCoordInCanvas: { x: 0, y: 0 } as IGrag.IXYCoord, // 鼠标位置
     focusedCanvasId: null as string | null, // 当前焦聚的canvasId
     hoverFtrId: null as string | null, // drag时hove的ftrId
-    dragCompState: null as IGrag.IFtrState | null, // 当前拖拽组件的state
+    dragCompState: null as IGrag.IFtrStyle | null, // 当前拖拽组件的state
     canvasRectMap: {} as IGrag.IIndexable<DOMRect>, // canvasId到domrect映射
-    ftrStateMap: {} as IGrag.IIndexable<IGrag.IFtrState>, //ftrId到state的映射
+    ftrStateMap: {} as IGrag.IIndexable<IGrag.IFtrStyle>, //ftrId到state的映射
     selectedFtrIds: [] as string[], // 当前选中的ftrid
+    beforeMoveFtrStyleMap: {} as IGrag.IIndexable<IGrag.IFtrStyle>, //开始移动之前的ftrStateMap
+    isMoving: false, // 是否拖动
+    mousedownCoord: {x: 0, y: 0} as IGrag.IXYCoord, // 最近一次mousedown鼠标位置
     highLightFtrs: [] as IGrag.IHighLightState[], // 高亮的ftr
     mouseInFtrId: null as string | null // 鼠标在ftr中的ftrid
   };

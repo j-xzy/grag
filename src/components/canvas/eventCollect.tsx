@@ -34,17 +34,17 @@ export function EventCollect(props: IProps) {
     evtEmit('canvasMouseLeave', { canvasId: props.id });
   }, []);
 
-  const handleMousedown = React.useCallback(() => {
-    evtEmit('canvasMousedown', { canvasId: props.id });
+  const handleMousedown = React.useCallback((e: MouseEvent) => {
+    evtEmit('canvasMousedown', { canvasId: props.id, x: e.x, y: e.y });
   }, []);
 
   useInitial(() => {
     props.registerCanvasMount((dom) => {
       observeAttrMuationRef(dom);
       domRef.current = dom;
-      domRef.current.addEventListener('mousemove', handleMousemove, true);
-      domRef.current.addEventListener('mouseenter', handleMouseEnter, true);
-      domRef.current.addEventListener('mouseleave', handleMouseLeave, true);
+      domRef.current.addEventListener('mousemove', handleMousemove);
+      domRef.current.addEventListener('mouseenter', handleMouseEnter);
+      domRef.current.addEventListener('mouseleave', handleMouseLeave);
       domRef.current.addEventListener('mousedown', handleMousedown);
 
       evtEmit('canvasMount', { canvasId: props.id, dom: domRef.current! });

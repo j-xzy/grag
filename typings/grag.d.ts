@@ -39,8 +39,6 @@ declare namespace IGrag {
     vr: number;
   }
 
-  type IFtrState = IFtrStyle & IAuxiliaryState;
-
   interface IProviderConfig {
     color?: string;
     id?: string;

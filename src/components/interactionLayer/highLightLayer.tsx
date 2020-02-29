@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { Context } from '../provider';
+import { Context } from '@/components/provider';
 import { useMount } from '@/hooks/useMount';
+import { style } from './style';
 
 interface IHighLightProps {
   width: number;
@@ -10,23 +11,13 @@ interface IHighLightProps {
   color: string;
 }
 
-const style: React.CSSProperties = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  pointerEvents: 'none',
-  userSelect: 'none'
-};
-
 export function HighLightLayer(props: { canvasId: string }) {
   const { useMappedState, globalStore, evtEmit } = React.useContext(Context);
   const highLightFtrs = useMappedState((s) => s.highLightFtrs);
   const highLightStates = highLightFtrs
     .filter(({ ftrId }) => globalStore.isFtrInCanvas(ftrId, props.canvasId))
     .map(({ ftrId, color, id }) => ({
-      ...globalStore.getFtrStyle(ftrId),
+      ...globalStore.getFtrStyleInCanvas(ftrId),
       color, id, ftrId
     }));
   useMount(() => {
