@@ -8,7 +8,6 @@ import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
 import { useRegisterDom } from '@/hooks/useRegisterDom';
 import { useMutationObserver } from '@/hooks/useMutationObserver';
-import { EventCollect } from '@/components/canvas/eventCollect';
 import { InteractionLayer } from '@/components/interactionLayer';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
@@ -16,7 +15,7 @@ export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICa
 }
 
 interface ICanvasProps {
-  style?: { 
+  style?: {
     position?: React.CSSProperties['position'];
     width?: React.CSSProperties['width'];
     height?: React.CSSProperties['height'];
@@ -27,6 +26,7 @@ interface ICanvasProps {
 }
 
 function RawCanvas(props: IRawCanvasProps) {
+  const { evtEmit } = React.useContext(Context);
   const { style, id } = props;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
 
@@ -38,26 +38,66 @@ function RawCanvas(props: IRawCanvasProps) {
     childDomReady(0, node);
   }, { childList: true });
 
+  const observeAttrMuationRef = useMutationObserver(() => {
+    evtEmit('canvasStyleChange', { canvasId: props.id });
+  }, { attributeFilter: ['style'] });
+
+  const handleMousemove = React.useCallback((e: React.MouseEvent) => {
+    evtEmit('canvasMousemove', {
+      coord: { x: e.clientX, y: e.clientY },
+      canvasId: props.id
+    });
+  }, []);
+
+  const handleMouseEnter = React.useCallback(() => {
+    evtEmit('canvasMouseEnter', { canvasId: props.id });
+  }, []);
+
+  const handleMouseLeave = React.useCallback(() => {
+    evtEmit('canvasMouseLeave', { canvasId: props.id });
+  }, []);
+
+  const handleMousedown = React.useCallback((e: React.MouseEvent) => {
+    evtEmit('canvasMousedown', { canvasId: props.id, x: e.clientX, y: e.clientY });
+  }, []);
+
+  const handleMouseup = React.useCallback(() => {
+    evtEmit('canvasMouseup', { canvasId: props.id });
+  }, []);
+
+  const refCallback = React.useCallback((dom: HTMLDivElement | null) => {
+    if (dom) {
+      domRef.current = dom;
+      observeChildMutationRef(dom);
+      observeAttrMuationRef(dom);
+    }
+  }, []);
+
   useMount(() => {
     myDomMount(domRef.current);
-    observeChildMutationRef(domRef.current!);
+    evtEmit('canvasMount', { canvasId: props.id, dom: domRef.current! });
+    // 初始时同步canvasRect
+    evtEmit('canvasStyleChange', { canvasId: props.id });
     return () => {
+      evtEmit('canvasUnMount', { canvasId: props.id });
       domRef.current = null;
     };
   });
 
   return (
-    <div ref={domRef} style={{ position: 'relative', overflow: 'hidden', boxSizing: 'border-box', ...style }} >
-      <EventCollect registerCanvasMount={registerMyDomMount} id={id}>
-        <FeatureLayer 
-          canvasId={id}
-          captureDomParams={{
-            idx: 0, registerChildDom,
-            registerParentMount: registerMyDomMount,
-            parentIsMount: !!domRef.current,
-          }} />
-        <InteractionLayer canvasId={id} />
-      </EventCollect>
+    <div ref={refCallback}
+      style={{ position: 'relative', overflow: 'hidden', boxSizing: 'border-box', ...style }}
+      onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
+      onMouseDown={handleMousedown} onMouseUp={handleMouseup}
+      onMouseMove={handleMousemove}>
+      <FeatureLayer
+        canvasId={id}
+        captureDomParams={{
+          idx: 0, registerChildDom,
+          registerParentMount: registerMyDomMount,
+          parentIsMount: !!domRef.current,
+        }} />
+      <InteractionLayer canvasId={id} />
     </div>
   );
 }
