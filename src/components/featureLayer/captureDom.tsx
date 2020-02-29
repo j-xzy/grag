@@ -48,10 +48,7 @@ export function CaptureDom(props: ICaptureDomProps) {
         observeChildMutationRef(dom);
         // 本节点dom挂载完成
         myDomMount(true);
-        evtEmit('ftrDomDone', {
-          ftrId: props.ftrId,
-          dom
-        });
+        evtEmit('ftrDomDone', props.ftrId, dom);
       }
     });
   });
@@ -69,7 +66,7 @@ export function CaptureDom(props: ICaptureDomProps) {
     return () => {
       unSubscribeParentMount();
       domRef.current = null;
-      evtEmit('ftrUnmount', { ftrId: props.ftrId });
+      evtEmit('ftrUnmount', props.ftrId);
     };
   });
 

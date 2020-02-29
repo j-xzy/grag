@@ -22,7 +22,7 @@ export function HighLightLayer(props: { canvasId: string }) {
     }));
   useMount(() => {
     function handleBlur() {
-      evtEmit('highLightLayerBlur', null);
+      evtEmit('highLightLayerBlur');
     }
     window.addEventListener('blur', handleBlur);
     return () => {

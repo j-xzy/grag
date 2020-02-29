@@ -3,20 +3,10 @@ import { GlobalStore } from '@/GlobalStore';
 import { produce } from 'produce';
 import { ICanvasStore } from '@/canvaStore';
 
-interface IActionMap {
-  insertNewFtr: {
-    parentFtrId: string;
-    compId: string;
-    ftrId: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  updateCoord: {
-    ftrId: string;
-    coord: IGrag.IXYCoord;
-  };
+interface IInsertNewFtrParam extends IGrag.IFtrStyle {
+  parentFtrId: string;
+  compId: string;
+  ftrId: string;
 }
 
 export interface IFtrSubActMap {
@@ -25,18 +15,18 @@ export interface IFtrSubActMap {
 
 export type IFtrMutate = FeatureMutater['mutate'];
 
-export class FeatureMutater implements IGrag.IObj2Func<IActionMap> {
+export class FeatureMutater {
   private listeners: IGrag.IIndexable<IGrag.IIndexable<IGrag.IFunction[]>> = {};
   constructor(private globalStore: GlobalStore, private canvaStore: ICanvasStore) {
     this.mutate = this.mutate.bind(this);
     this.subscribe = this.subscribe.bind(this);
   }
 
-  public mutate<T extends keyof IActionMap>(action: T, params: IActionMap[T]) {
-    (this[action] as any).call(this, params);
+  public mutate<T extends Exclude<keyof FeatureMutater, 'mutate'>>(action: T, ...params: Parameters<FeatureMutater[T]>) {
+    (this[action] as any).apply(this, params);
   }
 
-  public insertNewFtr(param: IActionMap['insertNewFtr']) {
+  public insertNewFtr(param: IInsertNewFtrParam) {
     const { parentFtrId, compId, ftrId, x, y, width, height } = param;
 
     // 更新ftrState
@@ -57,9 +47,9 @@ export class FeatureMutater implements IGrag.IObj2Func<IActionMap> {
     this.globalStore.refreshRenderLayer(canvasId);
   }
 
-  public updateCoord(param: IActionMap['updateCoord']) {
-    this.canvaStore.dispatch('updateFtrCoord', param);
-    this.notify(param.ftrId, 'updateCoord', param.coord);
+  public updateCoord(ftrId: string, coord: IGrag.IXYCoord) {
+    this.canvaStore.dispatch('updateFtrCoord', {ftrId, coord});
+    this.notify(ftrId, 'updateCoord', coord);
   }
 
   public subscribe<T extends keyof IFtrSubActMap>(id: string, action: T, callback: (payload: IFtrSubActMap[T]) => void) {

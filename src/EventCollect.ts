@@ -3,82 +3,9 @@ import { IFtrMutate } from '@/featureMutater';
 import * as util from '@/lib/util';
 import { ICanvasStore } from './canvaStore';
 
-export interface IEventMap {
-  canvasMousemove: {
-    coord: IGrag.IXYCoord;
-    canvasId: string;
-  };
-  canvasMouseEnter: {
-    canvasId: string;
-  };
-  canvasMouseLeave: {
-    canvasId: string;
-  };
-  canvasMousedown: {
-    canvasId: string;
-    x: number;
-    y: number;
-  };
-  canvasMouseup: {
-    canvasId: string;
-  };
-  canvasMount: {
-    canvasId: string;
-    dom: HTMLElement;
-  };
-  canvasUnMount: {
-    canvasId: string;
-  };
-  canvasStyleChange: {
-    canvasId: string;
-  };
-  ftrDomDone: {
-    ftrId: string;
-    dom: HTMLElement;
-  };
-  ftrUnmount: {
-    ftrId: string;
-  };
-  ftrDropEnd: {
-    compId: string;
-    parentFtrId: string;
-  };
-  ftrPreviewInit: {
-    compId: string;
-    compInfo: IGrag.ICompInfo;
-  };
-  ftrHover: {
-    ftrId: string;
-    clientOffset: IGrag.IXYCoord;
-  };
-  ftrMousedown: {
-    ftrId: string;
-    x: number;
-    y: number;
-  };
-  ftrMouseup: {
-    ftrId: string;
-  };
-  ftrMouseover: {
-    ftrId: string;
-  };
-  ftrMouseleave: {
-    ftrId: string;
-  };
-  compBeginDrag: {
-    compId: string;
-    width: number;
-    height: number;
-  };
-  compDragEnd: {
-    compId: string;
-  };
-  highLightLayerBlur: any;
-}
-
 export type IEvtEmit = EventCollect['emit'];
 
-export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
+export class EventCollect {
   constructor(
     private ftrMutate: IFtrMutate,
     private globalStore: GlobalStore,
@@ -87,30 +14,30 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     this.emit = this.emit.bind(this);
   }
 
-  public emit<T extends keyof IEventMap>(evtName: T, params: IEventMap[T]) {
-    (this[evtName] as any).call(this, params);
+  public emit<T extends Exclude<keyof EventCollect, 'emit'>>(evtName: T, ...params: Parameters<EventCollect[T]>) {
+    (this[evtName] as any).apply(this, params);
   }
 
-  public canvasMousemove(param: IEventMap['canvasMousemove']) {
+  public canvasMousemove(canvasId: string, coord: IGrag.IXYCoord) {
     const getState = this.canvaStore.getState;
     if (!getState().isMoving && getState().isMousedown && getState().mouseInFtrId) {
       this.canvaStore.dispatch('beginMoving');
     }
-    this.canvaStore.dispatch('mouseMove', param);
+    this.canvaStore.dispatch('mouseMove', { canvasId, coord });
     if (getState().isMoving && getState().selectedFtrIds.length > 0) {
       this.moveFtrs();
       this.globalStore.refreshInteractionLayer(getState().focusedCanvasId!);
     }
   }
 
-  public canvasMouseEnter(param: IEventMap['canvasMouseEnter']) {
-    if (param.canvasId !== this.canvaStore.getState().focusedCanvasId) {
-      this.canvaStore.dispatch('updateFocusedCanvasId', param.canvasId);
+  public canvasMouseEnter(canvasId: string) {
+    if (canvasId !== this.canvaStore.getState().focusedCanvasId) {
+      this.canvaStore.dispatch('updateFocusedCanvasId', canvasId);
     }
   }
 
-  public canvasMouseLeave(param: IEventMap['canvasMouseLeave']) {
-    if (param.canvasId === this.canvaStore.getState().focusedCanvasId) {
+  public canvasMouseLeave(canvasId: string) {
+    if (canvasId === this.canvaStore.getState().focusedCanvasId) {
       this.canvaStore.dispatch('updateFocusedCanvasId', null);
     }
     this.canvaStore.dispatch('updateIsMousedown', false);
@@ -125,26 +52,26 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     this.canvaStore.dispatch('updateIsMousedown', false);
   }
 
-  public canvasMount(param: IEventMap['canvasMount']) {
-    this.globalStore.setDom(param.canvasId, param.dom);
+  public canvasMount(canvasId: string, dom: HTMLElement) {
+    this.globalStore.setDom(canvasId, dom);
   }
 
-  public canvasUnMount(param: IEventMap['canvasUnMount']) {
-    this.globalStore.deleteDom(param.canvasId);
+  public canvasUnMount(canvasId: string) {
+    this.globalStore.deleteDom(canvasId);
   }
 
-  public canvasStyleChange(param: IEventMap['canvasStyleChange']) {
-    const rect = this.globalStore.getDom(param.canvasId)?.getBoundingClientRect();
+  public canvasStyleChange(canvasId: string) {
+    const rect = this.globalStore.getDom(canvasId)?.getBoundingClientRect();
     if (!rect) {
       return;
     }
 
     this.canvaStore.dispatch('updateCanvasRect', {
-      id: param.canvasId,
+      id: canvasId,
       rect
     });
 
-    const rootId = this.globalStore.getRootIdByCanvasId(param.canvasId);
+    const rootId = this.globalStore.getRootIdByCanvasId(canvasId);
     this.canvaStore.dispatch('updateFtrStyle', {
       ftrId: rootId,
       style: {
@@ -155,7 +82,7 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     });
   }
 
-  public ftrDropEnd(param: IEventMap['ftrDropEnd']) {
+  public ftrDropEnd(param: { compId: string; parentFtrId: string }) {
     const { dragCompState } = this.canvaStore.getState();
     if (dragCompState) {
       const ftrId = util.uuid();
@@ -169,37 +96,33 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     this.canvaStore.dispatch('dragEnd');
   }
 
-  public ftrDomDone(param: IEventMap['ftrDomDone']) {
-    this.globalStore.setDom(param.ftrId, param.dom);
-    const { x, y } = this.canvaStore.getState().ftrStateMap[param.ftrId];
-    this.ftrMutate('updateCoord', {
-      ftrId: param.ftrId,
-      coord: { x, y }
-    });
-    if (!this.globalStore.isRoot(param.ftrId)) {
-      this.canvaStore.dispatch('updateSelectedFtrs', [param.ftrId]);
+  public ftrDomDone(ftrId: string, dom: HTMLElement) {
+    this.globalStore.setDom(ftrId, dom);
+    const { x, y } = this.canvaStore.getState().ftrStateMap[ftrId];
+    this.ftrMutate('updateCoord', ftrId, { x, y });
+    if (!this.globalStore.isRoot(ftrId)) {
+      this.canvaStore.dispatch('updateSelectedFtrs', [ftrId]);
     }
   }
 
-  public ftrUnmount(param: IEventMap['ftrUnmount']) {
-    this.globalStore.deleteDom(param.ftrId);
+  public ftrUnmount(ftrId: string) {
+    this.globalStore.deleteDom(ftrId);
   }
 
-  public ftrPreviewInit(param: IEventMap['ftrPreviewInit']) {
-    const { compId, compInfo } = param;
+  public ftrPreviewInit(compId: string, compInfo: IGrag.ICompInfo) {
     this.globalStore.setCompInfo(compId, compInfo);
   }
 
-  public ftrHover(param: IEventMap['ftrHover']) {
-    this.canvaStore.dispatch('updateHoverFtrId', param.ftrId);
+  public ftrHover(ftrId: string, clientOffset: IGrag.IXYCoord) {
+    this.canvaStore.dispatch('updateHoverFtrId', ftrId);
     this.canvaStore.dispatch('mouseMove', {
-      coord: param.clientOffset,
-      canvasId: this.globalStore.getCanvasIdByFtrId(param.ftrId)
+      coord: clientOffset,
+      canvasId: this.globalStore.getCanvasIdByFtrId(ftrId)
     });
   }
 
-  public ftrMousedown(param: IEventMap['ftrMousedown']) {
-    this.canvaStore.dispatch('ftrMousedown', param.ftrId);
+  public ftrMousedown(ftrId: string) {
+    this.canvaStore.dispatch('ftrMousedown', ftrId);
   }
 
   public ftrMouseup() {
@@ -207,7 +130,7 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     this.canvaStore.dispatch('stopMoving');
   }
 
-  public ftrMouseover(param: IEventMap['ftrMouseover']) {
+  public ftrMouseover(param: { ftrId: string }) {
     this.canvaStore.dispatch('mouseEnterFtr', param.ftrId);
   }
 
@@ -215,7 +138,7 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     this.canvaStore.dispatch('mouseLeaveFtr');
   }
 
-  public compBeginDrag(param: IEventMap['compBeginDrag']) {
+  public compBeginDrag(param: { compId: string; width: number; height: number }) {
     this.canvaStore.dispatch('updateDragCompSize', param);
   }
 
@@ -233,12 +156,9 @@ export class EventCollect implements IGrag.IObj2Func<IEventMap>  {
     const deltY = state.mouseCoordInCanvas.y - state.mousedownCoord.y;
     state.selectedFtrIds.forEach((id) => {
       const { x, y } = state.beforeMoveFtrStyleMap[id];
-      this.ftrMutate('updateCoord', {
-        ftrId: id,
-        coord: {
-          x: x + deltX,
-          y: y + deltY
-        }
+      this.ftrMutate('updateCoord', id, {
+        x: x + deltX,
+        y: y + deltY
       });
     });
   }

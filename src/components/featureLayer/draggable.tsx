@@ -27,10 +27,7 @@ export function Dropable(props: IDropableProps) {
       if (!monitor.isOver({ shallow: true })) {
         return;
       }
-      evtEmit('ftrHover', {
-        ftrId: props.ftrId,
-        clientOffset: monitor.getClientOffset()!
-      });
+      evtEmit('ftrHover', props.ftrId, monitor.getClientOffset()!);
     }
   });
 

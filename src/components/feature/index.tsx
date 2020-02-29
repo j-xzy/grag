@@ -25,15 +25,11 @@ export function Feature(props: IProps) {
   const { evtEmit } = React.useContext(Context);
 
   useInitial(() => {
-    evtEmit('ftrPreviewInit', {
-      compId: compId.current,
-      compInfo: {
-        Component: props.component,
-        option: {
-          allowChild: props.allowChild ?? false
-        }
-      }
-    });
+    evtEmit('ftrPreviewInit', compId.current, {
+      Component: props.component,
+      option: {
+        allowChild: props.allowChild ?? false
+      }});
   });
 
   const [, drag, connectPreview] = useDrag({
@@ -66,7 +62,7 @@ export function Feature(props: IProps) {
     },
     end() {
       ReactDOM.render(null as any, getPreviewWrapperEle());
-      evtEmit('compDragEnd', { compId: compId.current });
+      evtEmit('compDragEnd');
     }
   });
 

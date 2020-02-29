@@ -16,11 +16,11 @@ export function MouseEventCollect(props: IProps) {
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
 
   const handleMousedown = React.useCallback((e: MouseEvent) => {
-    evtEmit('ftrMousedown', { ftrId: props.ftrId, x: e.x, y: e.y });
+    evtEmit('ftrMousedown', props.ftrId);
     e.stopPropagation();
   }, []);
   const handleMouseup = React.useCallback((e: Event) => {
-    evtEmit('ftrMouseup', { ftrId: props.ftrId });
+    evtEmit('ftrMouseup');
     e.stopPropagation();
   }, []);
   const handleMouseover = React.useCallback((e: Event) => {
@@ -28,7 +28,7 @@ export function MouseEventCollect(props: IProps) {
     e.stopPropagation();
   }, []);
   const handleMouseleave = React.useCallback((e: Event) => {
-    evtEmit('ftrMouseleave', { ftrId: props.ftrId });
+    evtEmit('ftrMouseleave');
     e.stopPropagation();
   }, []);
 

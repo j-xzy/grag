@@ -80,7 +80,6 @@ function Border(props: { rect: IRect }) {
 
 function Handler(props: IHandlerProps) {
   const { type, rect: { lt, rb } } = props;
-  const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
   let top = 0;
   let left = 0;
   let resizeType = '';
@@ -128,19 +127,15 @@ function Handler(props: IHandlerProps) {
     left: left - 4,
   };
 
-  // const handleMousedown = React.useCallback((e: React.MouseEvent) => {
-  //   // evtEmit('resizeMousedown', { type: resizeType });
-  //   console.log('down');
-  //   e.stopPropagation();
-  // }, [resizeType]);
+  const handleMousedown = React.useCallback((e: React.MouseEvent) => {
+    // evtEmit('resizeMousedown', { type: resizeType });
+    e.stopPropagation();
+  }, [resizeType]);
 
-  // const handleMouseup = React.useCallback((e: React.MouseEvent) => {
-  //   // evtEmit('resizeMouseup');
-  //   e.stopPropagation();
-  // }, [resizeType]);
+  const handleMouseup = React.useCallback((e: React.MouseEvent) => {
+    // evtEmit('resizeMouseup');
+    e.stopPropagation();
+  }, [resizeType]);
 
-  return (
-    <div style={style} ref={domRef}>
-    </div>
-  );
+  return <div style={style} onMouseDown={handleMousedown} onMouseUp={handleMouseup} />;
 }
