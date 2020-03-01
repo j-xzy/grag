@@ -1,4 +1,5 @@
 import { IEnhancer, applyMiddleware } from './applyMiddleware';
+import { shallowEqual } from './shallowEqual';
 
 interface IKeyValue<T> {
   [p: string]: T;
@@ -30,6 +31,7 @@ export class Store<S, R extends IReducers<S>>  {
     this.dispatch = this.dispatch.bind(this);
     this.getState = this.getState.bind(this);
     this.getLastState = this.getLastState.bind(this);
+    this.wrapperListener = this.wrapperListener.bind(this);
 
     this.context = {
       getState: this.getState,
@@ -56,7 +58,14 @@ export class Store<S, R extends IReducers<S>>  {
     this.notify();
   }
 
-  public subscribe(listener: () => any) {
+  public subscribe(listener: (state: S) => any): () => void
+  public subscribe<T>(mapState: (state: S) => T, listener: (state: T) => any): () => void
+  public subscribe(mapState: any, listener?: any) {
+    if (!listener) {
+      listener = mapState;
+    } else {
+      listener = this.wrapperListener(mapState, listener);
+    }
     this.listeners.push(listener);
     return () => this.unSubscribe(listener);
   }
@@ -87,6 +96,17 @@ export class Store<S, R extends IReducers<S>>  {
       const { type, ...data } = action as any;
       typeof type !== 'undefined' && this.dispatch(type, data);
     }
+  }
+
+  private wrapperListener<T>(mapState: (state: S) => T, listener: (state: T) => any) {
+    let state = mapState(this.getState());
+    return () => {
+      const nextState = mapState(this.getState());
+      if (!shallowEqual(state, nextState)) {
+        listener(nextState);
+      }
+      state = nextState;
+    };
   }
 }
 

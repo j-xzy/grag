@@ -7,6 +7,7 @@ import { FeatureMutater } from '@/featureMutater';
 import { Provider } from 'dnd';
 import { createFtrSubscribe } from '@/featureMutater/useFtrSubscribe';
 import { mergeDefaultConfig } from './config';
+import { useMount } from '@/hooks/useMount';
 
 export const Context = React.createContext({
   globalStore: {} as GlobalStore,
@@ -28,6 +29,29 @@ export function GragProvider(props: React.Props<any> & IGrag.IProviderConfig) {
     globalStore.current,
     canvaStore.current
   ));
+
+  useMount(() => {
+    const unSubscribe = canvaStore.current.subscribe((s) => ({
+      isMoving: s.isMoving,
+      resizeType: s.resizeType,
+      focusedCanvasId: s.focusedCanvasId
+    }), (state) => {
+      if (!state.focusedCanvasId) {
+        return;
+      }
+      let cursor = 'default';
+      const canvasDom = globalStore.current.getDom(state.focusedCanvasId);
+      if (state.isMoving) {
+        cursor = 'move';
+      } else if (state.resizeType) {
+        cursor = `${state.resizeType}-resize`;
+      }
+      canvasDom.style.cursor = cursor;
+    });
+    return () => {
+      unSubscribe();
+    };
+  });
 
   // debug
   if (process.env.NODE_ENV === 'development') {
