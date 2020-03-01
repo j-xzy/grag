@@ -28,6 +28,15 @@ export function FtrSubscribe(props: IMonitorProps) {
     }
   });
 
+  useFtrSubscribe(props.ftrId, 'updateStyle', (style) => {
+    if (domRef.current && !props.isRoot) {
+      domRef.current.style.left = style.x + 'px';
+      domRef.current.style.top = style.y + 'px';
+      domRef.current.style.width = style.width + 'px';
+      domRef.current.style.height = style.height + 'px';
+    }
+  });
+
   useMount(() => {
     return () => {
       domRef.current = null;

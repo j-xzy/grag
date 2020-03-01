@@ -170,8 +170,7 @@ export function mouseLeaveFtr(getState: IGetState) {
 export function stopMoving(getState: IGetState) {
   return {
     ...getState(),
-    isMoving: false,
-    beforeMoveFtrStyleMap: {}
+    isMoving: false
   };
 }
 
@@ -182,7 +181,7 @@ export function beginMoving(getState: IGetState) {
     ...state,
     isMoving: true,
     highLightFtrs,
-    beforeMoveFtrStyleMap: { ...state.ftrStateMap }
+    beforeChangeFtrStyleMap: { ...state.ftrStateMap }
   };
 }
 
@@ -226,5 +225,21 @@ export function canvasMousedown(getState: IGetState) {
     isMousedown: true,
     selectedFtrIds: [],
     mousedownCoord: getState().mouseCoordInCanvas
+  };
+}
+
+export function resizeMousedown(getState: IGetState, resizeType: IGrag.IResizeType ) {
+  return {
+    ...getState(),
+    beforeChangeFtrStyleMap: { ...getState().ftrStateMap },
+    resizeType,
+    mousedownCoord: getState().mouseCoordInCanvas
+  };
+}
+
+export function updateResizeType(getState: IGetState, resizeType: IGrag.IResizeType | null) {
+  return {
+    ...getState(),
+    resizeType
   };
 }

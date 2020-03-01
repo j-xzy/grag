@@ -5,7 +5,7 @@ import { IEvtEmit } from '@/EventCollect';
 
 interface IHandlerProps {
   rect: IRect;
-  type: 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
+  type: IGrag.IResizeType;
   evtEmit: IEvtEmit;
 }
 
@@ -16,9 +16,10 @@ interface IRect {
 
 export function ResizeLayer(props: { canvasId: string }) {
   const { useMappedState, globalStore, evtEmit } = React.useContext(Context);
-  const { selectedFtrIds, isMoving } = useMappedState((s) => ({
+  const { selectedFtrIds, isMoving, resizeType } = useMappedState((s) => ({
     selectedFtrIds: s.selectedFtrIds,
-    isMoving: s.isMoving
+    isMoving: s.isMoving,
+    resizeType: s.resizeType
   }));
 
   if (!selectedFtrIds.length) {
@@ -49,14 +50,14 @@ export function ResizeLayer(props: { canvasId: string }) {
       <Border rect={rect} />
       {
         !isMoving && <>
-          <Handler evtEmit={evtEmit} rect={rect} type='nw' />
-          <Handler evtEmit={evtEmit} rect={rect} type='n' />
-          <Handler evtEmit={evtEmit} rect={rect} type='ne' />
-          <Handler evtEmit={evtEmit} rect={rect} type='w' />
-          <Handler evtEmit={evtEmit} rect={rect} type='e' />
-          <Handler evtEmit={evtEmit} rect={rect} type='sw' />
-          <Handler evtEmit={evtEmit} rect={rect} type='s' />
-          <Handler evtEmit={evtEmit} rect={rect} type='se' />
+          {(resizeType === null || resizeType === 'nw') && <Handler evtEmit={evtEmit} rect={rect} type='nw' />}
+          {(resizeType === null || resizeType === 'n') && <Handler evtEmit={evtEmit} rect={rect} type='n' />}
+          {(resizeType === null || resizeType === 'ne') && <Handler evtEmit={evtEmit} rect={rect} type='ne' />}
+          {(resizeType === null || resizeType === 'w') && <Handler evtEmit={evtEmit} rect={rect} type='w' />}
+          {(resizeType === null || resizeType === 'e') && <Handler evtEmit={evtEmit} rect={rect} type='e' />}
+          {(resizeType === null || resizeType === 'sw') && <Handler evtEmit={evtEmit} rect={rect} type='sw' />}
+          {(resizeType === null || resizeType === 's') && <Handler evtEmit={evtEmit} rect={rect} type='s' />}
+          {(resizeType === null || resizeType === 'se') && <Handler evtEmit={evtEmit} rect={rect} type='se' />}
         </>
       }
     </div>
@@ -79,10 +80,10 @@ function Border(props: { rect: IRect }) {
 }
 
 function Handler(props: IHandlerProps) {
-  const { type, rect: { lt, rb } } = props;
+  const { type, rect: { lt, rb }, evtEmit } = props;
   let top = 0;
   let left = 0;
-  let resizeType = '';
+  let cursor = '';
   if (type === 'nw' || type === 'n' || type === 'ne') {
     top = lt.y;
   }
@@ -102,16 +103,16 @@ function Handler(props: IHandlerProps) {
     left = rb.x;
   }
   if (type === 'nw' || type === 'se') {
-    resizeType = 'nwse';
+    cursor = 'nwse';
   }
   if (type === 'ne' || type === 'sw') {
-    resizeType = 'nesw';
+    cursor = 'nesw';
   }
   if (type === 'n' || type === 's') {
-    resizeType = 'ns';
+    cursor = 'ns';
   }
   if (type === 'w' || type === 'e') {
-    resizeType = 'ew';
+    cursor = 'ew';
   }
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -119,23 +120,22 @@ function Handler(props: IHandlerProps) {
     pointerEvents: 'all',
     width: 8,
     height: 8,
-    backgroundColor: '#f0f0f0',
-    border: '1px solid #ededed',
-    boxShadow: '0px 0px 2px #b9b9b9',
-    cursor: `${resizeType}-resize`,
+    backgroundColor: '#fff',
+    boxShadow: '0px 0px 5px #b9b9b9',
+    cursor: `${cursor}-resize`,
     top: top - 4,
     left: left - 4,
   };
 
   const handleMousedown = React.useCallback((e: React.MouseEvent) => {
-    // evtEmit('resizeMousedown', { type: resizeType });
+    evtEmit('resizeMousedown', type);
     e.stopPropagation();
-  }, [resizeType]);
+  }, [type]);
 
   const handleMouseup = React.useCallback((e: React.MouseEvent) => {
-    // evtEmit('resizeMouseup');
+    evtEmit('resizeMouseup');
     e.stopPropagation();
-  }, [resizeType]);
+  }, [type]);
 
   return <div style={style} onMouseDown={handleMousedown} onMouseUp={handleMouseup} />;
 }

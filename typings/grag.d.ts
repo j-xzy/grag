@@ -49,4 +49,6 @@ declare namespace IGrag {
     id: string;
     color: string;
   }
+
+  type IResizeType = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
 }

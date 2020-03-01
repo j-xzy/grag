@@ -11,6 +11,7 @@ interface IInsertNewFtrParam extends IGrag.IFtrStyle {
 
 export interface IFtrSubActMap {
   updateCoord: IGrag.IXYCoord;
+  updateStyle: IGrag.IFtrStyle;
 }
 
 export type IFtrMutate = FeatureMutater['mutate'];
@@ -22,7 +23,7 @@ export class FeatureMutater {
     this.subscribe = this.subscribe.bind(this);
   }
 
-  public mutate<T extends Exclude<keyof FeatureMutater, 'mutate'>>(action: T, ...params: Parameters<FeatureMutater[T]>) {
+  public mutate<T extends Exclude<keyof FeatureMutater, 'mutate' | 'unSubscribe' | 'subscribe'>>(action: T, ...params: Parameters<FeatureMutater[T]>) {
     (this[action] as any).apply(this, params);
   }
 
@@ -48,8 +49,13 @@ export class FeatureMutater {
   }
 
   public updateCoord(ftrId: string, coord: IGrag.IXYCoord) {
-    this.canvaStore.dispatch('updateFtrCoord', {ftrId, coord});
+    this.canvaStore.dispatch('updateFtrCoord', { ftrId, coord });
     this.notify(ftrId, 'updateCoord', coord);
+  }
+
+  public updateStyle(ftrId: string, style: IGrag.IFtrStyle) {
+    this.canvaStore.dispatch('updateFtrStyle', { ftrId, style });
+    this.notify(ftrId, 'updateStyle', style);
   }
 
   public subscribe<T extends keyof IFtrSubActMap>(id: string, action: T, callback: (payload: IFtrSubActMap[T]) => void) {
