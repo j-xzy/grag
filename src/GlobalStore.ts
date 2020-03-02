@@ -99,4 +99,9 @@ export class GlobalStore {
   public isFtrInCanvas(ftrId: string, canvasId: string) {
     return this.getCanvasIdByFtrId(ftrId) === canvasId;
   }
+
+  public deleteFtr(ftrId: string) {
+    this.deleteDom(ftrId);
+    delete this.ftrId2CanvasId[ftrId];
+  }
 }

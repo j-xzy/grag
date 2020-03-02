@@ -116,7 +116,8 @@ export class EventCollect {
   }
 
   public ftrUnmount(ftrId: string) {
-    this.globalStore.deleteDom(ftrId);
+    this.globalStore.deleteFtr(ftrId);
+    this.canvaStore.dispatch('removeFtr', ftrId);
   }
 
   public ftrPreviewInit(compId: string, compInfo: IGrag.ICompInfo) {

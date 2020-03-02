@@ -12,8 +12,8 @@ interface IHighLightProps {
 }
 
 export function HighLightLayer(props: { canvasId: string }) {
-  const { useMappedState, globalStore, evtEmit } = React.useContext(Context);
-  const highLightFtrs = useMappedState((s) => s.highLightFtrs);
+  const { useMappedCanvasState, globalStore, evtEmit } = React.useContext(Context);
+  const highLightFtrs = useMappedCanvasState((s) => s.highLightFtrs);
   const highLightStates = highLightFtrs
     .filter(({ ftrId }) => globalStore.isFtrInCanvas(ftrId, props.canvasId))
     .map(({ ftrId, color, id }) => ({

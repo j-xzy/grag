@@ -12,6 +12,39 @@ export function getNodeByFtrId(root: IGrag.INode, ftrId: string) {
   return null;
 }
 
+export function getParentNodeByFtrId(root: IGrag.INode, ftrId: string) {
+  const stack: IGrag.INode[] = [root];
+  let parent: IGrag.INode | null = null;
+  let index = -1;
+  while (stack.length) {
+    const node = stack.shift()!;
+    for (let i = 0; i < node.children.length; ++i) {
+      if (node.children[i].ftrId === ftrId) {
+        parent = node;
+        index = i;
+        break;
+      } else {
+        stack.push(node.children[i]);
+      }
+    }
+    if (parent) {
+      break;
+    }
+  }
+  if (parent) {
+    return { node: parent, index };
+  }
+  return null;
+}
+
+export function getAllChildren(node: IGrag.INode): IGrag.INode[] {
+  const childs: IGrag.INode[] = [];
+  node.children.forEach((child) => {
+    childs.push(...getAllChildren(child));
+  });
+  return childs;
+}
+
 export function buildNode(param: { ftrId: string; compId: string; children?: IGrag.INode[] }): IGrag.INode {
   return {
     ftrId: param.ftrId,

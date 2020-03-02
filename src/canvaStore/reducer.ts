@@ -228,7 +228,7 @@ export function canvasMousedown(getState: IGetState) {
   };
 }
 
-export function resizeMousedown(getState: IGetState, resizeType: IGrag.IResizeType ) {
+export function resizeMousedown(getState: IGetState, resizeType: IGrag.IResizeType) {
   return {
     ...getState(),
     beforeChangeFtrStyleMap: { ...getState().ftrStateMap },
@@ -242,4 +242,17 @@ export function updateResizeType(getState: IGetState, resizeType: IGrag.IResizeT
     ...getState(),
     resizeType
   };
+}
+
+export function removeFtr(getState: IGetState, ftrId: string) {
+  const state = { ...getState() };
+  if (state.hoverFtrId === ftrId) {
+    state.hoverFtrId = null;
+  }
+  state.selectedFtrIds = state.selectedFtrIds.filter((id) => id !== ftrId);
+  state.highLightFtrs = state.highLightFtrs.filter((p)=> p.ftrId === ftrId);
+  if(state.mouseInFtrId === ftrId){
+    state.mouseInFtrId = null;
+  }
+  return state;
 }

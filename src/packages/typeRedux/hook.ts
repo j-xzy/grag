@@ -5,7 +5,7 @@ import { shallowEqual } from './shallowEqual';
 export type IMappedStateFunc<S, R> = (state: S) => R;
 
 export function createUseMappedState<S>(store: Store<S, any>) {
-  return function useMappedState<R>(mappedState: IMappedStateFunc<S, R>) {
+  return function useMappedCanvasState<R>(mappedState: IMappedStateFunc<S, R>) {
     const savedMappedState = React.useRef(mappedState);
     const [state, setState] = React.useState(savedMappedState.current(store.getState()));
     const lastState = React.useRef(state);

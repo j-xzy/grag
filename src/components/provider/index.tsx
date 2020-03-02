@@ -1,19 +1,19 @@
 import * as React from 'react';
 import { createStore, createUseMappedState } from 'typeRedux';
-import { createInitState, reducers, IUseMappedState } from '@/canvaStore';
+import { createInitState, reducers, IUseMappedState, ICanvasStore } from '@/canvaStore';
 import { EventCollect, IEvtEmit } from '@/EventCollect';
 import { GlobalStore } from '@/GlobalStore';
 import { FeatureMutater } from '@/featureMutater';
 import { Provider } from 'dnd';
 import { createFtrSubscribe } from '@/featureMutater/useFtrSubscribe';
 import { mergeDefaultConfig } from './config';
-import { useMount } from '@/hooks/useMount';
 
 export const Context = React.createContext({
   globalStore: {} as GlobalStore,
   evtEmit: {} as IEvtEmit,
   useFtrSubscribe: {} as ReturnType<typeof createFtrSubscribe>,
-  useMappedState: {} as IUseMappedState
+  useMappedCanvasState: {} as IUseMappedState,
+  subscribeCanvaStore: {} as ICanvasStore['subscribe']
 });
 
 export type ICtxValue = IGrag.IReactCtxValue<typeof Context>;
@@ -21,7 +21,7 @@ export type ICtxValue = IGrag.IReactCtxValue<typeof Context>;
 export function GragProvider(props: React.Props<any> & IGrag.IProviderConfig) {
   const globalStore = React.useRef(new GlobalStore());
   const canvaStore = React.useRef(createStore(createInitState(mergeDefaultConfig(props)), reducers));
-  const useMappedState = React.useRef(createUseMappedState(canvaStore.current));
+  const useMappedCanvasState = React.useRef(createUseMappedState(canvaStore.current));
   const featureMutater = React.useRef(new FeatureMutater(globalStore.current, canvaStore.current));
   const useFtrSubscribe = React.useRef(createFtrSubscribe(featureMutater.current));
   const evtCollect = React.useRef(new EventCollect(
@@ -29,29 +29,6 @@ export function GragProvider(props: React.Props<any> & IGrag.IProviderConfig) {
     globalStore.current,
     canvaStore.current
   ));
-
-  useMount(() => {
-    const unSubscribe = canvaStore.current.subscribe((s) => ({
-      isMoving: s.isMoving,
-      resizeType: s.resizeType,
-      focusedCanvasId: s.focusedCanvasId
-    }), (state) => {
-      if (!state.focusedCanvasId) {
-        return;
-      }
-      let cursor = 'default';
-      const canvasDom = globalStore.current.getDom(state.focusedCanvasId);
-      if (state.isMoving) {
-        cursor = 'move';
-      } else if (state.resizeType) {
-        cursor = `${state.resizeType}-resize`;
-      }
-      canvasDom.style.cursor = cursor;
-    });
-    return () => {
-      unSubscribe();
-    };
-  });
 
   // debug
   if (process.env.NODE_ENV === 'development') {
@@ -66,7 +43,8 @@ export function GragProvider(props: React.Props<any> & IGrag.IProviderConfig) {
       globalStore: globalStore.current,
       evtEmit: evtCollect.current.emit,
       useFtrSubscribe: useFtrSubscribe.current,
-      useMappedState: useMappedState.current
+      useMappedCanvasState: useMappedCanvasState.current,
+      subscribeCanvaStore: canvaStore.current.subscribe
     }}>
       <Provider>
         {props.children}

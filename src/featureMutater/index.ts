@@ -48,6 +48,19 @@ export class FeatureMutater {
     this.globalStore.refreshRenderLayer(canvasId);
   }
 
+  public removeFtr(ftrId: string) {
+    const canvasId = this.globalStore.getCanvasIdByFtrId(ftrId);
+    const root = this.globalStore.getRoot(canvasId);
+    const nextRoot = produce(root, (draft) => {
+      const parent = util.getParentNodeByFtrId(draft, ftrId);
+      if (parent) {
+        parent.node.children.splice(parent.index, 1)[0];
+      }
+    });
+    this.globalStore.setRoot(canvasId, nextRoot);
+    this.globalStore.refreshRenderLayer(canvasId);
+  }
+
   public updateCoord(ftrId: string, coord: IGrag.IXYCoord) {
     this.canvaStore.dispatch('updateFtrCoord', { ftrId, coord });
     this.notify(ftrId, 'updateCoord', coord);

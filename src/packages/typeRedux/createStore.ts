@@ -32,6 +32,7 @@ export class Store<S, R extends IReducers<S>>  {
     this.getState = this.getState.bind(this);
     this.getLastState = this.getLastState.bind(this);
     this.wrapperListener = this.wrapperListener.bind(this);
+    this.subscribe = this.subscribe.bind(this);
 
     this.context = {
       getState: this.getState,

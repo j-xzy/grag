@@ -9,7 +9,7 @@ import { useMount } from '@/hooks/useMount';
 import { useRegisterDom } from '@/hooks/useRegisterDom';
 import { useMutationObserver } from '@/hooks/useMutationObserver';
 import { InteractionLayer } from '@/components/interactionLayer';
-import { defaultStyle } from './config';
+import { defaultStyle, cursorDics } from './config';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
   id: string;
@@ -27,7 +27,7 @@ interface ICanvasProps {
 }
 
 function RawCanvas(props: IRawCanvasProps) {
-  const { evtEmit } = React.useContext(Context);
+  const { evtEmit, subscribeCanvaStore } = React.useContext(Context);
   const { style, id } = props;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
 
@@ -79,6 +79,30 @@ function RawCanvas(props: IRawCanvasProps) {
     return () => {
       evtEmit('canvasUnMount', props.id);
       domRef.current = null;
+    };
+  });
+
+  useMount(() => {
+    const unSubscribe = subscribeCanvaStore((s) => ({
+      isMoving: s.isMoving,
+      resizeType: s.resizeType,
+      focusedCanvasId: s.focusedCanvasId
+    }), (state) => {
+      if (state.focusedCanvasId !== props.id) {
+        return;
+      }
+      let cursor = 'default';
+      if (state.isMoving) {
+        cursor = 'move';
+      } else if (state.resizeType) {
+        cursor = cursorDics[state.resizeType];
+      }
+      if (domRef.current) {
+        domRef.current.style.cursor = cursor;
+      }
+    });
+    return () => {
+      unSubscribe();
     };
   });
 

@@ -15,8 +15,8 @@ interface IRect {
 }
 
 export function ResizeLayer(props: { canvasId: string }) {
-  const { useMappedState, globalStore, evtEmit } = React.useContext(Context);
-  const { selectedFtrIds, isMoving, resizeType } = useMappedState((s) => ({
+  const { useMappedCanvasState, globalStore, evtEmit } = React.useContext(Context);
+  const { selectedFtrIds, isMoving, resizeType } = useMappedCanvasState((s) => ({
     selectedFtrIds: s.selectedFtrIds,
     isMoving: s.isMoving,
     resizeType: s.resizeType
