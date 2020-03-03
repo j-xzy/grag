@@ -43,7 +43,6 @@ export class FeatureMutater {
         util.appendChild(parent, child);
       }
     });
-    this.globalStore.setFtrId2Canvas(ftrId, canvasId);
     this.globalStore.setRoot(canvasId, nextRoot);
     this.globalStore.refreshRenderLayer(canvasId);
   }
@@ -83,6 +82,19 @@ export class FeatureMutater {
 
   public unSubscribe(id: string) {
     delete this.listeners[id];
+  }
+
+  public movein(ftrId: string, target: string) {
+    const canvasId = this.globalStore.getCanvasIdByFtrId(ftrId);
+    const root = this.globalStore.getRoot(canvasId);
+    const nextRoot = produce(root, (draft) => {
+      const parent = util.getParentNodeByFtrId(draft, ftrId);
+      if (parent) {
+        util.getNodeByFtrId(draft, target)?.children.push(parent.node.children.splice(parent.index, 1)[0]);
+      }
+    });
+    this.globalStore.setRoot(canvasId, nextRoot);
+    this.globalStore.refreshRenderLayer(canvasId);
   }
 
   private notify<T extends keyof IFtrSubActMap>(id: string, action: T, payload: IFtrSubActMap[T]) {

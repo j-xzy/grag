@@ -106,8 +106,9 @@ export class EventCollect {
     this.canvaStore.dispatch('dragEnd');
   }
 
-  public ftrDomDone(ftrId: string, dom: HTMLElement) {
-    this.globalStore.setDom(ftrId, dom);
+  public ftrDomDone(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
+    const { ftrId } = params;
+    this.globalStore.initFtr(params);
     const { x, y } = this.canvaStore.getState().ftrStateMap[ftrId];
     this.ftrMutate('updateCoord', ftrId, { x, y });
     if (!this.globalStore.isRoot(ftrId)) {

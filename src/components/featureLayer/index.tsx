@@ -49,6 +49,7 @@ export function FeatureLayer(props: IProps) {
       rootId, option,
       isRoot: ftrId === rootId,
       registerDom,
+      canvasId: props.canvasId,
       ...restParams
     };
 

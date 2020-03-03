@@ -104,4 +104,9 @@ export class GlobalStore {
     this.deleteDom(ftrId);
     delete this.ftrId2CanvasId[ftrId];
   }
+
+  public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
+    this.setDom(params.ftrId, params.dom);
+    this.setFtrId2Canvas(params.ftrId, params.canvasId);
+  }
 }

@@ -3,7 +3,6 @@ import { Context } from '@/components/provider';
 import { uuid } from '@/lib/util';
 import { FeatureLayer } from '@/components/featureLayer';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
-import { useInitial } from '@/hooks/useInitial';
 import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
 import { useRegisterDom } from '@/hooks/useRegisterDom';
@@ -128,7 +127,7 @@ export function Canvas(props: ICanvasProps) {
   const forceUpdate = useForceUpdate();
   const canvasId = React.useRef(id ?? uuid());
 
-  useInitial(() => {
+  useMount(() => {
     globalStore.subscribeCanvasForceUpdate(canvasId.current, forceUpdate);
   });
 

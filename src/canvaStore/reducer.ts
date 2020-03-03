@@ -254,5 +254,10 @@ export function removeFtr(getState: IGetState, ftrId: string) {
   if(state.mouseInFtrId === ftrId){
     state.mouseInFtrId = null;
   }
+
+  const ftrStateMap = {...state.ftrStateMap};
+  delete ftrStateMap[ftrId];
+  state.ftrStateMap = ftrStateMap;
+
   return state;
 }

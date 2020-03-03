@@ -19,6 +19,7 @@ export interface ICaptureDomProps extends React.Props<any> {
   registerDom: IRegisterDom;
   registerParentMount: IRegiserParentMount;
   parentIsMount: boolean;
+  canvasId: string;
   children: (params: ICaptureDomParams) => React.ReactElement;
 }
 
@@ -35,8 +36,10 @@ export function CaptureDom(props: ICaptureDomProps) {
   const observeChildMutationRef = useMutationObserver((records) => {
     records.forEach(({ addedNodes }) => {
       const ch = addedNodes[0];
-      const idx = Array.prototype.indexOf.call(domRef.current?.children, ch);
-      childDomReady(idx, ch);
+      if (ch) {
+        const idx = Array.prototype.indexOf.call(domRef.current?.children, ch);
+        childDomReady(idx, ch);
+      }
     });
   }, { childList: true });
 
@@ -48,7 +51,11 @@ export function CaptureDom(props: ICaptureDomProps) {
         observeChildMutationRef(dom);
         // 本节点dom挂载完成
         myDomMount(true);
-        evtEmit('ftrDomDone', props.ftrId, dom);
+        evtEmit('ftrDomDone',{
+          ftrId: props.ftrId,
+          canvasId: props.canvasId,
+          dom
+        });
       }
     });
   });
