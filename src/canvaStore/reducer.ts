@@ -14,12 +14,11 @@ export function mouseMove(getState: IGetState, param: { coord: IGrag.IXYCoord; c
 
   // 计算拖拽的compState
   if (state.dragCompState && state.hoverFtrId) {
-    const hoverFtrState = state.ftrStateMap[state.hoverFtrId];
     const { width, height } = state.dragCompState;
     state.dragCompState = {
       width, height,
-      x: state.mouseCoordInCanvas.x - hoverFtrState.x - Math.floor(width / 2),
-      y: state.mouseCoordInCanvas.y - hoverFtrState.y - Math.floor(height / 2),
+      x: state.mouseCoordInCanvas.x - Math.floor(width / 2),
+      y: state.mouseCoordInCanvas.y - Math.floor(height / 2),
     };
   }
 
@@ -87,6 +86,17 @@ export function updateFtrStyle(getState: IGetState, param: { ftrId: string; styl
   };
 }
 
+export function updateFtrStyles(getState: IGetState, param: { ftrId: string; style: IGrag.IFtrStyle }[]) {
+  const ftrStateMap = { ...getState().ftrStateMap };
+  param.forEach((p) => {
+    ftrStateMap[p.ftrId] = p.style;
+  });
+  return {
+    ...getState(),
+    ftrStateMap
+  };
+}
+
 export function updateFtrCoord(getState: IGetState, param: { ftrId: string; coord: IGrag.IXYCoord }) {
   let { ftrStateMap } = getState();
   ftrStateMap = {
@@ -131,7 +141,7 @@ export function mouseEnterFtr(getState: IGetState, ftrId: string) {
   if (getState().selectedFtrIds.includes(ftrId)) {
     return getState();
   }
-  if (getState().isMoving) {
+  if (getState().isMoving || getState().isRect) {
     return getState();
   }
   const highLightFtrs = [...getState().highLightFtrs];
@@ -180,8 +190,18 @@ export function beginMoving(getState: IGetState) {
   return {
     ...state,
     isMoving: true,
+    isRect: false,
     highLightFtrs,
     beforeChangeFtrStyleMap: { ...state.ftrStateMap }
+  };
+}
+
+export function beginRect(getState: IGetState) {
+  const state = { ...getState() };
+  return {
+    ...state,
+    isMoving: false,
+    isRect: true,
   };
 }
 
@@ -208,13 +228,18 @@ export function updateMouseInFtrId(getState: IGetState, mouseInFtrId: string) {
 }
 
 export function ftrMousedown(getState: IGetState, ftrId: string) {
+  const state = { ...getState() };
   const highLightFtrs = getState().highLightFtrs.filter((p) => p.ftrId !== ftrId);
+  let selectedFtrIds = [...state.selectedFtrIds];
+  if (!selectedFtrIds.includes(ftrId)) {
+    selectedFtrIds = [ftrId];
+  }
   return {
-    ...getState(),
+    ...state,
     mousedownCoord: getState().mouseCoordInCanvas,
     isMousedown: true,
     mouseInFtrId: ftrId,
-    selectedFtrIds: [ftrId],
+    selectedFtrIds,
     highLightFtrs
   };
 }
@@ -225,6 +250,16 @@ export function canvasMousedown(getState: IGetState) {
     isMousedown: true,
     selectedFtrIds: [],
     mousedownCoord: getState().mouseCoordInCanvas
+  };
+}
+
+export function clearInteraction(getState: IGetState) {
+  return {
+    ...getState(),
+    isMoving: false,
+    isRect: false,
+    isMousedown: false,
+    resizeType: null
   };
 }
 
@@ -250,12 +285,12 @@ export function removeFtr(getState: IGetState, ftrId: string) {
     state.hoverFtrId = null;
   }
   state.selectedFtrIds = state.selectedFtrIds.filter((id) => id !== ftrId);
-  state.highLightFtrs = state.highLightFtrs.filter((p)=> p.ftrId === ftrId);
-  if(state.mouseInFtrId === ftrId){
+  state.highLightFtrs = state.highLightFtrs.filter((p) => p.ftrId === ftrId);
+  if (state.mouseInFtrId === ftrId) {
     state.mouseInFtrId = null;
   }
 
-  const ftrStateMap = {...state.ftrStateMap};
+  const ftrStateMap = { ...state.ftrStateMap };
   delete ftrStateMap[ftrId];
   state.ftrStateMap = ftrStateMap;
 

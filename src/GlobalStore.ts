@@ -1,4 +1,5 @@
 import { RootCompId, RootInfo } from '@/components/root';
+import * as util from '@/lib/util';
 
 export class GlobalStore {
   private compInfos: IGrag.ICompInfos = {
@@ -76,15 +77,15 @@ export class GlobalStore {
     return node.ftrId;
   }
 
-  public getRootFtrIdByFtrId(ftrId: string) {
+  public getRootIdByFtrId(ftrId: string) {
     return this.getRootIdByCanvasId(this.getCanvasIdByFtrId(ftrId));
   }
 
   public isRoot(ftrId: string) {
-    return this.getRootFtrIdByFtrId(ftrId) === ftrId;
+    return this.getRootIdByFtrId(ftrId) === ftrId;
   }
 
-  public getFtrStyleInCanvas(ftrId: string) {
+  public getFtrStyle(ftrId: string) {
     const canvasId = this.getCanvasIdByFtrId(ftrId);
     const canvasRect = this.getDom(canvasId)?.getBoundingClientRect();
     const ftrRect = this.getDom(ftrId)?.getBoundingClientRect();
@@ -108,5 +109,23 @@ export class GlobalStore {
   public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
     this.setDom(params.ftrId, params.dom);
     this.setFtrId2Canvas(params.ftrId, params.canvasId);
+  }
+
+  public getNodeByFtrId(ftrId: string) {
+    const root = this.rootMap[this.getCanvasIdByFtrId(ftrId)];
+    return util.getNodeByFtrId(root, ftrId);
+  }
+
+  public getParentNodeByFtrId(ftrId: string) {
+    const root = this.rootMap[this.getCanvasIdByFtrId(ftrId)];
+    return util.getParentNodeByFtrId(root, ftrId);
+  }
+
+  public getAllChildren(ftrId: string) {
+    const node = this.getNodeByFtrId(ftrId);
+    if (!node) {
+      return [];
+    }
+    return util.getAllChildren(node);
   }
 }

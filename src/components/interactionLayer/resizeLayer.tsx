@@ -38,7 +38,7 @@ export function ResizeLayer(props: { canvasId: string }) {
     rb: { x: -Infinity, y: -Infinity }
   };
   selectedFtrIds.forEach((ftrId) => {
-    const style = globalStore.getFtrStyleInCanvas(ftrId);
+    const style = globalStore.getFtrStyle(ftrId);
     rect.lt.x = Math.min(rect.lt.x, style.x);
     rect.lt.y = Math.min(rect.lt.y, style.y);
     rect.rb.x = Math.max(rect.rb.x, style.x + style.width);

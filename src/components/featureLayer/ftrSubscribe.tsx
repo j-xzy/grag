@@ -21,15 +21,8 @@ export function FtrSubscribe(props: IMonitorProps) {
     });
   });
 
-  useFtrSubscribe(props.ftrId, 'updateCoord', (coord) => {
-    if (domRef.current && !props.isRoot) {
-      domRef.current.style.left = coord.x + 'px';
-      domRef.current.style.top = coord.y + 'px';
-    }
-  });
-
   useFtrSubscribe(props.ftrId, 'updateStyle', (style) => {
-    if (domRef.current && !props.isRoot) {
+    if (domRef.current) {
       domRef.current.style.left = style.x + 'px';
       domRef.current.style.top = style.y + 'px';
       domRef.current.style.width = style.width + 'px';

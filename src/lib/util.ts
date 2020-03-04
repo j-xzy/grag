@@ -40,7 +40,7 @@ export function getParentNodeByFtrId(root: IGrag.INode, ftrId: string) {
 export function getAllChildren(node: IGrag.INode): IGrag.INode[] {
   const childs: IGrag.INode[] = [];
   node.children.forEach((child) => {
-    childs.push(...getAllChildren(child));
+    childs.push(child, ...getAllChildren(child));
   });
   return childs;
 }
@@ -60,17 +60,3 @@ export function appendChild(parent: IGrag.INode, child: IGrag.INode) {
 export function uuid() {
   return 'id' + Math.ceil((Math.random() * 100000)) + Math.ceil((Math.random() * 100000));
 }
-
-// export function calcFtrStateByStyle(param: IGrag.IFtrStyle): IGrag.IFtrStyle {
-//   const { width, height, x, y } = param;
-//   return {
-//     width, height,
-//     x, y,
-//     vl: x, 
-//     vm: x + Math.floor(width / 2),
-//     vr: x + width,
-//     ht: y,
-//     hm: y + Math.floor(height / 2),
-//     hb: y + height
-//   };
-// }

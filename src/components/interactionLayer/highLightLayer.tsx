@@ -17,7 +17,7 @@ export function HighLightLayer(props: { canvasId: string }) {
   const highLightStates = highLightFtrs
     .filter(({ ftrId }) => globalStore.isFtrInCanvas(ftrId, props.canvasId))
     .map(({ ftrId, color, id }) => ({
-      ...globalStore.getFtrStyleInCanvas(ftrId),
+      ...globalStore.getFtrStyle(ftrId),
       color, id, ftrId
     }));
   useMount(() => {

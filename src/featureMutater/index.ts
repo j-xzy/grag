@@ -1,6 +1,5 @@
 import * as util from '@/lib/util';
 import { GlobalStore } from '@/GlobalStore';
-import { produce } from 'produce';
 import { ICanvasStore } from '@/canvaStore';
 
 interface IInsertNewFtrParam extends IGrag.IFtrStyle {
@@ -10,7 +9,6 @@ interface IInsertNewFtrParam extends IGrag.IFtrStyle {
 }
 
 export interface IFtrSubActMap {
-  updateCoord: IGrag.IXYCoord;
   updateStyle: IGrag.IFtrStyle;
 }
 
@@ -29,45 +27,47 @@ export class FeatureMutater {
 
   public insertNewFtr(param: IInsertNewFtrParam) {
     const { parentFtrId, compId, ftrId, x, y, width, height } = param;
-
     // 更新ftrState
     this.canvaStore.dispatch('updateFtrStyle', { ftrId, style: { x, y, width, height } });
-
     // 插入node到tree
     const canvasId = this.globalStore.getCanvasIdByFtrId(parentFtrId);
-    const root = this.globalStore.getRoot(canvasId);
-    const nextRoot = produce(root, (draft) => {
-      const parent = util.getNodeByFtrId(draft, parentFtrId);
-      if (parent) {
-        const child = util.buildNode({ compId, ftrId });
-        util.appendChild(parent, child);
-      }
-    });
-    this.globalStore.setRoot(canvasId, nextRoot);
+    const parent = this.globalStore.getNodeByFtrId(parentFtrId);
+    if (parent) {
+      const child = util.buildNode({ compId, ftrId });
+      util.appendChild(parent, child);
+    }
     this.globalStore.refreshRenderLayer(canvasId);
   }
 
   public removeFtr(ftrId: string) {
     const canvasId = this.globalStore.getCanvasIdByFtrId(ftrId);
-    const root = this.globalStore.getRoot(canvasId);
-    const nextRoot = produce(root, (draft) => {
-      const parent = util.getParentNodeByFtrId(draft, ftrId);
-      if (parent) {
-        parent.node.children.splice(parent.index, 1)[0];
-      }
-    });
-    this.globalStore.setRoot(canvasId, nextRoot);
+    const parent = this.globalStore.getParentNodeByFtrId(ftrId);
+    if (parent) {
+      parent.node.children.splice(parent.index, 1)[0];
+    }
     this.globalStore.refreshRenderLayer(canvasId);
   }
 
-  public updateCoord(ftrId: string, coord: IGrag.IXYCoord) {
-    this.canvaStore.dispatch('updateFtrCoord', { ftrId, coord });
-    this.notify(ftrId, 'updateCoord', coord);
-  }
-
   public updateStyle(ftrId: string, style: IGrag.IFtrStyle) {
-    this.canvaStore.dispatch('updateFtrStyle', { ftrId, style });
-    this.notify(ftrId, 'updateStyle', style);
+    const lastStyle = this.globalStore.getFtrStyle(ftrId);
+    const deltX = style.x - lastStyle.x;
+    const deltY = style.y - lastStyle.y;
+    const childIds = [ftrId, ...this.globalStore.getAllChildren(ftrId).map((p) => p.ftrId)];
+    const styles: Array<{ ftrId: string; style: IGrag.IFtrStyle }> = [];
+
+    childIds.forEach((id) => {
+      const ftrStyle = this.globalStore.getFtrStyle(id);
+      const nextStyle = {
+        x: ftrStyle.x + deltX,
+        y: ftrStyle.y + deltY,
+        width: id === ftrId ? style.width : ftrStyle.width,
+        height: id === ftrId ? style.height : ftrStyle.height
+      };
+      this.notify(id, 'updateStyle', nextStyle);
+      styles.push({ ftrId: id, style: nextStyle });
+    });
+
+    this.canvaStore.dispatch('updateFtrStyles', styles);
   }
 
   public subscribe<T extends keyof IFtrSubActMap>(id: string, action: T, callback: (payload: IFtrSubActMap[T]) => void) {
@@ -86,14 +86,10 @@ export class FeatureMutater {
 
   public movein(ftrId: string, target: string) {
     const canvasId = this.globalStore.getCanvasIdByFtrId(ftrId);
-    const root = this.globalStore.getRoot(canvasId);
-    const nextRoot = produce(root, (draft) => {
-      const parent = util.getParentNodeByFtrId(draft, ftrId);
-      if (parent) {
-        util.getNodeByFtrId(draft, target)?.children.push(parent.node.children.splice(parent.index, 1)[0]);
-      }
-    });
-    this.globalStore.setRoot(canvasId, nextRoot);
+    const parent = this.globalStore.getParentNodeByFtrId(ftrId);
+    if (parent) {
+      this.globalStore.getNodeByFtrId(target)?.children.push(parent.node.children.splice(parent.index, 1)[0]);
+    }
     this.globalStore.refreshRenderLayer(canvasId);
   }
 

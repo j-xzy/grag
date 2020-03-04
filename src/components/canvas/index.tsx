@@ -3,9 +3,7 @@ import { Context } from '@/components/provider';
 import { uuid } from '@/lib/util';
 import { FeatureLayer } from '@/components/featureLayer';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
-import { useListener } from '@/hooks/useListener';
 import { useMount } from '@/hooks/useMount';
-import { useRegisterDom } from '@/hooks/useRegisterDom';
 import { useMutationObserver } from '@/hooks/useMutationObserver';
 import { InteractionLayer } from '@/components/interactionLayer';
 import { defaultStyle, cursorDics } from './config';
@@ -30,17 +28,19 @@ function RawCanvas(props: IRawCanvasProps) {
   const { style, id } = props;
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
 
-  const [registerChildDom, childDomReady] = useRegisterDom();
-  const [registerMyDomMount, myDomMount] = useListener();
-
-  const observeChildMutationRef = useMutationObserver((records) => {
-    const node: any = records[0].addedNodes[0];
-    childDomReady(0, node);
-  }, { childList: true });
-
   const observeAttrMuationRef = useMutationObserver(() => {
     evtEmit('canvasStyleChange', props.id);
   }, { attributeFilter: ['style'] });
+
+  useMount(() => {
+    function handleScroll() {
+      evtEmit('canvasStyleChange', props.id);
+    }
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  });
 
   const handleMousemove = React.useCallback((e: React.MouseEvent) => {
     evtEmit('canvasMousemove', props.id, { x: e.clientX, y: e.clientY });
@@ -65,13 +65,11 @@ function RawCanvas(props: IRawCanvasProps) {
   const refCallback = React.useCallback((dom: HTMLDivElement | null) => {
     if (dom) {
       domRef.current = dom;
-      observeChildMutationRef(dom);
       observeAttrMuationRef(dom);
     }
   }, []);
 
   useMount(() => {
-    myDomMount(domRef.current);
     evtEmit('canvasMount', props.id, domRef.current!);
     // 初始时同步canvasRect
     evtEmit('canvasStyleChange', props.id);
@@ -109,13 +107,7 @@ function RawCanvas(props: IRawCanvasProps) {
     <div ref={refCallback} style={{ ...defaultStyle, ...style }}
       onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
       onMouseDown={handleMousedown} onMouseUp={handleMouseup} onMouseMove={handleMousemove}>
-      <FeatureLayer
-        canvasId={id}
-        captureDomParams={{
-          idx: 0, registerChildDom,
-          registerParentMount: registerMyDomMount,
-          parentIsMount: !!domRef.current,
-        }} />
+      <FeatureLayer canvasId={id} />
       <InteractionLayer canvasId={id} />
     </div>
   );

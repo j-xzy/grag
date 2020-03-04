@@ -1,14 +1,14 @@
-import * as React from 'react';
-
-function Root(props: React.Props<any>) {
-  return <div style={{ width: '100%', height: '100%', position: 'relative' }}>{props.children}</div>;
+function Root() {
+  return null;
 }
 
 export const RootCompId = 'root';
 
+export const rootOption = {
+  allowChild: true
+};
+
 export const RootInfo: IGrag.ICompInfos[''] = {
   Component: Root,
-  option: {
-    allowChild: true
-  }
+  option: rootOption
 };
