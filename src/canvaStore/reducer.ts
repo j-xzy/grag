@@ -1,202 +1,38 @@
-import { IGetState } from './state';
+import { IGetState, IState } from './state';
 
-export function mouseMove(getState: IGetState, param: { coord: IGrag.IXYCoord; canvasId: string }) {
-  const { coord, canvasId } = param;
-  const state = { ...getState(), focusedCanvasId: canvasId };
-
-  // 计算 mouseCoordInCanvas
-  const canvasRect = state.canvasRectMap[canvasId];
-  const mouseCoordInCanvas = {
-    x: coord.x - canvasRect.x,
-    y: coord.y - canvasRect.y
-  };
-  state.mouseCoordInCanvas = mouseCoordInCanvas;
-
-  // 计算拖拽的compState
-  if (state.dragCompState && state.hoverFtrId) {
-    const { width, height } = state.dragCompState;
-    state.dragCompState = {
-      width, height,
-      x: state.mouseCoordInCanvas.x - Math.floor(width / 2),
-      y: state.mouseCoordInCanvas.y - Math.floor(height / 2),
-    };
-  }
-
-  return state;
-}
-
-export function updateFocusedCanvasId(getState: IGetState, canvsId: string | null) {
+// 更新state
+export function updateState(getState: IGetState, state: Partial<IState>) {
   return {
     ...getState(),
-    focusedCanvasId: canvsId
+    ...state
   };
 }
 
-export function updateCanvasRect(getState: IGetState, param: { id: string; rect: DOMRect }) {
-  return {
-    ...getState(),
-    canvasRectMap: {
-      ...getState().canvasRectMap,
-      [param.id]: param.rect
-    }
-  };
-}
-
-export function updateDragCompSize(getState: IGetState, param: IGrag.ISize) {
-  let dragCompState = getState().dragCompState;
-  if (dragCompState) {
-    dragCompState = { ...dragCompState, ...param };
-  } else {
-    dragCompState = {
-      width: Math.floor(param.width),
-      height: Math.floor(param.height),
-      x: 0, y: 0
-    };
-  }
-  return {
-    ...getState(),
-    dragCompState
-  };
-}
-
-export function updateHoverFtrId(getState: IGetState, ftrId: string) {
-  return {
-    ...getState(),
-    hoverFtrId: ftrId
-  };
-}
-
-export function dragEnd(getState: IGetState) {
-  return {
-    ...getState(),
-    dragCompState: null,
-    hoverFtrId: null
-  };
-}
-
-export function updateFtrStyle(getState: IGetState, param: { ftrId: string; style: IGrag.IFtrStyle }) {
-  let { ftrStateMap } = getState();
-  ftrStateMap = {
-    ...ftrStateMap,
-    [param.ftrId]: param.style
-  };
-  return {
-    ...getState(),
-    ftrStateMap
-  };
-}
-
+// 批量更新ftrStyle
 export function updateFtrStyles(getState: IGetState, param: { ftrId: string; style: IGrag.IFtrStyle }[]) {
-  const ftrStateMap = { ...getState().ftrStateMap };
+  const ftrStyles = { ...getState().ftrStyles };
   param.forEach((p) => {
-    ftrStateMap[p.ftrId] = p.style;
+    ftrStyles[p.ftrId] = p.style;
   });
   return {
     ...getState(),
-    ftrStateMap
+    ftrStyles
   };
 }
 
-export function updateFtrCoord(getState: IGetState, param: { ftrId: string; coord: IGrag.IXYCoord }) {
-  let { ftrStateMap } = getState();
-  ftrStateMap = {
-    ...ftrStateMap,
-    [param.ftrId]: {
-      ...ftrStateMap[param.ftrId],
-      x: param.coord.x,
-      y: param.coord.y
-    }
-  };
-  return {
-    ...getState(),
-    ftrStateMap
-  };
-}
-
-export function updateSelectedFtrs(getState: IGetState, ftrIds: string[]) {
-  return {
-    ...getState(),
-    selectedFtrIds: ftrIds
-  };
-}
-
-export function clearSelectedFtrs(getState: IGetState) {
-  return {
-    ...getState(),
-    selectedFtrIds: []
-  };
-}
-
-export function highLightFtrs(getState: IGetState, ftrs: IGrag.IHighLightState[]) {
-  return {
-    ...getState(),
-    highLightFtrs: ftrs
-  };
-}
-
-export function mouseEnterFtr(getState: IGetState, ftrId: string) {
-  if (getState().mouseInFtrId === ftrId) {
-    return getState();
-  }
-  if (getState().selectedFtrIds.includes(ftrId)) {
-    return getState();
-  }
-  if (getState().isMoving || getState().isRect) {
-    return getState();
-  }
-  const highLightFtrs = [...getState().highLightFtrs];
-  const idx = highLightFtrs.findIndex((p) => p.id === getState().config.id);
-  if (idx >= 0) {
-    // 已存在
-    highLightFtrs.splice(idx, 1);
-  }
-  highLightFtrs.push({
-    color: getState().config.color,
-    id: getState().config.id,
-    ftrId
-  });
-
-  return {
-    ...getState(),
-    mouseInFtrId: ftrId,
-    highLightFtrs
-  };
-}
-
-export function mouseLeaveFtr(getState: IGetState) {
-  const highLightFtrs = [...getState().highLightFtrs];
-  const idx = highLightFtrs.findIndex((p) => p.id === getState().config.id);
-  if (idx >= 0) {
-    // 已存在
-    highLightFtrs.splice(idx, 1);
-  }
-  return {
-    ...getState(),
-    mouseInFtrId: null,
-    highLightFtrs
-  };
-}
-
-export function stopMoving(getState: IGetState) {
-  return {
-    ...getState(),
-    isMoving: false
-  };
-}
-
-export function beginMoving(getState: IGetState) {
+// 准备移动
+export function readyMoving(getState: IGetState) {
   const state = { ...getState() };
-  const highLightFtrs = state.highLightFtrs.filter(({ ftrId }) => !state.selectedFtrIds.includes(ftrId));
   return {
     ...state,
     isMoving: true,
     isRect: false,
-    highLightFtrs,
-    beforeChangeFtrStyleMap: { ...state.ftrStateMap }
+    beforeChangeFtrStyles: { ...state.ftrStyles }
   };
 }
 
-export function beginRect(getState: IGetState) {
+// 准备框选
+export function readyRect(getState: IGetState) {
   const state = { ...getState() };
   return {
     ...state,
@@ -205,55 +41,50 @@ export function beginRect(getState: IGetState) {
   };
 }
 
-export function updateMousedownCoord(getState: IGetState) {
-  const { mouseCoordInCanvas } = getState();
-  return {
-    ...getState(),
-    mousedownCoord: mouseCoordInCanvas
-  };
-}
+// 鼠标坐标改变
+export function mouseCoordChange(getState: IGetState, param: { coord: IGrag.IXYCoord; canvasId: string }) {
+  const { coord, canvasId } = param;
+  const state = { ...getState(), focusedCanvas: canvasId };
 
-export function updateIsMousedown(getState: IGetState, isMousedown: boolean) {
-  return {
-    ...getState(),
-    isMousedown
+  // 计算 mouseCoord
+  const canvasRect = state.canvasRects[canvasId];
+  const mouseCoord = {
+    x: coord.x - canvasRect.x,
+    y: coord.y - canvasRect.y
   };
-}
+  state.mouseCoord = mouseCoord;
 
-export function updateMouseInFtrId(getState: IGetState, mouseInFtrId: string) {
-  return {
-    ...getState(),
-    mouseInFtrId
-  };
-}
-
-export function ftrMousedown(getState: IGetState, ftrId: string) {
-  const state = { ...getState() };
-  const highLightFtrs = getState().highLightFtrs.filter((p) => p.ftrId !== ftrId);
-  let selectedFtrIds = [...state.selectedFtrIds];
-  if (!selectedFtrIds.includes(ftrId)) {
-    selectedFtrIds = [ftrId];
+  // 计算拖拽的compState
+  if (state.dragCompStyle && state.hoverFtr) {
+    const { width, height } = state.dragCompStyle;
+    state.dragCompStyle = {
+      width, height,
+      x: state.mouseCoord.x - Math.floor(width / 2),
+      y: state.mouseCoord.y - Math.floor(height / 2),
+    };
   }
-  return {
-    ...state,
-    mousedownCoord: getState().mouseCoordInCanvas,
-    isMousedown: true,
-    mouseInFtrId: ftrId,
-    selectedFtrIds,
-    highLightFtrs
-  };
+
+  return state;
 }
 
-export function canvasMousedown(getState: IGetState) {
+// 聚焦canvas
+export function focusedCanvas(getState: IGetState, canvsId: string) {
   return {
     ...getState(),
-    isMousedown: true,
-    selectedFtrIds: [],
-    mousedownCoord: getState().mouseCoordInCanvas
+    focusedCanvas: canvsId
   };
 }
 
-export function clearInteraction(getState: IGetState) {
+// 失焦canvas
+export function blurCanvas(getState: IGetState) {
+  return {
+    ...getState(),
+    focusedCanvas: null
+  };
+}
+
+// 清除当前动作（移动ftr、拉框选择、resizeftr...）
+export function clearAction(getState: IGetState) {
   return {
     ...getState(),
     isMoving: false,
@@ -263,36 +94,142 @@ export function clearInteraction(getState: IGetState) {
   };
 }
 
-export function resizeMousedown(getState: IGetState, resizeType: IGrag.IResizeType) {
+// 置为鼠标down
+export function setMousedown(getState: IGetState) {
   return {
     ...getState(),
-    beforeChangeFtrStyleMap: { ...getState().ftrStateMap },
-    resizeType,
-    mousedownCoord: getState().mouseCoordInCanvas
+    isMousedown: true,
+    mousedownCoord: getState().mouseCoord
   };
 }
 
-export function updateResizeType(getState: IGetState, resizeType: IGrag.IResizeType | null) {
+// 清除选中的ftr
+export function clearSelectedFtrs(getState: IGetState) {
   return {
     ...getState(),
-    resizeType
+    selectedFtrs: []
   };
 }
 
-export function removeFtr(getState: IGetState, ftrId: string) {
+// 更新canvas的rect
+export function updateCanvasRect(getState: IGetState, param: { id: string; rect: DOMRect }) {
+  return {
+    ...getState(),
+    canvasRects: {
+      ...getState().canvasRects,
+      [param.id]: param.rect
+    }
+  };
+}
+
+// 清除drag的状态
+export function clearDragState(getState: IGetState) {
+  return {
+    ...getState(),
+    dragCompStyle: null,
+    hoverFtr: null
+  };
+}
+
+// 更新mouseInFtr
+export function updateMouseInFtr(getState: IGetState, mouseInFtr: string | null) {
+  return {
+    ...getState(),
+    mouseInFtr
+  };
+}
+
+// 删除ftr相关的状态
+export function deleteFtrState(getState: IGetState, ftrId: string) {
   const state = { ...getState() };
-  if (state.hoverFtrId === ftrId) {
-    state.hoverFtrId = null;
+  if (state.hoverFtr === ftrId) {
+    state.hoverFtr = null;
   }
-  state.selectedFtrIds = state.selectedFtrIds.filter((id) => id !== ftrId);
+  state.selectedFtrs = state.selectedFtrs.filter((id) => id !== ftrId);
   state.highLightFtrs = state.highLightFtrs.filter((p) => p.ftrId === ftrId);
-  if (state.mouseInFtrId === ftrId) {
-    state.mouseInFtrId = null;
+  if (state.mouseInFtr === ftrId) {
+    state.mouseInFtr = null;
   }
 
-  const ftrStateMap = { ...state.ftrStateMap };
-  delete ftrStateMap[ftrId];
-  state.ftrStateMap = ftrStateMap;
+  const ftrStyles = { ...state.ftrStyles };
+  delete ftrStyles[ftrId];
+  state.ftrStyles = ftrStyles;
 
   return state;
+}
+
+// 移除我的高亮
+export function deleteHighLightFtr(getState: IGetState) {
+  const { highLightFtrs, config } = getState();
+  const nextHighLightFtrs = highLightFtrs.filter((p) => p.id !== config.id);
+  return {
+    ...getState(),
+    highLightFtrs: nextHighLightFtrs
+  };
+}
+
+// 高亮我的
+export function sethighLightFtr(getState: IGetState, ftrId: string) {
+  let highLightFtrs = [...getState().highLightFtrs];
+  highLightFtrs = highLightFtrs.filter((p) => p.id !== getState().config.id);
+  highLightFtrs.push({
+    color: getState().config.color,
+    id: getState().config.id,
+    ftrId
+  });
+  return {
+    ...getState(),
+    highLightFtrs
+  };
+}
+
+// 更新dragCompStyle
+export function updateDragCompSize(getState: IGetState, param: IGrag.ISize) {
+  let dragCompStyle = getState().dragCompStyle;
+  if (dragCompStyle) {
+    dragCompStyle = { ...dragCompStyle, ...param };
+  } else {
+    dragCompStyle = {
+      width: Math.floor(param.width),
+      height: Math.floor(param.height),
+      x: 0, y: 0
+    };
+  }
+  return {
+    ...getState(),
+    dragCompStyle
+  };
+}
+
+// 准备resize
+export function readyResize(getState: IGetState, resizeType: IGrag.IResizeType) {
+  return {
+    ...getState(),
+    beforeChangeFtrStyles: { ...getState().ftrStyles },
+    resizeType,
+  };
+}
+
+// 结束resize
+export function setResizeTypeNull(getState: IGetState) {
+  return {
+    ...getState(),
+    resizeType: null
+  };
+}
+
+// 更新hoverFtr
+export function updateHoverFtr(getState: IGetState, ftrId: string) {
+  return {
+    ...getState(),
+    hoverFtr: ftrId
+  };
+}
+
+// 更新选中的ftr
+export function updateSelectedFtrs(getState: IGetState, ftrIds: string[]) {
+  return {
+    ...getState(),
+    selectedFtrs: ftrIds
+  };
 }

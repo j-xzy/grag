@@ -16,17 +16,17 @@ interface IRect {
 
 export function ResizeLayer(props: { canvasId: string }) {
   const { useMappedCanvasState, globalStore, evtEmit } = React.useContext(Context);
-  const { selectedFtrIds, isMoving, resizeType } = useMappedCanvasState((s) => ({
-    selectedFtrIds: s.selectedFtrIds,
+  const { selectedFtrs, isMoving, resizeType } = useMappedCanvasState((s) => ({
+    selectedFtrs: s.selectedFtrs,
     isMoving: s.isMoving,
     resizeType: s.resizeType
   }));
 
-  if (!selectedFtrIds.length) {
+  if (!selectedFtrs.length) {
     return null;
   }
 
-  const noInCanvas = selectedFtrIds.some(
+  const noInCanvas = selectedFtrs.some(
     (ftrId) => globalStore.getCanvasIdByFtrId(ftrId) !== props.canvasId
   );
   if (noInCanvas) {
@@ -37,7 +37,7 @@ export function ResizeLayer(props: { canvasId: string }) {
     lt: { x: Infinity, y: Infinity },
     rb: { x: -Infinity, y: -Infinity }
   };
-  selectedFtrIds.forEach((ftrId) => {
+  selectedFtrs.forEach((ftrId) => {
     const style = globalStore.getFtrStyle(ftrId);
     rect.lt.x = Math.min(rect.lt.x, style.x);
     rect.lt.y = Math.min(rect.lt.y, style.y);

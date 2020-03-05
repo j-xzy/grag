@@ -24,7 +24,7 @@ export function MouseEventCollect(props: IProps) {
     e.stopPropagation();
   }, []);
   const handleMouseover = React.useCallback((e: Event) => {
-    evtEmit('ftrMouseover', { ftrId: props.ftrId });
+    evtEmit('ftrMouseover', props.ftrId);
     e.stopPropagation();
   }, []);
   const handleMouseleave = React.useCallback((e: Event) => {

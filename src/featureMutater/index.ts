@@ -28,7 +28,7 @@ export class FeatureMutater {
   public insertNewFtr(param: IInsertNewFtrParam) {
     const { parentFtrId, compId, ftrId, x, y, width, height } = param;
     // 更新ftrState
-    this.canvaStore.dispatch('updateFtrStyle', { ftrId, style: { x, y, width, height } });
+    this.canvaStore.dispatch('updateFtrStyles', [{ ftrId, style: { x, y, width, height } }]);
     // 插入node到tree
     const canvasId = this.globalStore.getCanvasIdByFtrId(parentFtrId);
     const parent = this.globalStore.getNodeByFtrId(parentFtrId);
@@ -52,21 +52,27 @@ export class FeatureMutater {
     const lastStyle = this.globalStore.getFtrStyle(ftrId);
     const deltX = style.x - lastStyle.x;
     const deltY = style.y - lastStyle.y;
-    const childIds = [ftrId, ...this.globalStore.getAllChildren(ftrId).map((p) => p.ftrId)];
     const styles: Array<{ ftrId: string; style: IGrag.IFtrStyle }> = [];
 
-    childIds.forEach((id) => {
-      const ftrStyle = this.globalStore.getFtrStyle(id);
-      const nextStyle = {
-        x: ftrStyle.x + deltX,
-        y: ftrStyle.y + deltY,
-        width: id === ftrId ? style.width : ftrStyle.width,
-        height: id === ftrId ? style.height : ftrStyle.height
-      };
-      this.notify(id, 'updateStyle', nextStyle);
-      styles.push({ ftrId: id, style: nextStyle });
-    });
+    // update child
+    if (deltX !== 0 || deltY !== 0) {
+      const childIds = this.globalStore.getAllChildren(ftrId).map((p) => p.ftrId);
+      childIds.forEach((id) => {
+        const ftrStyle = this.globalStore.getFtrStyle(id);
+        const nextStyle = {
+          x: ftrStyle.x + deltX,
+          y: ftrStyle.y + deltY,
+          width: id === ftrId ? style.width : ftrStyle.width,
+          height: id === ftrId ? style.height : ftrStyle.height
+        };
+        this.notify(id, 'updateStyle', nextStyle);
+        styles.push({ ftrId: id, style: nextStyle });
+      });
+    }
 
+    // update currftr
+    this.notify(ftrId, 'updateStyle', style);
+    styles.push({ ftrId, style });
     this.canvaStore.dispatch('updateFtrStyles', styles);
   }
 

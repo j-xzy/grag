@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Context } from '@/components/provider';
-import { useMount } from '@/hooks/useMount';
 import { style } from './style';
 
 interface IHighLightProps {
@@ -12,7 +11,7 @@ interface IHighLightProps {
 }
 
 export function HighLightLayer(props: { canvasId: string }) {
-  const { useMappedCanvasState, globalStore, evtEmit } = React.useContext(Context);
+  const { useMappedCanvasState, globalStore } = React.useContext(Context);
   const highLightFtrs = useMappedCanvasState((s) => s.highLightFtrs);
   const highLightStates = highLightFtrs
     .filter(({ ftrId }) => globalStore.isFtrInCanvas(ftrId, props.canvasId))
@@ -20,15 +19,6 @@ export function HighLightLayer(props: { canvasId: string }) {
       ...globalStore.getFtrStyle(ftrId),
       color, id, ftrId
     }));
-  useMount(() => {
-    function handleBlur() {
-      evtEmit('highLightLayerBlur');
-    }
-    window.addEventListener('blur', handleBlur);
-    return () => {
-      window.removeEventListener('blur', handleBlur);
-    };
-  });
   return (
     <div style={style}>
       {

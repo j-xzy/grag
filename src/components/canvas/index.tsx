@@ -51,7 +51,7 @@ function RawCanvas(props: IRawCanvasProps) {
   }, []);
 
   const handleMouseLeave = React.useCallback(() => {
-    evtEmit('canvasMouseLeave', props.id);
+    evtEmit('canvasMouseLeave');
   }, []);
 
   const handleMousedown = React.useCallback(() => {
@@ -83,9 +83,9 @@ function RawCanvas(props: IRawCanvasProps) {
     const unSubscribe = subscribeCanvaStore((s) => ({
       isMoving: s.isMoving,
       resizeType: s.resizeType,
-      focusedCanvasId: s.focusedCanvasId
+      focusedCanvas: s.focusedCanvas
     }), (state) => {
-      if (state.focusedCanvasId !== props.id) {
+      if (state.focusedCanvas !== props.id) {
         return;
       }
       let cursor = 'default';
