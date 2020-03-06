@@ -210,14 +210,6 @@ export function readyResize(getState: IGetState, resizeType: IGrag.IResizeType) 
   };
 }
 
-// 结束resize
-export function setResizeTypeNull(getState: IGetState) {
-  return {
-    ...getState(),
-    resizeType: null
-  };
-}
-
 // 更新hoverFtr
 export function updateHoverFtr(getState: IGetState, ftrId: string) {
   return {

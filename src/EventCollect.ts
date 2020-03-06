@@ -190,7 +190,7 @@ export class EventCollect {
   }
 
   public resizeMouseup() {
-    this.canvaStore.dispatch('setResizeTypeNull');
+    this.canvaStore.dispatch('clearAction');
   }
 
   private moveFtrs() {

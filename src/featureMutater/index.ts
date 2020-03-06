@@ -90,15 +90,6 @@ export class FeatureMutater {
     delete this.listeners[id];
   }
 
-  public movein(ftrId: string, target: string) {
-    const canvasId = this.globalStore.getCanvasIdByFtrId(ftrId);
-    const parent = this.globalStore.getParentNodeByFtrId(ftrId);
-    if (parent) {
-      this.globalStore.getNodeByFtrId(target)?.children.push(parent.node.children.splice(parent.index, 1)[0]);
-    }
-    this.globalStore.refreshRenderLayer(canvasId);
-  }
-
   private notify<T extends keyof IFtrSubActMap>(id: string, action: T, payload: IFtrSubActMap[T]) {
     const list = [...this.listeners[id][action]];
     list.forEach((cb) => {
