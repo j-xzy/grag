@@ -7,86 +7,132 @@ export class GlobalStore {
   }; // compId到react组件映射
   private domMap: IGrag.IDomMap = {}; // ftrId到dom的映射
   private ftrId2CanvasId: IGrag.IIndexable<string> = {}; // ftrId到canvasId的映射
-  private rootMap: IGrag.IRootMap = {}; // canvasId到root的映射
+  private canvasId2Root: IGrag.IRootMap = {}; // canvasId到root的映射
   private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
   private interactionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
   private renderLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
 
+  /**
+   * 得到组件的相关信息
+   * @param compId 组件id
+   */
   public getCompInfo(compId: string): IGrag.IDeepReadonly<IGrag.ICompInfo> {
     return this.compInfos[compId];
   }
 
+  /**
+   * 设置组件的相关信息
+   */
   public setCompInfo(compId: string, info: IGrag.ICompInfo) {
     this.compInfos[compId] = info;
   }
 
-  public getDom(ftrId: string): HTMLElement {
-    return this.domMap[ftrId];
+  /**
+   * 得到dom
+   */
+  public getDom(id: string): HTMLElement {
+    return this.domMap[id];
   }
 
-  public setDom(ftrId: string, dom: HTMLElement) {
-    this.domMap[ftrId] = dom;
+  /**
+   * 设置don
+   */
+  public setDom(id: string, dom: HTMLElement) {
+    this.domMap[id] = dom;
   }
 
-  public deleteDom(ftrId: string) {
-    delete this.domMap[ftrId];
+  /**
+   * 删除dom
+   */
+  public deleteDom(id: string) {
+    delete this.domMap[id];
   }
 
-  public getRoot(canvasId: string): IGrag.INode {
-    return this.rootMap[canvasId];
+  /**
+   * 初始root(ftrLayer)
+   */
+  public initRoot(param: { canvasId: string; rootId: string; dom: HTMLDivElement }) {
+    this.canvasId2Root[param.canvasId] = util.buildNode({
+      ftrId: param.rootId,
+      compId: RootCompId
+    });
+    this.domMap[param.rootId] = param.dom;
+    this.ftrId2CanvasId[param.rootId] = param.canvasId;
   }
 
-  public setRoot(canvasId: string, node: IGrag.INode) {
-    this.rootMap[canvasId] = node;
+  /**
+   * 删除root
+   */
+  public deleteRoot(rootId: string) {
+    delete this.domMap[rootId];
+    const canvasId = this.ftrId2CanvasId[rootId];
+    if (canvasId) {
+      delete this.canvasId2Root[canvasId];
+    }
+    delete this.ftrId2CanvasId[rootId];
   }
 
+  /**
+   * 根据canvasID得到Root
+   */
+  public getRoot(canvasId: string) {
+    return this.canvasId2Root[canvasId];
+  }
+
+  /**
+   * 注册刷新canvas 
+   */
   public subscribeCanvasForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
     this.canvasForceUpdateMap[canvasId] = forceUpdate;
   }
 
-  public subscribeRenderLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
-    this.renderLayerForceUpdateMap[canvasId] = forceUpdate;
-  }
-
-  public subscribeInteractionLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
-    this.interactionLayerForceUpdateMap[canvasId] = forceUpdate;
-  }
-
+  /**
+   * 刷新canvas
+   */
   public refreshCanvas(canvasId: string) {
     this.canvasForceUpdateMap[canvasId].call(null);
   }
 
-  public refreshRenderLayer(canvasId: string) {
+  /**
+   * 注册刷新ftrlayer
+   */
+  public subscribeFeatureLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
+    this.renderLayerForceUpdateMap[canvasId] = forceUpdate;
+  }
+
+  /**
+   * 刷新ftrlayer
+   */
+  public refreshFeatureLayer(canvasId: string) {
     this.renderLayerForceUpdateMap[canvasId].call(null);
   }
 
+  /**
+   * 注册刷新InteractionLayer
+   */
+  public subscribeInteractionLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
+    this.interactionLayerForceUpdateMap[canvasId] = forceUpdate;
+  }
+
+  /**
+   * 刷新InteractionLayer
+   */
   public refreshInteractionLayer(canvasId: string) {
     this.interactionLayerForceUpdateMap[canvasId].call(null);
   }
 
-  public setFtrId2Canvas(ftrId: string, canvasId: string) {
-    this.ftrId2CanvasId[ftrId] = canvasId;
-  }
-
+  /**
+   * 根据ftrId得到对应的canvasId
+   */
   public getCanvasIdByFtrId(ftrId: string) {
     return this.ftrId2CanvasId[ftrId];
   }
 
-  public getRootIdByCanvasId(canvsaId: string) {
-    const node = this.rootMap[canvsaId];
-    return node.ftrId;
-  }
-
-  public getRootIdByFtrId(ftrId: string) {
-    return this.getRootIdByCanvasId(this.getCanvasIdByFtrId(ftrId));
-  }
-
-  public isRoot(ftrId: string) {
-    return this.getRootIdByFtrId(ftrId) === ftrId;
-  }
-
+  /**
+   * 根据ftrid得到style
+   */
   public getFtrStyle(ftrId: string) {
-    const canvasId = this.getCanvasIdByFtrId(ftrId);
+    const canvasId = this.ftrId2CanvasId[ftrId];
     const canvasRect = this.getDom(canvasId)?.getBoundingClientRect();
     const ftrRect = this.getDom(ftrId)?.getBoundingClientRect();
     return {
@@ -97,27 +143,38 @@ export class GlobalStore {
     };
   }
 
+  /**
+   * ftr是否在对应的canvas中 
+   */
   public isFtrInCanvas(ftrId: string, canvasId: string) {
-    return this.getCanvasIdByFtrId(ftrId) === canvasId;
+    return this.ftrId2CanvasId[ftrId] === canvasId;
   }
 
+  /**
+   * 初始ftr
+   */
+  public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
+    this.setDom(params.ftrId, params.dom);
+    this.ftrId2CanvasId[params.ftrId] = params.canvasId;
+  }
+
+  /**
+   * 删除ftr
+   */
   public deleteFtr(ftrId: string) {
-    this.deleteDom(ftrId);
+    delete this.domMap[ftrId];
     delete this.ftrId2CanvasId[ftrId];
   }
 
-  public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
-    this.setDom(params.ftrId, params.dom);
-    this.setFtrId2Canvas(params.ftrId, params.canvasId);
-  }
-
   public getNodeByFtrId(ftrId: string) {
-    const root = this.rootMap[this.getCanvasIdByFtrId(ftrId)];
-    return util.getNodeByFtrId(root, ftrId);
+    const root = this.canvasId2Root[this.ftrId2CanvasId[ftrId]];
+    if (root) {
+      return util.getNodeByFtrId(root, ftrId);
+    }
   }
 
   public getParentNodeByFtrId(ftrId: string) {
-    const root = this.rootMap[this.getCanvasIdByFtrId(ftrId)];
+    const root = this.canvasId2Root[this.ftrId2CanvasId[ftrId]];
     return util.getParentNodeByFtrId(root, ftrId);
   }
 

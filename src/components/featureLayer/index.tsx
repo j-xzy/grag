@@ -6,15 +6,15 @@ import { MouseEventCollect } from '@/components/featureLayer/mouseEventCollect';
 import { DomDone } from '@/components/featureLayer/domDone';
 import { Context } from '@/components/provider';
 import { useInitial } from '@/hooks/useInitial';
-import * as util from '@/lib/util';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useMount } from '@/hooks/useMount';
-import { RootCompId, rootOption } from '@/components/root';
+import { rootOption } from '@/components/root';
 import { useRegisterDom } from '@/hooks/useRegisterDom';
 import { useMutationObserver } from '@/hooks/useMutationObserver';
 
 interface IProps {
   canvasId: string;
+  rootId: string;
 }
 
 const style: React.CSSProperties = {
@@ -28,7 +28,8 @@ const style: React.CSSProperties = {
 const RootIdx = -1;
 
 export function FeatureLayer(props: IProps) {
-  const { globalStore } = React.useContext(Context);
+  const { canvasId, rootId } = props;
+  const { globalStore, evtEmit } = React.useContext(Context);
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
   const [myMount, setMyount] = React.useState(false);
   const forceUpdate = useForceUpdate();
@@ -45,25 +46,25 @@ export function FeatureLayer(props: IProps) {
     });
   }, { childList: true });
 
-  const rootId = useInitial(() => {
-    const ftrId = util.uuid();
-    globalStore.setFtrId2Canvas(ftrId, props.canvasId);
-    globalStore.setRoot(props.canvasId, util.buildNode({
-      compId: RootCompId,
-      ftrId
-    }));
-    globalStore.subscribeRenderLayerForceUpdate(props.canvasId, forceUpdate);
-    return ftrId;
+  useInitial(() => {
+    globalStore.subscribeFeatureLayerForceUpdate(canvasId, forceUpdate);
   });
 
   useMount(() => {
     if (!domRef.current) {
       return;
     }
-    globalStore.setDom(rootId, domRef.current);
+    evtEmit('ftrLayerMount', {
+      canvasId, rootId,
+      dom: domRef.current
+    });
     observeChildMutationRef(domRef.current);
     childDomReady(RootIdx, domRef.current);
     setMyount(true);
+    return () => {
+      evtEmit('ftrLayerUnmount', rootId);
+      domRef.current = null;
+    };
   });
 
   const nodes = globalStore.getAllChildren(rootId);
@@ -80,7 +81,7 @@ export function FeatureLayer(props: IProps) {
               rootId, option,
               isRoot: ftrId === rootId,
               registerDom: registerChildDom,
-              canvasId: props.canvasId,
+              canvasId: canvasId,
               idx
             };
 

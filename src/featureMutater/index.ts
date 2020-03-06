@@ -36,7 +36,7 @@ export class FeatureMutater {
       const child = util.buildNode({ compId, ftrId });
       util.appendChild(parent, child);
     }
-    this.globalStore.refreshRenderLayer(canvasId);
+    this.globalStore.refreshFeatureLayer(canvasId);
   }
 
   public removeFtr(ftrId: string) {
@@ -45,7 +45,7 @@ export class FeatureMutater {
     if (parent) {
       parent.node.children.splice(parent.index, 1)[0];
     }
-    this.globalStore.refreshRenderLayer(canvasId);
+    this.globalStore.refreshFeatureLayer(canvasId);
   }
 
   public updateStyle(ftrId: string, style: IGrag.IFtrStyle) {

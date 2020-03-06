@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Context } from '@/components/provider';
-import { uuid } from '@/lib/util';
+import * as util from '@/lib/util';
 import { FeatureLayer } from '@/components/featureLayer';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useMount } from '@/hooks/useMount';
@@ -24,9 +24,10 @@ interface ICanvasProps {
 }
 
 function RawCanvas(props: IRawCanvasProps) {
-  const { evtEmit, subscribeCanvaStore } = React.useContext(Context);
   const { style, id } = props;
+  const { evtEmit, subscribeCanvaStore, globalStore } = React.useContext(Context);
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
+  const rootId = React.useRef(globalStore.getRoot(id)?.ftrId ?? util.uuid());
 
   const observeAttrMuationRef = useMutationObserver(() => {
     evtEmit('canvasStyleChange', props.id);
@@ -71,8 +72,6 @@ function RawCanvas(props: IRawCanvasProps) {
 
   useMount(() => {
     evtEmit('canvasMount', props.id, domRef.current!);
-    // 初始时同步canvasRect
-    evtEmit('canvasStyleChange', props.id);
     return () => {
       evtEmit('canvasUnMount', props.id);
       domRef.current = null;
@@ -107,7 +106,7 @@ function RawCanvas(props: IRawCanvasProps) {
     <div ref={refCallback} style={{ ...defaultStyle, ...style }}
       onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
       onMouseDown={handleMousedown} onMouseUp={handleMouseup} onMouseMove={handleMousemove}>
-      <FeatureLayer canvasId={id} />
+      <FeatureLayer canvasId={id} rootId={rootId.current} />
       <InteractionLayer canvasId={id} />
     </div>
   );
@@ -117,7 +116,7 @@ export function Canvas(props: ICanvasProps) {
   const { id, ...restProps } = props;
   const { globalStore } = React.useContext(Context);
   const forceUpdate = useForceUpdate();
-  const canvasId = React.useRef(id ?? uuid());
+  const canvasId = React.useRef(id ?? util.uuid());
 
   useMount(() => {
     globalStore.subscribeCanvasForceUpdate(canvasId.current, forceUpdate);

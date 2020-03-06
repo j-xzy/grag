@@ -74,6 +74,7 @@ export class EventCollect {
 
   public canvasMount(canvasId: string, dom: HTMLElement) {
     this.globalStore.setDom(canvasId, dom);
+    this.canvasStyleChange(canvasId);
   }
 
   public canvasUnMount(canvasId: string) {
@@ -91,15 +92,23 @@ export class EventCollect {
       rect
     });
 
-    const rootId = this.globalStore.getRootIdByCanvasId(canvasId);
+    const { ftrId } = this.globalStore.getRoot(canvasId);
     this.canvaStore.dispatch('updateFtrStyles', [{
-      ftrId: rootId,
+      ftrId,
       style: {
         x: 0, y: 0,
         width: rect.width,
         height: rect.height
       }
     }]);
+  }
+
+  public ftrLayerMount(param: { canvasId: string; rootId: string; dom: HTMLDivElement }) {
+    this.globalStore.initRoot(param);
+  }
+
+  public ftrLayerUnmount(rootId: string) {
+    this.globalStore.deleteRoot(rootId);
   }
 
   public ftrDropEnd(param: { compId: string; parentFtrId: string }) {
@@ -121,9 +130,7 @@ export class EventCollect {
     this.globalStore.initFtr(params);
     const style = this.canvaStore.getState().ftrStyles[ftrId];
     this.ftrMutate('updateStyle', ftrId, style);
-    if (!this.globalStore.isRoot(ftrId)) {
-      this.canvaStore.dispatch('updateSelectedFtrs', [ftrId]);
-    }
+    this.canvaStore.dispatch('updateSelectedFtrs', [ftrId]);
   }
 
   public ftrUnmount(ftrId: string) {
@@ -263,7 +270,7 @@ export class EventCollect {
     const top = Math.min(state.mouseCoord.y, state.mousedownCoord.y);
     const bottom = Math.max(state.mouseCoord.y, state.mousedownCoord.y);
     const selectedFtrs: string[] = [];
-    const rootId = this.globalStore.getRootIdByCanvasId(state.focusedCanvas);
+    const rootId = this.globalStore.getRoot(state.focusedCanvas).ftrId;
     const nodes = this.globalStore.getAllChildren(rootId);
 
     nodes.forEach((p) => {
