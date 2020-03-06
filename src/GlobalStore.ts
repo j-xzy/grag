@@ -7,6 +7,7 @@ export class GlobalStore {
   }; // compId到react组件映射
   private domMap: IGrag.IDomMap = {}; // ftrId到dom的映射
   private ftrId2CanvasId: IGrag.IIndexable<string> = {}; // ftrId到canvasId的映射
+  private ftrId2Node: IGrag.IIndexable<IGrag.INode> = {}; // ftrId到node的映射
   private canvasId2Root: IGrag.IRootMap = {}; // canvasId到root的映射
   private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
   private interactionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
@@ -52,10 +53,12 @@ export class GlobalStore {
    * 初始root(ftrLayer)
    */
   public initRoot(param: { canvasId: string; rootId: string; dom: HTMLDivElement }) {
-    this.canvasId2Root[param.canvasId] = util.buildNode({
+    const node = util.buildNode({
       ftrId: param.rootId,
       compId: RootCompId
     });
+    this.canvasId2Root[param.canvasId] = node;
+    this.ftrId2Node[param.rootId] = node;
     this.domMap[param.rootId] = param.dom;
     this.ftrId2CanvasId[param.rootId] = param.canvasId;
   }
@@ -65,6 +68,7 @@ export class GlobalStore {
    */
   public deleteRoot(rootId: string) {
     delete this.domMap[rootId];
+    delete this.ftrId2Node[rootId];
     const canvasId = this.ftrId2CanvasId[rootId];
     if (canvasId) {
       delete this.canvasId2Root[canvasId];
@@ -156,6 +160,10 @@ export class GlobalStore {
   public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
     this.setDom(params.ftrId, params.dom);
     this.ftrId2CanvasId[params.ftrId] = params.canvasId;
+    const node = util.getNodeByFtrId(this.getRoot(params.canvasId) , params.ftrId);
+    if (node) {
+      this.ftrId2Node[params.ftrId] = node;
+    }
   }
 
   /**
@@ -164,20 +172,34 @@ export class GlobalStore {
   public deleteFtr(ftrId: string) {
     delete this.domMap[ftrId];
     delete this.ftrId2CanvasId[ftrId];
+    delete this.ftrId2Node[ftrId];
   }
 
+  /**
+   * 得到node
+   */
   public getNodeByFtrId(ftrId: string) {
+    const node = this.ftrId2Node[ftrId];
+    if (node) {
+      return node;
+    }
     const root = this.canvasId2Root[this.ftrId2CanvasId[ftrId]];
     if (root) {
       return util.getNodeByFtrId(root, ftrId);
     }
   }
 
+  /**
+   * 得到parentnode
+   */
   public getParentNodeByFtrId(ftrId: string) {
     const root = this.canvasId2Root[this.ftrId2CanvasId[ftrId]];
     return util.getParentNodeByFtrId(root, ftrId);
   }
 
+  /**
+   * 得到所有的孩子节点（deep）
+   */
   public getAllChildren(ftrId: string) {
     const node = this.getNodeByFtrId(ftrId);
     if (!node) {
