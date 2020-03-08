@@ -103,7 +103,7 @@ export class EventCollect {
     }]);
   }
 
-  public ftrLayerMount(param: { canvasId: string; rootId: string; dom: HTMLDivElement }) {
+  public ftrLayerMount(param: { canvasId: string; rootId: string; dom: HTMLDivElement; }) {
     this.globalStore.initRoot(param);
   }
 
@@ -111,7 +111,7 @@ export class EventCollect {
     this.globalStore.deleteRoot(rootId);
   }
 
-  public ftrDropEnd(param: { compId: string; parentFtrId: string }) {
+  public ftrDropEnd(param: { compId: string; parentFtrId: string; }) {
     const { dragCompStyle } = this.canvaStore.getState();
     if (dragCompStyle) {
       const ftrId = util.uuid();
@@ -125,7 +125,7 @@ export class EventCollect {
     this.canvaStore.dispatch('clearDragState');
   }
 
-  public ftrDomDone(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
+  public ftrDomDone(params: { ftrId: string; canvasId: string; dom: HTMLElement; }) {
     const { ftrId } = params;
     this.globalStore.initFtr(params);
     const style = this.canvaStore.getState().ftrStyles[ftrId];
@@ -183,7 +183,7 @@ export class EventCollect {
     this.canvaStore.dispatch('deleteHighLightFtr');
   }
 
-  public compBeginDrag(param: { compId: string; width: number; height: number }) {
+  public compBeginDrag(param: { compId: string; width: number; height: number; }) {
     this.canvaStore.dispatch('updateDragCompSize', param);
   }
 
