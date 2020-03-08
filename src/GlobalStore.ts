@@ -157,7 +157,7 @@ export class GlobalStore {
   /**
    * 初始ftr
    */
-  public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
+  public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement; }) {
     this.setDom(params.ftrId, params.dom);
     this.ftrId2CanvasId[params.ftrId] = params.canvasId;
     const node = util.getNodeByFtrId(this.getRoot(params.canvasId) , params.ftrId);
