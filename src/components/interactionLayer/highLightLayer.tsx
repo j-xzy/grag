@@ -10,7 +10,7 @@ interface IHighLightProps {
   color: string;
 }
 
-export function HighLightLayer(props: { canvasId: string }) {
+export function HighLightLayer(props: { canvasId: string; }) {
   const { useMappedCanvasState, globalStore } = React.useContext(Context);
   const highLightFtrs = useMappedCanvasState((s) => s.highLightFtrs);
   const highLightStates = highLightFtrs

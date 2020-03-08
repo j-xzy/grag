@@ -9,7 +9,7 @@ export function updateState(getState: IGetState, state: Partial<IState>) {
 }
 
 // 批量更新ftrStyle
-export function updateFtrStyles(getState: IGetState, param: { ftrId: string; style: IGrag.IFtrStyle }[]) {
+export function updateFtrStyles(getState: IGetState, param: { ftrId: string; style: IGrag.IFtrStyle; }[]) {
   const ftrStyles = { ...getState().ftrStyles };
   param.forEach((p) => {
     ftrStyles[p.ftrId] = p.style;
@@ -42,7 +42,7 @@ export function readyRect(getState: IGetState) {
 }
 
 // 鼠标坐标改变
-export function mouseCoordChange(getState: IGetState, param: { coord: IGrag.IXYCoord; canvasId: string }) {
+export function mouseCoordChange(getState: IGetState, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
   const { coord, canvasId } = param;
   const state = { ...getState(), focusedCanvas: canvasId };
 
@@ -112,7 +112,7 @@ export function clearSelectedFtrs(getState: IGetState) {
 }
 
 // 更新canvas的rect
-export function updateCanvasRect(getState: IGetState, param: { id: string; rect: DOMRect }) {
+export function updateCanvasRect(getState: IGetState, param: { id: string; rect: DOMRect; }) {
   return {
     ...getState(),
     canvasRects: {

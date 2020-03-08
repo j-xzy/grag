@@ -14,7 +14,7 @@ interface IRect {
   rb: IGrag.IXYCoord;
 }
 
-export function ResizeLayer(props: { canvasId: string }) {
+export function ResizeLayer(props: { canvasId: string; }) {
   const { useMappedCanvasState, globalStore, evtEmit } = React.useContext(Context);
   const { selectedFtrs, isMoving, resizeType } = useMappedCanvasState((s) => ({
     selectedFtrs: s.selectedFtrs,
@@ -64,7 +64,7 @@ export function ResizeLayer(props: { canvasId: string }) {
   );
 }
 
-function Border(props: { rect: IRect }) {
+function Border(props: { rect: IRect; }) {
   const { rect: { lt, rb } } = props;
   const style: React.CSSProperties = {
     position: 'absolute',

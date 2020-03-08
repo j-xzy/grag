@@ -52,7 +52,7 @@ export class FeatureMutater {
     const lastStyle = this.globalStore.getFtrStyle(ftrId);
     const deltX = style.x - lastStyle.x;
     const deltY = style.y - lastStyle.y;
-    const styles: Array<{ ftrId: string; style: IGrag.IFtrStyle }> = [];
+    const styles: Array<{ ftrId: string; style: IGrag.IFtrStyle; }> = [];
 
     // update child
     if (deltX !== 0 || deltY !== 0) {

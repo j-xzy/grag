@@ -52,7 +52,7 @@ export class GlobalStore {
   /**
    * 初始root(ftrLayer)
    */
-  public initRoot(param: { canvasId: string; rootId: string; dom: HTMLDivElement }) {
+  public initRoot(param: { canvasId: string; rootId: string; dom: HTMLDivElement; }) {
     const node = util.buildNode({
       ftrId: param.rootId,
       compId: RootCompId

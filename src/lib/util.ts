@@ -45,7 +45,7 @@ export function getAllChildren(node: IGrag.INode): IGrag.INode[] {
   return childs;
 }
 
-export function buildNode(param: { ftrId: string; compId: string; children?: IGrag.INode[] }): IGrag.INode {
+export function buildNode(param: { ftrId: string; compId: string; children?: IGrag.INode[]; }): IGrag.INode {
   return {
     ftrId: param.ftrId,
     compId: param.compId,

@@ -7,7 +7,7 @@ import { Context } from '../provider';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useInitial } from '@/hooks/useInitial';
 
-export function InteractionLayer(props: { canvasId: string }) {
+export function InteractionLayer(props: { canvasId: string; }) {
   const { globalStore } = React.useContext(Context);
   const forceUpdate = useForceUpdate();
   useInitial(() => {
