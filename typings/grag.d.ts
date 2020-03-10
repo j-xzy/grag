@@ -20,7 +20,7 @@ declare namespace IGrag {
   }
 
   interface IRootMap {
-    [canvasId: string]: IGrag.INode;
+    [canvasId: string]: IGrag.IFtrNode;
   }
 
   interface IFtrStyle {

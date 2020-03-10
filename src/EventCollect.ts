@@ -271,7 +271,7 @@ export class EventCollect {
     const bottom = Math.max(state.mouseCoord.y, state.mousedownCoord.y);
     const selectedFtrs: string[] = [];
     const rootId = this.globalStore.getRoot(state.focusedCanvas).ftrId;
-    const nodes = this.globalStore.getAllChildren(rootId);
+    const nodes = this.globalStore.getDeepChildren(rootId);
 
     nodes.forEach((p) => {
       const { x, y, height, width } = this.globalStore.getFtrStyle(p.ftrId);

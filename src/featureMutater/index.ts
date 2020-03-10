@@ -33,7 +33,7 @@ export class FeatureMutater {
     const canvasId = this.globalStore.getCanvasIdByFtrId(parentFtrId);
     const parent = this.globalStore.getNodeByFtrId(parentFtrId);
     if (parent) {
-      const child = util.buildNode({ compId, ftrId });
+      const child = util.buildEmptyFtrNode({ compId, ftrId });
       util.appendChild(parent, child);
     }
     this.globalStore.refreshFeatureLayer(canvasId);
@@ -41,11 +41,11 @@ export class FeatureMutater {
 
   public removeFtr(ftrId: string) {
     const canvasId = this.globalStore.getCanvasIdByFtrId(ftrId);
-    const parent = this.globalStore.getParentNodeByFtrId(ftrId);
-    if (parent) {
-      parent.node.children.splice(parent.index, 1)[0];
+    const node = this.globalStore.getNodeByFtrId(ftrId);
+    if (node){
+      util.removeNode(node);
+      this.globalStore.refreshFeatureLayer(canvasId);
     }
-    this.globalStore.refreshFeatureLayer(canvasId);
   }
 
   public updateStyle(ftrId: string, style: IGrag.IFtrStyle) {
@@ -56,7 +56,7 @@ export class FeatureMutater {
 
     // update child
     if (deltX !== 0 || deltY !== 0) {
-      const childIds = this.globalStore.getAllChildren(ftrId).map((p) => p.ftrId);
+      const childIds = this.globalStore.getDeepChildren(ftrId).map((p) => p.ftrId);
       childIds.forEach((id) => {
         const ftrStyle = this.globalStore.getFtrStyle(id);
         const nextStyle = {
