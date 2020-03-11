@@ -286,20 +286,23 @@ export class EventCollect {
       if ((y >= top && y <= bottom) || ((y + height) >= top && (y + height) <= bottom)) {
         yIn = true;
       }
-      if ((top >= y && top <= (y + height)) || (bottom >= y && bottom <= (y + height)))  {
+      if ((top >= y && top <= (y + height)) || (bottom >= y && bottom <= (y + height))) {
         yIn = true;
       }
       if (xIn && yIn) {
         selectedFtrs.push(p.ftrId);
       }
     });
-    this.canvaStore.dispatch('updateSelectedFtrs', selectedFtrs);    
+    this.canvaStore.dispatch('updateSelectedFtrs', selectedFtrs);
   }
 
   private mouseup() {
-    const { isMoving, resizeType, focusedCanvas } = this.canvaStore.getState();
+    const { isMoving, resizeType, focusedCanvas, selectedFtrs } = this.canvaStore.getState();
     if ((isMoving || resizeType) && focusedCanvas) {
       this.globalStore.refreshFeatureLayer(focusedCanvas);
+      selectedFtrs.forEach((id) => {
+        this.ftrMutate('checkChildren', id);
+      });
     }
     this.canvaStore.dispatch('clearAction');
   }

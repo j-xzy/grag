@@ -76,7 +76,6 @@ export class FeatureMutater {
     this.canvaStore.dispatch('updateFtrStyles', styles);
 
     this.moveInPositionParent(ftrId);
-    this.checkChildren(ftrId);
   }
 
   public subscribe<T extends keyof IFtrSubActMap>(id: string, action: T, callback: (payload: IFtrSubActMap[T]) => void) {
@@ -100,16 +99,7 @@ export class FeatureMutater {
     });
   }
 
-  private moveInPositionParent(ftrId: string) {
-    const parent = this.globalStore.getPositionParent(ftrId);
-    const lastParent = this.globalStore.getParentNodeByFtrId(ftrId);
-    const ftrNode = this.globalStore.getNodeByFtrId(ftrId)!;
-    if (lastParent !== parent) {
-      util.moveIn(ftrNode, parent);
-    }
-  }
-
-  private checkChildren(ftrId: string) {
+  public checkChildren(ftrId: string) {
     const ftrNode = this.globalStore.getNodeByFtrId(ftrId);
     if (!ftrNode) {
       return;
@@ -144,5 +134,14 @@ export class FeatureMutater {
     leaveChilds.forEach((child) => {
       this.moveInPositionParent(child.ftrId);
     });
+  }
+
+  private moveInPositionParent(ftrId: string) {
+    const parent = this.globalStore.getPositionParent(ftrId);
+    const lastParent = this.globalStore.getParentNodeByFtrId(ftrId);
+    const ftrNode = this.globalStore.getNodeByFtrId(ftrId)!;
+    if (lastParent !== parent) {
+      util.moveIn(ftrNode, parent);
+    }
   }
 }
