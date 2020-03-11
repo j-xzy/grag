@@ -17,12 +17,8 @@ export function getNodeByFtrId(root: IGrag.IFtrNode, ftrId: string) {
   return null;
 }
 
-export function getParentNodeByFtrId(root: IGrag.IFtrNode, ftrId: string) {
-  const node = getNodeByFtrId(root, ftrId);
-  if (node) {
-    return node.parent;
-  }
-  return null;
+export function getParentNode(node: IGrag.IFtrNode) {
+  return node.parent;
 }
 
 export function getChildren<T extends IGrag.INode<T>>(root: T): T[] {
@@ -91,10 +87,28 @@ export function removeNode<T extends IGrag.INode<T>>(node: T) {
     if (prev) {
       prev.next = next;
     }
-    if(next) {
+    if (next) {
       next.prev = prev;
     }
   }
+}
+
+export function isInside(source: IGrag.IFtrStyle, target: IGrag.IFtrStyle) {
+  if (source.x < target.x || source.y < target.y) {
+    return false;
+  }
+  if ((source.x + source.width) > (target.x + target.width)) {
+    return false;
+  }
+  if ((source.y + source.height) > (target.y + target.height)) {
+    return false;
+  }
+  return true;
+}
+
+export function moveIn<T extends IGrag.INode<T>>(source: T, target: T) {
+  removeNode(source);
+  appendChild(target, source);
 }
 
 export function uuid() {

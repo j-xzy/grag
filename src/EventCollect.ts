@@ -69,7 +69,7 @@ export class EventCollect {
   }
 
   public canvasMouseup() {
-    this.canvaStore.dispatch('clearAction');
+    this.mouseup();
   }
 
   public canvasMount(canvasId: string, dom: HTMLElement) {
@@ -163,7 +163,7 @@ export class EventCollect {
   }
 
   public ftrMouseup() {
-    this.canvaStore.dispatch('clearAction');
+    this.mouseup();
   }
 
   public ftrMouseover(ftrId: string) {
@@ -197,7 +197,7 @@ export class EventCollect {
   }
 
   public resizeMouseup() {
-    this.canvaStore.dispatch('clearAction');
+    this.mouseup();
   }
 
   private moveFtrs() {
@@ -294,5 +294,13 @@ export class EventCollect {
       }
     });
     this.canvaStore.dispatch('updateSelectedFtrs', selectedFtrs);    
+  }
+
+  private mouseup() {
+    const { isMoving, resizeType, focusedCanvas } = this.canvaStore.getState();
+    if ((isMoving || resizeType) && focusedCanvas) {
+      this.globalStore.refreshFeatureLayer(focusedCanvas);
+    }
+    this.canvaStore.dispatch('clearAction');
   }
 }

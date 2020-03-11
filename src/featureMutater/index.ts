@@ -42,7 +42,7 @@ export class FeatureMutater {
   public removeFtr(ftrId: string) {
     const canvasId = this.globalStore.getCanvasIdByFtrId(ftrId);
     const node = this.globalStore.getNodeByFtrId(ftrId);
-    if (node){
+    if (node) {
       util.removeNode(node);
       this.globalStore.refreshFeatureLayer(canvasId);
     }
@@ -74,6 +74,9 @@ export class FeatureMutater {
     this.notify(ftrId, 'updateStyle', style);
     styles.push({ ftrId, style });
     this.canvaStore.dispatch('updateFtrStyles', styles);
+
+    this.moveInPositionParent(ftrId);
+    this.checkChildren(ftrId);
   }
 
   public subscribe<T extends keyof IFtrSubActMap>(id: string, action: T, callback: (payload: IFtrSubActMap[T]) => void) {
@@ -94,6 +97,52 @@ export class FeatureMutater {
     const list = [...this.listeners[id][action]];
     list.forEach((cb) => {
       cb(payload);
+    });
+  }
+
+  private moveInPositionParent(ftrId: string) {
+    const parent = this.globalStore.getPositionParent(ftrId);
+    const lastParent = this.globalStore.getParentNodeByFtrId(ftrId);
+    const ftrNode = this.globalStore.getNodeByFtrId(ftrId)!;
+    if (lastParent !== parent) {
+      util.moveIn(ftrNode, parent);
+    }
+  }
+
+  private checkChildren(ftrId: string) {
+    const ftrNode = this.globalStore.getNodeByFtrId(ftrId);
+    if (!ftrNode) {
+      return;
+    }
+    const { option: { allowChild } } = this.globalStore.getCompInfo(ftrNode.compId);
+    if (!allowChild) {
+      return;
+    }
+    const children = util.getChildren(ftrNode);
+    const leaveChilds: IGrag.IFtrNode[] = [];
+    children.forEach((child) => {
+      if (!this.globalStore.ftrInside(child.ftrId, ftrId)) {
+        leaveChilds.push(child);
+      }
+    });
+
+    const inChilds: IGrag.IFtrNode[] = [];
+    const parent = this.globalStore.getParentNodeByFtrId(ftrId);
+    if (parent) {
+      const brothers = util.getChildren(parent);
+      brothers.forEach((brother) => {
+        if (brother.ftrId !== ftrId && this.globalStore.ftrInside(brother.ftrId, ftrId)) {
+          inChilds.push(brother);
+        }
+      });
+    }
+
+    inChilds.forEach((child) => {
+      util.moveIn(child, ftrNode);
+    });
+
+    leaveChilds.forEach((child) => {
+      this.moveInPositionParent(child.ftrId);
     });
   }
 }

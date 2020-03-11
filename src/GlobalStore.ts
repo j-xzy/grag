@@ -160,7 +160,7 @@ export class GlobalStore {
   public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement; }) {
     this.setDom(params.ftrId, params.dom);
     this.ftrId2CanvasId[params.ftrId] = params.canvasId;
-    const node = util.getNodeByFtrId(this.getRoot(params.canvasId) , params.ftrId);
+    const node = util.getNodeByFtrId(this.getRoot(params.canvasId), params.ftrId);
     if (node) {
       this.ftrId2Node[params.ftrId] = node;
     }
@@ -193,8 +193,10 @@ export class GlobalStore {
    * 得到parentnode
    */
   public getParentNodeByFtrId(ftrId: string) {
-    const root = this.canvasId2Root[this.ftrId2CanvasId[ftrId]];
-    return util.getParentNodeByFtrId(root, ftrId);
+    const node = this.getNodeByFtrId(ftrId);
+    if (node) {
+      return util.getParentNode(node);
+    }
   }
 
   /**
@@ -206,5 +208,40 @@ export class GlobalStore {
       return [];
     }
     return util.getDeepChildren(node);
+  }
+
+  /**
+   * sourceFtr是否在targetFtr内
+   */
+  public ftrInside(sourceftrId: string, targetFtrId: string) {
+    const sourceStyle = this.getFtrStyle(sourceftrId);
+    const targetStyle = this.getFtrStyle(targetFtrId);
+    return util.isInside(sourceStyle, targetStyle);
+  }
+
+  public getPositionParent(ftrId: string) {
+    let target = this.getParentNodeByFtrId(ftrId);
+    if (!target || !this.ftrInside(ftrId, target.ftrId)) {
+      target = this.canvasId2Root[this.ftrId2CanvasId[ftrId]];
+    }
+    while (target) {
+      const children: IGrag.IFtrNode[] = util.getChildren(target);
+      let inChild = false;
+      for (let i = 0; i < children.length; ++i) {
+        const child = children[i];
+        if (child.ftrId === ftrId) {
+          continue;
+        }
+        if (this.ftrInside(ftrId, child.ftrId)) {
+          target = child;
+          inChild = true;
+          break;
+        }
+      }
+      if (!inChild) {
+        break;
+      }
+    }
+    return target;
   }
 }
