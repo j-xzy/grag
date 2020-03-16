@@ -113,6 +113,7 @@ export class EventCollect {
 
   public ftrDropEnd(param: { compId: string; parentFtrId: string; }) {
     const { dragCompStyle } = this.canvaStore.getState();
+    
     if (dragCompStyle) {
       const ftrId = util.uuid();
       this.ftrMutate('insertNewFtr', {

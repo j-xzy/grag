@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as util from '@/lib/util';
 import { style } from './style';
 import { Context } from '../provider';
 import { IEvtEmit } from '@/EventCollect';
@@ -32,18 +33,7 @@ export function ResizeLayer(props: { canvasId: string; }) {
   if (noInCanvas) {
     return null;
   }
-
-  const rect = {
-    lt: { x: Infinity, y: Infinity },
-    rb: { x: -Infinity, y: -Infinity }
-  };
-  selectedFtrs.forEach((ftrId) => {
-    const style = globalStore.getFtrStyle(ftrId);
-    rect.lt.x = Math.min(rect.lt.x, style.x);
-    rect.lt.y = Math.min(rect.lt.y, style.y);
-    rect.rb.x = Math.max(rect.rb.x, style.x + style.width);
-    rect.rb.y = Math.max(rect.rb.y, style.y + style.height);
-  });
+  const rect = util.calRect(selectedFtrs.map((id) => globalStore.getFtrStyle(id)));
 
   return (
     <div style={style}>

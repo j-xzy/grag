@@ -2,6 +2,7 @@ import * as React from 'react';
 import { HighLightLayer } from './highLightLayer';
 import { ResizeLayer } from './resizeLayer';
 import { RectLayer } from './rectLayer';
+import { Guides } from './guides';
 import { style } from './style';
 import { Context } from '../provider';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
@@ -18,6 +19,7 @@ export function InteractionLayer(props: { canvasId: string; }) {
       <HighLightLayer canvasId={props.canvasId} />
       <ResizeLayer canvasId={props.canvasId} />
       <RectLayer canvasId={props.canvasId} />
+      <Guides canvasId={props.canvasId} />
     </div>
   );
 }

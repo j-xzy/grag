@@ -92,13 +92,6 @@ export class FeatureMutater {
     delete this.listeners[id];
   }
 
-  private notify<T extends keyof IFtrSubActMap>(id: string, action: T, payload: IFtrSubActMap[T]) {
-    const list = [...this.listeners[id][action]];
-    list.forEach((cb) => {
-      cb(payload);
-    });
-  }
-
   public checkChildren(ftrId: string) {
     const ftrNode = this.globalStore.getNodeByFtrId(ftrId);
     if (!ftrNode) {
@@ -111,7 +104,7 @@ export class FeatureMutater {
     const children = util.getChildren(ftrNode);
     const leaveChilds: IGrag.IFtrNode[] = [];
     children.forEach((child) => {
-      if (!this.globalStore.ftrInside(child.ftrId, ftrId)) {
+      if (!this.ftrInside(child.ftrId, ftrId)) {
         leaveChilds.push(child);
       }
     });
@@ -121,7 +114,7 @@ export class FeatureMutater {
     if (parent) {
       const brothers = util.getChildren(parent);
       brothers.forEach((brother) => {
-        if (brother.ftrId !== ftrId && this.globalStore.ftrInside(brother.ftrId, ftrId)) {
+        if (brother.ftrId !== ftrId && this.ftrInside(brother.ftrId, ftrId)) {
           inChilds.push(brother);
         }
       });
@@ -136,12 +129,51 @@ export class FeatureMutater {
     });
   }
 
+  private notify<T extends keyof IFtrSubActMap>(id: string, action: T, payload: IFtrSubActMap[T]) {
+    const list = [...this.listeners[id][action]];
+    list.forEach((cb) => {
+      cb(payload);
+    });
+  }
+
   private moveInPositionParent(ftrId: string) {
-    const parent = this.globalStore.getPositionParent(ftrId);
+    const parent = this.getPositionParent(ftrId);
     const lastParent = this.globalStore.getParentNodeByFtrId(ftrId);
     const ftrNode = this.globalStore.getNodeByFtrId(ftrId)!;
     if (lastParent !== parent) {
       util.moveIn(ftrNode, parent);
     }
+  }
+
+  private getPositionParent(ftrId: string) {
+    let target = this.globalStore.getParentNodeByFtrId(ftrId);
+    if (!target || !this.ftrInside(ftrId, target.ftrId)) {
+      target = this.globalStore.getRoot(this.globalStore.getCanvasIdByFtrId(ftrId));
+    }
+    while (target) {
+      const children: IGrag.IFtrNode[] = util.getChildren(target);
+      let inChild = false;
+      for (let i = 0; i < children.length; ++i) {
+        const child = children[i];
+        if (child.ftrId === ftrId) {
+          continue;
+        }
+        if (this.ftrInside(ftrId, child.ftrId)) {
+          target = child;
+          inChild = true;
+          break;
+        }
+      }
+      if (!inChild) {
+        break;
+      }
+    }
+    return target;
+  }
+
+  private ftrInside(sourceftrId: string, targetFtrId: string) {
+    const sourceStyle = this.globalStore.getFtrStyle(sourceftrId);
+    const targetStyle = this.globalStore.getFtrStyle(targetFtrId);
+    return util.isInside(sourceStyle, targetStyle);
   }
 }

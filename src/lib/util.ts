@@ -111,6 +111,40 @@ export function moveIn<T extends IGrag.INode<T>>(source: T, target: T) {
   appendChild(target, source);
 }
 
+export function calRect(styles: IGrag.IFtrStyle[]) {
+  const rect = {
+    lt: { x: Infinity, y: Infinity },
+    rb: { x: -Infinity, y: -Infinity }
+  };
+
+  styles.forEach((style) => {
+    rect.lt.x = Math.min(rect.lt.x, style.x);
+    rect.lt.y = Math.min(rect.lt.y, style.y);
+    rect.rb.x = Math.max(rect.rb.x, style.x + style.width);
+    rect.rb.y = Math.max(rect.rb.y, style.y + style.height);
+  });
+  return rect;
+}
+
+export function lowestCommonAncestor<T extends IGrag.INode<T>>(nodes: T[]) {
+  if (nodes.length < 2) {
+    return nodes[0];
+  }
+  return nodes.reduce((pre, next) => lowset(pre, next));
+
+  function lowset<T extends IGrag.INode<T>>(source: T, target: T) {
+    const ancestors: Set<T> = new Set();
+    while (source) {
+      ancestors.add(source);
+      source = source.parent as any;
+    }
+    while (!ancestors.has(target)) {
+      target = target.parent as any;
+    }
+    return target;
+  }
+}
+
 export function uuid() {
   return 'id' + Math.ceil((Math.random() * 100000)) + Math.ceil((Math.random() * 100000));
 }

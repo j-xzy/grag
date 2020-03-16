@@ -89,11 +89,9 @@ export function FeatureLayer(props: IProps) {
               <MemoNode key={ftrId}>
                 <FtrSubscribe {...commonProps}>
                   <MouseEventCollect {...commonProps}>
-                    <Dropable {...commonProps}>
-                      <DomDone {...commonProps}>
-                        <Component />
-                      </DomDone>
-                    </Dropable>
+                    <DomDone {...commonProps}>
+                      <Component />
+                    </DomDone>
                   </MouseEventCollect>
                 </FtrSubscribe>
               </MemoNode>
