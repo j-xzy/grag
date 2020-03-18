@@ -6,7 +6,3 @@ export function mergeDefaultConfig(config: IGrag.IProviderConfig) {
     id: config.id ?? util.uuid()
   };
 }
-
-export const resizeCursorDics = {
-
-};

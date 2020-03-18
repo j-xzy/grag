@@ -1,4 +1,4 @@
-import { IReducers, Store } from './createStore';
+import type { Store } from './createStore';
 
 export type IEnhancer = ReturnType<typeof applyMiddleware>;
 
@@ -8,9 +8,9 @@ interface ITypePayload {
 }
 
 type IMiddleware = <S>
-  (store: Store<S, IReducers<S>>)
-  => (next: (mutation: ITypePayload) => S)
-    => (mutation: ITypePayload) => S;
+(store: Store<S, ITypeRedux.IReducers<S>>)
+=> (next: (mutation: ITypePayload) => S)
+  => (mutation: ITypePayload) => S;
 
 export function applyMiddleware(...middlewares: IMiddleware[]) {
   return (store: Store<any, any>) => {

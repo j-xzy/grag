@@ -1,5 +1,4 @@
 export type IState = ReturnType<typeof createInitState>;
-export type IGetState = () => ReturnType<typeof createInitState>;
 
 export function createInitState(config: Required<IGrag.IProviderConfig>) {
   return {

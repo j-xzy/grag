@@ -140,7 +140,8 @@ export class FeatureMutater {
     const parent = this.getPositionParent(ftrId);
     const lastParent = this.globalStore.getParentNodeByFtrId(ftrId);
     const ftrNode = this.globalStore.getNodeByFtrId(ftrId)!;
-    if (lastParent !== parent) {
+    const { option: { allowChild } } = this.globalStore.getCompInfo(parent.compId);
+    if (allowChild && lastParent !== parent) {
       util.moveIn(ftrNode, parent);
     }
   }

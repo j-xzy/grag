@@ -17,9 +17,13 @@ export function Guides(props: IProps) {
     return null;
   }
 
-  const rect = util.calRect(selectedFtrs.map((id) => globalStore.getFtrStyle(id)));
   const nodes = selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
   const parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
+  if (!parent) {
+    return;
+  }
+  const rect = util.calRect(selectedFtrs.map((id) => globalStore.getFtrStyle(id)));
+  util.getChildren(parent);
 
   return (
     <div style={style}>

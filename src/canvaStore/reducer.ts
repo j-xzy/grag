@@ -1,15 +1,16 @@
-import { IGetState, IState } from './state';
+import type { ICtx } from './index';
+import type { IState } from './state';
 
 // 更新state
-export function updateState(getState: IGetState, state: Partial<IState>) {
+export function updateState(ctx: ICtx, state: Partial<IState>) {
   return {
-    ...getState(),
+    ...ctx.getState(),
     ...state
   };
 }
 
 // 批量更新ftrStyle
-export function updateFtrStyles(getState: IGetState, param: { ftrId: string; style: IGrag.IFtrStyle; }[]) {
+export function updateFtrStyles({ getState }: ICtx, param: { ftrId: string; style: IGrag.IFtrStyle; }[]) {
   const ftrStyles = { ...getState().ftrStyles };
   param.forEach((p) => {
     ftrStyles[p.ftrId] = p.style;
@@ -21,7 +22,7 @@ export function updateFtrStyles(getState: IGetState, param: { ftrId: string; sty
 }
 
 // 准备移动
-export function readyMoving(getState: IGetState) {
+export function readyMoving({ getState }: ICtx) {
   const state = { ...getState() };
   return {
     ...state,
@@ -32,7 +33,7 @@ export function readyMoving(getState: IGetState) {
 }
 
 // 准备框选
-export function readyRect(getState: IGetState) {
+export function readyRect({ getState }: ICtx) {
   const state = { ...getState() };
   return {
     ...state,
@@ -42,7 +43,7 @@ export function readyRect(getState: IGetState) {
 }
 
 // 鼠标坐标改变
-export function mouseCoordChange(getState: IGetState, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
+export function mouseCoordChange({ getState }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
   const { coord, canvasId } = param;
   const state = { ...getState(), focusedCanvas: canvasId };
 
@@ -68,7 +69,7 @@ export function mouseCoordChange(getState: IGetState, param: { coord: IGrag.IXYC
 }
 
 // 聚焦canvas
-export function focusedCanvas(getState: IGetState, canvsId: string) {
+export function focusedCanvas({ getState }: ICtx, canvsId: string) {
   return {
     ...getState(),
     focusedCanvas: canvsId
@@ -76,7 +77,7 @@ export function focusedCanvas(getState: IGetState, canvsId: string) {
 }
 
 // 失焦canvas
-export function blurCanvas(getState: IGetState) {
+export function blurCanvas({ getState }: ICtx) {
   return {
     ...getState(),
     focusedCanvas: null
@@ -84,7 +85,7 @@ export function blurCanvas(getState: IGetState) {
 }
 
 // 清除当前动作（移动ftr、拉框选择、resizeftr...）
-export function clearAction(getState: IGetState) {
+export function clearAction({ getState }: ICtx) {
   return {
     ...getState(),
     isMoving: false,
@@ -95,7 +96,7 @@ export function clearAction(getState: IGetState) {
 }
 
 // 置为鼠标down
-export function setMousedown(getState: IGetState) {
+export function setMousedown({ getState }: ICtx) {
   return {
     ...getState(),
     isMousedown: true,
@@ -104,7 +105,7 @@ export function setMousedown(getState: IGetState) {
 }
 
 // 清除选中的ftr
-export function clearSelectedFtrs(getState: IGetState) {
+export function clearSelectedFtrs({ getState }: ICtx) {
   return {
     ...getState(),
     selectedFtrs: []
@@ -112,7 +113,7 @@ export function clearSelectedFtrs(getState: IGetState) {
 }
 
 // 更新canvas的rect
-export function updateCanvasRect(getState: IGetState, param: { id: string; rect: DOMRect; }) {
+export function updateCanvasRect({ getState }: ICtx, param: { id: string; rect: DOMRect; }) {
   return {
     ...getState(),
     canvasRects: {
@@ -123,7 +124,7 @@ export function updateCanvasRect(getState: IGetState, param: { id: string; rect:
 }
 
 // 清除drag的状态
-export function clearDragState(getState: IGetState) {
+export function clearDragState({ getState }: ICtx) {
   return {
     ...getState(),
     dragCompStyle: null,
@@ -132,7 +133,7 @@ export function clearDragState(getState: IGetState) {
 }
 
 // 更新mouseInFtr
-export function updateMouseInFtr(getState: IGetState, mouseInFtr: string | null) {
+export function updateMouseInFtr({ getState }: ICtx, mouseInFtr: string | null) {
   return {
     ...getState(),
     mouseInFtr
@@ -140,7 +141,7 @@ export function updateMouseInFtr(getState: IGetState, mouseInFtr: string | null)
 }
 
 // 删除ftr相关的状态
-export function deleteFtrState(getState: IGetState, ftrId: string) {
+export function deleteFtrState({ getState }: ICtx, ftrId: string) {
   const state = { ...getState() };
   if (state.hoverFtr === ftrId) {
     state.hoverFtr = null;
@@ -159,7 +160,7 @@ export function deleteFtrState(getState: IGetState, ftrId: string) {
 }
 
 // 移除我的高亮
-export function deleteHighLightFtr(getState: IGetState) {
+export function deleteHighLightFtr({ getState }: ICtx) {
   const { highLightFtrs, config } = getState();
   const nextHighLightFtrs = highLightFtrs.filter((p) => p.id !== config.id);
   return {
@@ -169,7 +170,7 @@ export function deleteHighLightFtr(getState: IGetState) {
 }
 
 // 高亮我的
-export function sethighLightFtr(getState: IGetState, ftrId: string) {
+export function sethighLightFtr({ getState }: ICtx, ftrId: string) {
   let highLightFtrs = [...getState().highLightFtrs];
   highLightFtrs = highLightFtrs.filter((p) => p.id !== getState().config.id);
   highLightFtrs.push({
@@ -184,7 +185,7 @@ export function sethighLightFtr(getState: IGetState, ftrId: string) {
 }
 
 // 更新dragCompStyle
-export function updateDragCompSize(getState: IGetState, param: IGrag.ISize) {
+export function updateDragCompSize({ getState }: ICtx, param: IGrag.ISize) {
   let dragCompStyle = getState().dragCompStyle;
   if (dragCompStyle) {
     dragCompStyle = { ...dragCompStyle, ...param };
@@ -202,7 +203,7 @@ export function updateDragCompSize(getState: IGetState, param: IGrag.ISize) {
 }
 
 // 准备resize
-export function readyResize(getState: IGetState, resizeType: IGrag.IResizeType) {
+export function readyResize({ getState }: ICtx, resizeType: IGrag.IResizeType) {
   return {
     ...getState(),
     beforeChangeFtrStyles: { ...getState().ftrStyles },
@@ -211,7 +212,7 @@ export function readyResize(getState: IGetState, resizeType: IGrag.IResizeType) 
 }
 
 // 更新hoverFtr
-export function updateHoverFtr(getState: IGetState, ftrId: string) {
+export function updateHoverFtr({ getState }: ICtx, ftrId: string) {
   return {
     ...getState(),
     hoverFtr: ftrId
@@ -219,7 +220,7 @@ export function updateHoverFtr(getState: IGetState, ftrId: string) {
 }
 
 // 更新选中的ftr
-export function updateSelectedFtrs(getState: IGetState, ftrIds: string[]) {
+export function updateSelectedFtrs({ getState }: ICtx, ftrIds: string[]) {
   return {
     ...getState(),
     selectedFtrs: ftrIds
