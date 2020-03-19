@@ -5,8 +5,6 @@ declare global {
   namespace ITypeRedux {
 
     interface IContext<S> {
-      getState: () => S;
-      getLastState: () => S;
       globalStore: GlobalStore;
     }
   }
