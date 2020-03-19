@@ -2,9 +2,9 @@ import type { ICtx } from './index';
 import type { IState } from './state';
 
 // 更新state
-export function updateState(ctx: ICtx, state: Partial<IState>) {
+export function updateState({ getState }: ICtx, state: Partial<IState>) {
   return {
-    ...ctx.getState(),
+    ...getState(),
     ...state
   };
 }

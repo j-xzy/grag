@@ -21,10 +21,12 @@ export class Store<S, R extends ITypeRedux.IReducers<S>> {
     this.context = {
       getState: this.getState,
       getLastState: this.getLastState
-    };
+    } as any;
 
     const dispatch = enhancer(this);
     this.dispatch = dispatch.bind(this);
+    this.getState = this.getState.bind(this);
+    this.getLastState = this.getLastState.bind(this);
   }
 
   public dispatch: ITypeRedux.IDispatch<S, R> = (action, payload) => {

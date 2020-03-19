@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { createStore, createUseMappedState } from 'typeRedux';
+import { createStore, createUseMappedState, applyMiddleware } from 'typeRedux';
 import { createInitState, reducers, IUseMappedState, ICanvasStore } from '@/canvaStore';
+import { createGlobalMiddleware } from '@/canvaStore/middlewares/createGlobalMiddleware';
 import { EventCollect, IEvtEmit } from '@/EventCollect';
 import { GlobalStore } from '@/GlobalStore';
 import { FeatureMutater } from '@/featureMutater';
@@ -20,7 +21,10 @@ export type ICtxValue = IGrag.IReactCtxValue<typeof Context>;
 
 export function GragProvider(props: React.Props<any> & IGrag.IProviderConfig) {
   const globalStore = React.useRef(new GlobalStore());
-  const canvaStore = React.useRef(createStore(createInitState(mergeDefaultConfig(props)), reducers));
+  const canvaStore = React.useRef(createStore(
+    createInitState(mergeDefaultConfig(props)), reducers,
+    applyMiddleware(createGlobalMiddleware(globalStore.current)))
+  );
   const useMappedCanvasState = React.useRef(createUseMappedState(canvaStore.current));
   const featureMutater = React.useRef(new FeatureMutater(globalStore.current, canvaStore.current));
   const useFtrSubscribe = React.useRef(createFtrSubscribe(featureMutater.current));
