@@ -20,13 +20,24 @@ export function Guides(props: IProps) {
   const nodes = selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
   const parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
   if (!parent) {
-    return;
+    return null;
   }
   const rect = util.calRect(selectedFtrs.map((id) => globalStore.getFtrStyle(id)));
-  util.getChildren(parent);
-
+  const childs = util.getChildren(parent);
+  const xs: number[] = [];
+  childs.forEach(({ ftrId }) => {
+    if (!selectedFtrs.includes(ftrId)) {
+      const style = globalStore.getFtrStyle(ftrId);
+      if (style.y === rect.lt.y) {
+        console.log(style);
+        xs.push(style.x);
+      }
+    }
+  });
+  console.log(xs[0]);
   return (
-    <div style={style}>
+    <div className="xxx" style={style}>
+      <div style={{position: 'absolute', backgroundColor: 'red', left: rect.lt.x, top: rect.lt.y, height: 2, width: xs[0]}}></div>
     </div>
   );
 }

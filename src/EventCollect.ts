@@ -38,19 +38,14 @@ export class EventCollect {
 
     // move
     if (getState().isMoving && getState().selectedFtrs.length > 0) {
-      this.moveFtrs();
+      this.syncSelectedFtrStyle();
       this.globalStore.refreshInteractionLayer(getState().focusedCanvas!);
     }
 
     // resize
     if (getState().resizeType) {
-      this.resizeFtrs();
+      this.syncSelectedFtrStyle();
       this.globalStore.refreshInteractionLayer(getState().focusedCanvas!);
-    }
-
-    // rect
-    if (getState().isRect) {
-      this.rectSelect();
     }
   }
 
@@ -201,100 +196,11 @@ export class EventCollect {
     this.mouseup();
   }
 
-  private moveFtrs() {
-    const state = this.canvaStore.getState();
-    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
-    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
-    state.selectedFtrs.forEach((id) => {
-      const { x, y, width, height } = state.beforeChangeFtrStyles[id];
-      this.ftrMutate('updateStyle', id, {
-        x: x + deltX,
-        y: y + deltY,
-        width, height
-      });
+  private syncSelectedFtrStyle() {
+    const {ftrStyles, selectedFtrs} = this.canvaStore.getState();
+    selectedFtrs.forEach((id) => {
+      this.ftrMutate('updateStyle', id, ftrStyles[id]);
     });
-  }
-
-  private resizeFtrs() {
-    const state = this.canvaStore.getState();
-    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
-    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
-    state.selectedFtrs.forEach((id) => {
-      let { x, y, width, height } = state.beforeChangeFtrStyles[id];
-      if (state.resizeType === 'e') {
-        width = width + deltX;
-      }
-      if (state.resizeType === 's') {
-        height = height + deltY;
-      }
-      if (state.resizeType === 'n') {
-        y = y + deltY;
-        height = height - deltY;
-      }
-      if (state.resizeType === 'w') {
-        x = x + deltX;
-        width = width - deltX;
-      }
-      if (state.resizeType === 'se') {
-        height = height + deltY;
-        width = width + deltX;
-      }
-      if (state.resizeType === 'ne') {
-        y = y + deltY;
-        height = height - deltY;
-        width = width + deltX;
-      }
-      if (state.resizeType === 'nw') {
-        y = y + deltY;
-        height = height - deltY;
-        x = x + deltX;
-        width = width - deltX;
-      }
-      if (state.resizeType === 'sw') {
-        height = height + deltY;
-        x = x + deltX;
-        width = width - deltX;
-      }
-      if (width > 1 && height > 1) {
-        this.ftrMutate('updateStyle', id, { x, y, height, width });
-      }
-    });
-  }
-
-  private rectSelect() {
-    const state = this.canvaStore.getState();
-    if (!state.focusedCanvas) {
-      return;
-    }
-    const left = Math.min(state.mouseCoord.x, state.mousedownCoord.x);
-    const right = Math.max(state.mouseCoord.x, state.mousedownCoord.x);
-    const top = Math.min(state.mouseCoord.y, state.mousedownCoord.y);
-    const bottom = Math.max(state.mouseCoord.y, state.mousedownCoord.y);
-    const selectedFtrs: string[] = [];
-    const rootId = this.globalStore.getRoot(state.focusedCanvas).ftrId;
-    const nodes = this.globalStore.getDeepChildren(rootId);
-
-    nodes.forEach((p) => {
-      const { x, y, height, width } = this.globalStore.getFtrStyle(p.ftrId);
-      let xIn = false;
-      let yIn = false;
-      if ((x >= left && x <= right) || ((x + width) >= left && (x + width) <= right)) {
-        xIn = true;
-      }
-      if ((left >= x && left <= (x + width)) || (right >= x && right <= (x + width))) {
-        xIn = true;
-      }
-      if ((y >= top && y <= bottom) || ((y + height) >= top && (y + height) <= bottom)) {
-        yIn = true;
-      }
-      if ((top >= y && top <= (y + height)) || (bottom >= y && bottom <= (y + height))) {
-        yIn = true;
-      }
-      if (xIn && yIn) {
-        selectedFtrs.push(p.ftrId);
-      }
-    });
-    this.canvaStore.dispatch('updateSelectedFtrs', selectedFtrs);
   }
 
   private mouseup() {

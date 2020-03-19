@@ -5,14 +5,9 @@ import { Context } from '../provider';
 import { IEvtEmit } from '@/EventCollect';
 
 interface IHandlerProps {
-  rect: IRect;
+  rect: IGrag.IRect;
   type: IGrag.IResizeType;
   evtEmit: IEvtEmit;
-}
-
-interface IRect {
-  lt: IGrag.IXYCoord;
-  rb: IGrag.IXYCoord;
 }
 
 export function ResizeLayer(props: { canvasId: string; }) {
@@ -54,7 +49,7 @@ export function ResizeLayer(props: { canvasId: string; }) {
   );
 }
 
-function Border(props: { rect: IRect; }) {
+function Border(props: { rect: IGrag.IRect; }) {
   const { rect: { lt, rb } } = props;
   const style: React.CSSProperties = {
     position: 'absolute',

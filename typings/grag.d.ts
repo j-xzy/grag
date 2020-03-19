@@ -51,4 +51,9 @@ declare namespace IGrag {
   }
 
   type IResizeType = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
+
+  interface IRect {
+    lt: IGrag.IXYCoord;
+    rb: IGrag.IXYCoord;
+  }
 }

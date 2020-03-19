@@ -145,6 +145,76 @@ export function lowestCommonAncestor<T extends IGrag.INode<T>>(nodes: T[]) {
   }
 }
 
+export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IFtrStyle, delt: { deltX: number; deltY: number; }) {
+  let { x, y, width, height } = style;
+  const { deltX, deltY } = delt;
+  if (resizeType === 'e') {
+    width = width + deltX;
+  }
+  if (resizeType === 's') {
+    height = height + deltY;
+  }
+  if (resizeType === 'n') {
+    y = y + deltY;
+    height = height - deltY;
+  }
+  if (resizeType === 'w') {
+    x = x + deltX;
+    width = width - deltX;
+  }
+  if (resizeType === 'se') {
+    height = height + deltY;
+    width = width + deltX;
+  }
+  if (resizeType === 'ne') {
+    y = y + deltY;
+    height = height - deltY;
+    width = width + deltX;
+  }
+  if (resizeType === 'nw') {
+    y = y + deltY;
+    height = height - deltY;
+    x = x + deltX;
+    width = width - deltX;
+  }
+  if (resizeType === 'sw') {
+    height = height + deltY;
+    x = x + deltX;
+    width = width - deltX;
+  }
+  return { width, height, x, y };
+}
+
+export function calRectFtrs(mouseCoord: IGrag.IXYCoord, mousedownCoord: IGrag.IXYCoord, states: Array<IGrag.IFtrStyle & { ftrId: string; }>) {
+  const left = Math.min(mouseCoord.x, mousedownCoord.x);
+  const right = Math.max(mouseCoord.x, mousedownCoord.x);
+  const top = Math.min(mouseCoord.y, mousedownCoord.y);
+  const bottom = Math.max(mouseCoord.y, mousedownCoord.y);
+  const selectedFtrs: string[] = [];
+
+  states.forEach((state) => {
+    const { x, y, height, width, ftrId } = state;
+    let xIn = false;
+    let yIn = false;
+    if ((x >= left && x <= right) || ((x + width) >= left && (x + width) <= right)) {
+      xIn = true;
+    }
+    if ((left >= x && left <= (x + width)) || (right >= x && right <= (x + width))) {
+      xIn = true;
+    }
+    if ((y >= top && y <= bottom) || ((y + height) >= top && (y + height) <= bottom)) {
+      yIn = true;
+    }
+    if ((top >= y && top <= (y + height)) || (bottom >= y && bottom <= (y + height))) {
+      yIn = true;
+    }
+    if (xIn && yIn) {
+      selectedFtrs.push(ftrId);
+    }
+  });
+  return selectedFtrs;
+}
+
 export function uuid() {
   return 'id' + Math.ceil((Math.random() * 100000)) + Math.ceil((Math.random() * 100000));
 }

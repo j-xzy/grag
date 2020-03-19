@@ -1,3 +1,4 @@
+import * as util from '@/lib/util';
 import type { ICtx } from './index';
 import type { IState } from './state';
 
@@ -43,7 +44,7 @@ export function readyRect({ getState }: ICtx) {
 }
 
 // 鼠标坐标改变
-export function mouseCoordChange({ getState }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
+export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
   const { coord, canvasId } = param;
   const state = { ...getState(), focusedCanvas: canvasId };
 
@@ -63,6 +64,46 @@ export function mouseCoordChange({ getState }: ICtx, param: { coord: IGrag.IXYCo
       x: state.mouseCoord.x - Math.floor(width / 2),
       y: state.mouseCoord.y - Math.floor(height / 2),
     };
+  }
+
+  // 计算移动后的ftr
+  if (state.isMoving && state.selectedFtrs.length) {
+    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
+    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
+    state.selectedFtrs.forEach((id) => {
+      const { x, y, width, height } = state.beforeChangeFtrStyles[id];
+      state.ftrStyles[id] = {
+        x: x + deltX,
+        y: y + deltY,
+        width, height
+      };
+    });
+  }
+
+  // 计算resize后的ftr
+  if (state.resizeType && state.selectedFtrs.length) {
+    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
+    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
+    state.selectedFtrs.forEach((id) => {
+      const style = util.calResizeStyle(
+        state.resizeType!, state.beforeChangeFtrStyles[id],
+        { deltX, deltY }
+      );
+      if (style.width > 1 && style.height > 1) {
+        state.ftrStyles[id] = style;
+      }
+    });
+  }
+
+  // 框选
+  if (state.isRect && state.focusedCanvas) {
+    const rootId = globalStore.getRoot(state.focusedCanvas).ftrId;
+    const nodes = globalStore.getDeepChildren(rootId);
+    const selectedFtrs = util.calRectFtrs(
+      state.mouseCoord, state.mousedownCoord,
+      nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrStyle(ftrId) }))
+    );
+    state.selectedFtrs = selectedFtrs;
   }
 
   return state;
