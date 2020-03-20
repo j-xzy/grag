@@ -39,7 +39,6 @@ export class EventCollect {
     // resize、move
     if ((getState().resizeType || getState().isMoving) && getState().selectedFtrs.length) {
       this.syncSelectedFtrStyle();
-      this.globalStore.refreshInteractionLayer(getState().focusedCanvas!);
     }
   }
 

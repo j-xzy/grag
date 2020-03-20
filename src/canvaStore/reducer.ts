@@ -106,6 +106,10 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
     state.selectedFtrs = selectedFtrs;
   }
 
+  if (state.resizeType || state.isMoving) {
+    state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+  }
+
   return state;
 }
 
@@ -149,7 +153,8 @@ export function setMousedown({ getState }: ICtx) {
 export function clearSelectedFtrs({ getState }: ICtx) {
   return {
     ...getState(),
-    selectedFtrs: []
+    selectedFtrs: [],
+    border: null
   };
 }
 
@@ -261,9 +266,10 @@ export function updateHoverFtr({ getState }: ICtx, ftrId: string) {
 }
 
 // 更新选中的ftr
-export function updateSelectedFtrs({ getState }: ICtx, ftrIds: string[]) {
+export function updateSelectedFtrs({ getState, globalStore }: ICtx, ftrIds: string[]) {
   return {
     ...getState(),
-    selectedFtrs: ftrIds
+    selectedFtrs: ftrIds,
+    border: util.calRect(ftrIds.map((id) => globalStore.getFtrStyle(id)))
   };
 }
