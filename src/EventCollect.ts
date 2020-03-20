@@ -36,14 +36,8 @@ export class EventCollect {
 
     this.canvaStore.dispatch('mouseCoordChange', { canvasId, coord });
 
-    // move
-    if (getState().isMoving && getState().selectedFtrs.length > 0) {
-      this.syncSelectedFtrStyle();
-      this.globalStore.refreshInteractionLayer(getState().focusedCanvas!);
-    }
-
-    // resize
-    if (getState().resizeType) {
+    // resize、move
+    if ((getState().resizeType || getState().isMoving) && getState().selectedFtrs.length) {
       this.syncSelectedFtrStyle();
       this.globalStore.refreshInteractionLayer(getState().focusedCanvas!);
     }
@@ -108,7 +102,7 @@ export class EventCollect {
 
   public ftrDropEnd(param: { compId: string; parentFtrId: string; }) {
     const { dragCompStyle } = this.canvaStore.getState();
-    
+
     if (dragCompStyle) {
       const ftrId = util.uuid();
       this.ftrMutate('insertNewFtr', {
@@ -197,7 +191,7 @@ export class EventCollect {
   }
 
   private syncSelectedFtrStyle() {
-    const {ftrStyles, selectedFtrs} = this.canvaStore.getState();
+    const { ftrStyles, selectedFtrs } = this.canvaStore.getState();
     selectedFtrs.forEach((id) => {
       this.ftrMutate('updateStyle', id, ftrStyles[id]);
     });
