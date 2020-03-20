@@ -122,6 +122,31 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
     state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
   }
 
+  // 计算guides
+  if ((state.resizeType || state.isMoving) && state.border) {
+    state.adsorbLines = {};
+    const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
+    const parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
+    if (parent) {
+      const childs = util.getChildren(parent);
+      childs.forEach(({ ftrId }) => {
+        if (!state.selectedFtrs.includes(ftrId)) {
+          const style = globalStore.getFtrStyle(ftrId);
+          if (Math.abs(style.y - state.border!.lt.y) < 5) {
+            state.selectedFtrs.forEach((id) => {
+              state.ftrStyles[id].y += style.y - state.border!.lt.y;
+            });
+            state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+            state.adsorbLines.ht = [
+              Math.min(state.border!.lt.x, style.x, state.adsorbLines.ht ? state.adsorbLines.ht[0] : Infinity),
+              Math.max(state.border!.rb.x, style.x + style.width, state.adsorbLines.ht ? state.adsorbLines.ht[1] : -Infinity)
+            ];
+          }
+        }
+      });
+    }
+  }
+
   return state;
 }
 

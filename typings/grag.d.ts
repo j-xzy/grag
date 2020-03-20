@@ -30,13 +30,13 @@ declare namespace IGrag {
     y: number;
   }
 
-  interface IAuxiliaryState {
-    ht: number;
-    hm: number;
-    hb: number;
-    vl: number;
-    vm: number;
-    vr: number;
+  interface IAdsorption {
+    ht: [number, number];
+    hm: [number, number];
+    hb: [number, number];
+    vl: [number, number];
+    vm: [number, number];
+    vr: [number, number];
   }
 
   interface IProviderConfig {

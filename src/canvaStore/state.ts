@@ -18,6 +18,7 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     isMoving: false, // 是否正在拖动
     rect: null as IGrag.IFtrStyle | null,  // 是否正在拉框
     isMousedown: false, // 鼠标是否down
-    resizeType: null as IGrag.IResizeType | null //resize时类型
+    resizeType: null as IGrag.IResizeType | null, //resize时类型
+    adsorbLines: {} as  Partial<IGrag.IAdsorption> // 吸附线
   };
 }
