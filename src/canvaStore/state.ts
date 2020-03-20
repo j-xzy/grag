@@ -12,11 +12,11 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     dragCompStyle: null as IGrag.IFtrStyle | null, // 当前拖拽组件的state
     selectedFtrs: [] as string[], // 当前选中的ftrid
     highLightFtrs: [] as IGrag.IHighLightState[], // 高亮的ftr
-    border: null as IGrag.IRect | null,
+    border: null as IGrag.IRect | null, // 选中ftr的边框 
     mouseInFtr: null as string | null, // 鼠标在ftr中的ftrid
     hoverFtr: null as string | null, // drag时hove的ftrId
     isMoving: false, // 是否正在拖动
-    isRect: false,  // 是否正在拉框
+    rect: null as IGrag.IFtrStyle | null,  // 是否正在拉框
     isMousedown: false, // 鼠标是否down
     resizeType: null as IGrag.IResizeType | null //resize时类型
   };

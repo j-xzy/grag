@@ -28,18 +28,8 @@ export function readyMoving({ getState }: ICtx) {
   return {
     ...state,
     isMoving: true,
-    isRect: false,
+    rect: null,
     beforeChangeFtrStyles: { ...state.ftrStyles }
-  };
-}
-
-// 准备框选
-export function readyRect({ getState }: ICtx) {
-  const state = { ...getState() };
-  return {
-    ...state,
-    isMoving: false,
-    isRect: true,
   };
 }
 
@@ -80,6 +70,38 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
     });
   }
 
+  // 框选
+  if (!state.resizeType && !state.isMoving && state.isMousedown && !state.mouseInFtr && state.focusedCanvas) {
+    state.isMoving = false;
+    const rootId = globalStore.getRoot(state.focusedCanvas).ftrId;
+    const nodes = globalStore.getDeepChildren(rootId);
+    const selectedFtrs = util.calRectFtrs(
+      state.mouseCoord, state.mousedownCoord,
+      nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrStyle(ftrId) }))
+    );
+    state.selectedFtrs = selectedFtrs;
+
+    let rectx = 0;
+    let recty = 0;
+    const isRight = state.mouseCoord.x > state.mousedownCoord.x;
+    const isBottom = state.mouseCoord.y > state.mousedownCoord.y;
+    if (isRight) {
+      rectx = state.mousedownCoord.x;
+    } else {
+      rectx = state.mouseCoord.x;
+    }
+    if (isBottom) {
+      recty = state.mousedownCoord.y;
+    } else {
+      recty = state.mouseCoord.y;
+    }
+    state.rect = {
+      x: rectx, y: recty,
+      width: Math.abs(state.mouseCoord.x - state.mousedownCoord.x),
+      height: Math.abs(state.mouseCoord.y - state.mousedownCoord.y),
+    };
+  }
+
   // 计算resize后的ftr
   if (state.resizeType && state.selectedFtrs.length) {
     const deltX = state.mouseCoord.x - state.mousedownCoord.x;
@@ -95,18 +117,8 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
     });
   }
 
-  // 框选
-  if (state.isRect && state.focusedCanvas) {
-    const rootId = globalStore.getRoot(state.focusedCanvas).ftrId;
-    const nodes = globalStore.getDeepChildren(rootId);
-    const selectedFtrs = util.calRectFtrs(
-      state.mouseCoord, state.mousedownCoord,
-      nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrStyle(ftrId) }))
-    );
-    state.selectedFtrs = selectedFtrs;
-  }
-
-  if (state.resizeType || state.isMoving) {
+  // 计算边框
+  if (state.rect || state.resizeType || state.isMoving) {
     state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
   }
 
@@ -134,7 +146,7 @@ export function clearAction({ getState }: ICtx) {
   return {
     ...getState(),
     isMoving: false,
-    isRect: false,
+    rect: null,
     isMousedown: false,
     resizeType: null
   };
@@ -270,6 +282,6 @@ export function updateSelectedFtrs({ getState, globalStore }: ICtx, ftrIds: stri
   return {
     ...getState(),
     selectedFtrs: ftrIds,
-    border: util.calRect(ftrIds.map((id) => globalStore.getFtrStyle(id)))
+    border: ftrIds.length ? util.calRect(ftrIds.map((id) => globalStore.getFtrStyle(id))) : null
   };
 }

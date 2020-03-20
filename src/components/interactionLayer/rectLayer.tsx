@@ -8,32 +8,12 @@ interface IProps {
 
 export function RectLayer(props: IProps) {
   const { useMappedCanvasState } = React.useContext(Context);
-  const {
-    isRect, mousedownCoord,
-    mouseCoord, focusedCanvas
-  } = useMappedCanvasState((s) => ({
-    isRect: s.isRect,
-    mousedownCoord: s.mousedownCoord,
-    mouseCoord: s.mouseCoord,
-    focusedCanvas: s.focusedCanvas
+  const { rect, focusedCanvas } = useMappedCanvasState((s) => ({
+    rect: s.rect, focusedCanvas: s.focusedCanvas
   }));
-  if (!isRect || focusedCanvas !== props.canvasId) {
-    return null;
-  }
 
-  let left = 0;
-  let top = 0;
-  const isRight = mouseCoord.x > mousedownCoord.x;
-  const isBottom = mouseCoord.y > mousedownCoord.y;
-  if (isRight) {
-    left = mousedownCoord.x;
-  } else {
-    left = mouseCoord.x;
-  }
-  if (isBottom) {
-    top = mousedownCoord.y;
-  } else {
-    top = mouseCoord.y;
+  if (!rect || focusedCanvas !== props.canvasId) {
+    return null;
   }
 
   const rectStyle: React.CSSProperties = {
@@ -43,10 +23,10 @@ export function RectLayer(props: IProps) {
     backgroundColor: 'rgba(242,242,242,0.5)',
     border: '1px solid #d8d8d8',
     boxSizing: 'border-box',
-    width: Math.abs(mouseCoord.x - mousedownCoord.x),
-    height: Math.abs(mouseCoord.y - mousedownCoord.y),
-    left,
-    top
+    width: rect.width,
+    height: rect.height,
+    left: rect.x,
+    top: rect.y
   };
   return (
     <div style={style}>
