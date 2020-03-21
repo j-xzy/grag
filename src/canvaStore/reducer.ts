@@ -2,37 +2,6 @@ import * as util from '@/lib/util';
 import type { ICtx } from './index';
 import type { IState } from './state';
 
-// 更新state
-export function updateState({ getState }: ICtx, state: Partial<IState>) {
-  return {
-    ...getState(),
-    ...state
-  };
-}
-
-// 批量更新ftrStyle
-export function updateFtrStyles({ getState }: ICtx, param: { ftrId: string; style: IGrag.IFtrStyle; }[]) {
-  const ftrStyles = { ...getState().ftrStyles };
-  param.forEach((p) => {
-    ftrStyles[p.ftrId] = p.style;
-  });
-  return {
-    ...getState(),
-    ftrStyles
-  };
-}
-
-// 准备移动
-export function readyMoving({ getState }: ICtx) {
-  const state = { ...getState() };
-  return {
-    ...state,
-    isMoving: true,
-    rect: null,
-    beforeChangeFtrStyles: { ...state.ftrStyles }
-  };
-}
-
 // 鼠标坐标改变
 export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
   const { coord, canvasId } = param;
@@ -132,22 +101,86 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
       childs.forEach(({ ftrId }) => {
         if (!state.selectedFtrs.includes(ftrId)) {
           const style = globalStore.getFtrStyle(ftrId);
-          if (Math.abs(style.y - state.border!.lt.y) < 5) {
-            state.selectedFtrs.forEach((id) => {
-              state.ftrStyles[id].y += style.y - state.border!.lt.y;
+          const ys = [style.y, style.y + style.height / 2, style.y + style.height];
+          const borderYs = {
+            ht: state.border!.lt.y,
+            hm: (state.border!.lt.y + state.border!.rb.y) / 2,
+            hb: state.border!.rb.y
+          };
+          let firstYMatch = true;
+          ys.forEach((y) => {
+            Object.keys(borderYs).forEach((type) => {
+              const borderY = borderYs[type];
+              if (Math.abs(y - borderY) < 5) {
+                if (firstYMatch) {
+                  state.selectedFtrs.forEach((id) => {
+                    state.ftrStyles[id].y += y - borderY;
+                  });
+                  state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+                  firstYMatch = false;
+                }
+                state.adsorbLines[type] = [
+                  Math.min(state.border!.lt.x, style.x, state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+                  Math.max(state.border!.rb.x, style.x + style.width, state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+                ];
+              }
             });
-            state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
-            state.adsorbLines.ht = [
-              Math.min(state.border!.lt.x, style.x, state.adsorbLines.ht ? state.adsorbLines.ht[0] : Infinity),
-              Math.max(state.border!.rb.x, style.x + style.width, state.adsorbLines.ht ? state.adsorbLines.ht[1] : -Infinity)
-            ];
-          }
+          });
+
+          const xs = [style.x, style.x + style.width / 2, style.x + style.width];
+          const borderXs = {
+            vl: state.border!.lt.x,
+            vm: (state.border!.lt.x + state.border!.rb.x) / 2,
+            vr: state.border!.rb.x
+          };
+          let firstXMatch = true;
+          xs.forEach((x) => {
+            Object.keys(borderXs).forEach((type) => {
+              const borderX = borderXs[type];
+              if (Math.abs(x - borderX) < 5) {
+                if (firstXMatch) {
+                  state.selectedFtrs.forEach((id) => {
+                    state.ftrStyles[id].x += x - borderX;
+                  });
+                  state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+                  firstXMatch = false;
+                }
+                state.adsorbLines[type] = [
+                  Math.min(state.border!.lt.y, style.y, state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+                  Math.max(state.border!.rb.y, style.y + style.height, state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+                ];
+              }
+            });
+          });
         }
       });
     }
   }
 
   return state;
+}
+
+// 批量更新ftrStyle
+export function updateFtrStyles({ getState }: ICtx, param: { ftrId: string; style: IGrag.IFtrStyle; }[]) {
+  const ftrStyles = { ...getState().ftrStyles };
+  param.forEach((p) => {
+    ftrStyles[p.ftrId] = p.style;
+  });
+  return {
+    ...getState(),
+    ftrStyles
+  };
+}
+
+// 准备移动
+export function readyMoving({ getState }: ICtx) {
+  const state = { ...getState() };
+  return {
+    ...state,
+    isMoving: true,
+    rect: null,
+    beforeChangeFtrStyles: { ...state.ftrStyles }
+  };
 }
 
 // 聚焦canvas
@@ -308,5 +341,13 @@ export function updateSelectedFtrs({ getState, globalStore }: ICtx, ftrIds: stri
     ...getState(),
     selectedFtrs: ftrIds,
     border: ftrIds.length ? util.calRect(ftrIds.map((id) => globalStore.getFtrStyle(id))) : null
+  };
+}
+
+// 更新state
+export function updateState({ getState }: ICtx, state: Partial<IState>) {
+  return {
+    ...getState(),
+    ...state
   };
 }
