@@ -97,61 +97,64 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
     const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
     const parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
     if (parent) {
-      const childs = util.getChildren(parent);
+      const childs = [parent, ...util.getChildren(parent)];
       childs.forEach(({ ftrId }) => {
         if (!state.selectedFtrs.includes(ftrId)) {
           const style = globalStore.getFtrStyle(ftrId);
-          const ys = [style.y, style.y + style.height / 2, style.y + style.height];
-          const borderYs = {
-            ht: state.border!.lt.y,
-            hm: (state.border!.lt.y + state.border!.rb.y) / 2,
-            hb: state.border!.rb.y
+          const target = {
+            y: [style.y, style.y + style.height / 2, style.y + style.height],
+            x: [style.x, style.x + style.width / 2, style.x + style.width]
           };
-          let firstYMatch = true;
-          ys.forEach((y) => {
-            Object.keys(borderYs).forEach((type) => {
-              const borderY = borderYs[type];
-              if (Math.abs(y - borderY) < 5) {
-                if (firstYMatch) {
-                  state.selectedFtrs.forEach((id) => {
-                    state.ftrStyles[id].y += y - borderY;
-                  });
-                  state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
-                  firstYMatch = false;
+          const border = {
+            y: {
+              ht: state.border!.lt.y,
+              hm: (state.border!.lt.y + state.border!.rb.y) / 2,
+              hb: state.border!.rb.y,
+            },
+            x: {
+              vl: state.border!.lt.x,
+              vm: (state.border!.lt.x + state.border!.rb.x) / 2,
+              vr: state.border!.rb.x
+            }
+          };
+          const match = { y: true, x: true };
+          Object.keys(target).forEach((k) => {
+            target[k].forEach((s) => {
+              Object.keys(border[k]).forEach((type: IGrag.IAdsorptionType) => {
+                // resize时不考虑hm、vm
+                if (!(state.resizeType && (type === 'hm' || type === 'vm'))) {
+                  const v: number = (border as any)[k][type];
+                  if (Math.abs(s - v) < 5) {
+                    if (match[k]) {
+                      if (state.resizeType) {
+                        state.selectedFtrs.forEach((id) => {
+                          state.ftrStyles[id] = util.calResizeStyle(
+                            state.resizeType!, state.ftrStyles[id],
+                            {
+                              deltX: k === 'x' ? s - v : 0,
+                              deltY: k === 'y' ? s - v : 0
+                            }
+                          );
+                        });
+                      } else {
+                        state.selectedFtrs.forEach((id) => {
+                          state.ftrStyles[id][k] += s - v;
+                        });
+                      }
+                      state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+                      match[k] = false;
+                    }
+                    const key = k === 'x' ? 'y' : 'x';
+                    state.adsorbLines[type] = [
+                      Math.min(state.border!.lt[key], style[key], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+                      Math.max(state.border!.rb[key], style[key] + (key === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+                    ];
+                  }
                 }
-                state.adsorbLines[type] = [
-                  Math.min(state.border!.lt.x, style.x, state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
-                  Math.max(state.border!.rb.x, style.x + style.width, state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
-                ];
-              }
+              });
             });
           });
 
-          const xs = [style.x, style.x + style.width / 2, style.x + style.width];
-          const borderXs = {
-            vl: state.border!.lt.x,
-            vm: (state.border!.lt.x + state.border!.rb.x) / 2,
-            vr: state.border!.rb.x
-          };
-          let firstXMatch = true;
-          xs.forEach((x) => {
-            Object.keys(borderXs).forEach((type) => {
-              const borderX = borderXs[type];
-              if (Math.abs(x - borderX) < 5) {
-                if (firstXMatch) {
-                  state.selectedFtrs.forEach((id) => {
-                    state.ftrStyles[id].x += x - borderX;
-                  });
-                  state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
-                  firstXMatch = false;
-                }
-                state.adsorbLines[type] = [
-                  Math.min(state.border!.lt.y, style.y, state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
-                  Math.max(state.border!.rb.y, style.y + style.height, state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
-                ];
-              }
-            });
-          });
         }
       });
     }
@@ -206,7 +209,8 @@ export function clearAction({ getState }: ICtx) {
     isMoving: false,
     rect: null,
     isMousedown: false,
-    resizeType: null
+    resizeType: null,
+    adsorbLines: {}
   };
 }
 

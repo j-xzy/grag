@@ -149,11 +149,11 @@ export class EventCollect {
   }
 
   public ftrMouseover(ftrId: string) {
-    const { mouseInFtr, selectedFtrs, isMoving, rect } = this.canvaStore.getState();
+    const { mouseInFtr, selectedFtrs, isMoving, rect, resizeType } = this.canvaStore.getState();
     if (mouseInFtr === ftrId || selectedFtrs.includes(ftrId)) {
       return;
     }
-    if (isMoving || rect) {
+    if (isMoving || rect || resizeType) {
       return;
     }
     this.canvaStore.dispatch('updateMouseInFtr', ftrId);

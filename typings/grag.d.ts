@@ -39,6 +39,8 @@ declare namespace IGrag {
     vr: [number, number];
   }
 
+  type IAdsorptionType = 'ht' | 'hm' | 'hb' | 'vl' | 'vm' | 'vr';
+
   interface IProviderConfig {
     color?: string;
     id?: string;
