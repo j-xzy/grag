@@ -185,7 +185,7 @@ export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IFtrS
   return { width, height, x, y };
 }
 
-export function calRectFtrs(mouseCoord: IGrag.IXYCoord, mousedownCoord: IGrag.IXYCoord, states: Array<IGrag.IFtrStyle & { ftrId: string; }>) {
+export function calSelectedFtrs(mouseCoord: IGrag.IXYCoord, mousedownCoord: IGrag.IXYCoord, states: Array<IGrag.IFtrStyle & { ftrId: string; }>) {
   const left = Math.min(mouseCoord.x, mousedownCoord.x);
   const right = Math.max(mouseCoord.x, mousedownCoord.x);
   const top = Math.min(mouseCoord.y, mousedownCoord.y);
@@ -213,6 +213,19 @@ export function calRectFtrs(mouseCoord: IGrag.IXYCoord, mousedownCoord: IGrag.IX
     }
   });
   return selectedFtrs;
+}
+
+export function calRectByStyle(style: IGrag.IFtrStyle) {
+  return {
+    lt: {
+      x: style.x,
+      y: style.y
+    },
+    rb: {
+      x: style.x + style.width,
+      y: style.y + style.height
+    }
+  } as IGrag.IRect;
 }
 
 export function uuid() {

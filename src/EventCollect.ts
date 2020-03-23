@@ -166,6 +166,7 @@ export class EventCollect {
   }
 
   public compBeginDrag(param: { compId: string; width: number; height: number; }) {
+    this.canvaStore.dispatch('clearSelectedFtrs');
     this.canvaStore.dispatch('updateDragCompSize', param);
   }
 

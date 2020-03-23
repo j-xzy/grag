@@ -23,6 +23,7 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
       x: state.mouseCoord.x - Math.floor(width / 2),
       y: state.mouseCoord.y - Math.floor(height / 2),
     };
+    state.border = util.calRectByStyle(state.dragCompStyle);
   }
 
   // 计算移动后的ftr
@@ -44,7 +45,7 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
     state.isMoving = false;
     const rootId = globalStore.getRoot(state.focusedCanvas).ftrId;
     const nodes = globalStore.getDeepChildren(rootId);
-    const selectedFtrs = util.calRectFtrs(
+    const selectedFtrs = util.calSelectedFtrs(
       state.mouseCoord, state.mousedownCoord,
       nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrStyle(ftrId) }))
     );
@@ -92,10 +93,16 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
   }
 
   // 计算guides
-  if ((state.resizeType || state.isMoving) && state.border) {
+  if ((state.resizeType || state.isMoving || state.dragCompStyle) && state.border) {
     state.adsorbLines = {};
-    const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
-    const parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
+    let parent: IGrag.IFtrNode | null = null;
+    if (state.dragCompStyle) {
+      // 正在drag时的parent为hoverftr
+      parent = globalStore.getNodeByFtrId(state.hoverFtr!);
+    } else {
+      const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
+      parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
+    }
     if (parent) {
       const childs = [parent, ...util.getChildren(parent)];
       childs.forEach(({ ftrId }) => {
@@ -124,8 +131,9 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
                 // resize时不考虑hm、vm
                 if (!(state.resizeType && (type === 'hm' || type === 'vm'))) {
                   const v: number = (border as any)[k][type];
-                  if (Math.abs(s - v) < 5) {
-                    if (match[k]) {
+                  const delt = Math.abs(s - v);
+                  if ((state.dragCompStyle && delt === 0) || (!state.dragCompStyle && delt < 5)) {
+                    if (match[k] && !state.dragCompStyle) {
                       if (state.resizeType) {
                         state.selectedFtrs.forEach((id) => {
                           state.ftrStyles[id] = util.calResizeStyle(
@@ -154,7 +162,6 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
               });
             });
           });
-
         }
       });
     }
@@ -210,7 +217,9 @@ export function clearAction({ getState }: ICtx) {
     rect: null,
     isMousedown: false,
     resizeType: null,
-    adsorbLines: {}
+    adsorbLines: {},
+    dragCompStyle: null,
+    hoverFtr: null
   };
 }
 
@@ -247,6 +256,7 @@ export function updateCanvasRect({ getState }: ICtx, param: { id: string; rect: 
 export function clearDragState({ getState }: ICtx) {
   return {
     ...getState(),
+    adsorbLines: {},
     dragCompStyle: null,
     hoverFtr: null
   };

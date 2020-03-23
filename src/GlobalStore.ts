@@ -187,6 +187,7 @@ export class GlobalStore {
     if (root) {
       return util.getNodeByFtrId(root, ftrId);
     }
+    return null;
   }
 
   /**
