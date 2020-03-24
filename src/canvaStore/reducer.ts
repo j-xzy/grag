@@ -3,10 +3,21 @@ import type { ICtx } from './index';
 import type { IState } from './state';
 
 // 鼠标坐标改变
-export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
+export function mouseCoordChange({ getState, doAction }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
+  doAction('updateMouseCoord', param);
+  doAction('dragging');
+  doAction('moving');
+  doAction('recting');
+  doAction('resizing');
+  doAction('updateBorder');
+  doAction('updateGuides');
+  return getState();
+}
+
+// 更新mouseCoord
+export function updateMouseCoord({ getState }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
   const { coord, canvasId } = param;
   const state = { ...getState(), focusedCanvas: canvasId };
-
   // 计算 mouseCoord
   const canvasRect = state.canvasRects[canvasId];
   const mouseCoord = {
@@ -14,7 +25,12 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
     y: coord.y - canvasRect.y
   };
   state.mouseCoord = mouseCoord;
+  return state;
+}
 
+// dragging
+export function dragging({ getState }: ICtx) {
+  const state = getState();
   // 计算拖拽的compState
   if (state.dragCompStyle && state.hoverFtr) {
     const { width, height } = state.dragCompStyle;
@@ -25,7 +41,12 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
     };
     state.border = util.calRectByStyle(state.dragCompStyle);
   }
+  return state;
+}
 
+// moveing
+export function moving({ getState }: ICtx) {
+  const state = getState();
   // 计算移动后的ftr
   if (state.isMoving && state.selectedFtrs.length) {
     const deltX = state.mouseCoord.x - state.mousedownCoord.x;
@@ -39,7 +60,12 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
       };
     });
   }
+  return state;
+}
 
+// 框选
+export function recting({ getState, globalStore }: ICtx) {
+  const state = getState();
   // 框选
   if (!state.resizeType && !state.isMoving && state.isMousedown && !state.mouseInFtr && state.focusedCanvas) {
     state.isMoving = false;
@@ -71,7 +97,12 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
       height: Math.abs(state.mouseCoord.y - state.mousedownCoord.y),
     };
   }
+  return state;
+}
 
+// resize
+export function resizing({ getState }: ICtx) {
+  const state = getState();
   // 计算resize后的ftr
   if (state.resizeType && state.selectedFtrs.length) {
     const deltX = state.mouseCoord.x - state.mousedownCoord.x;
@@ -86,16 +117,29 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
       }
     });
   }
+  return state;
+}
 
+// 更新border
+export function updateBorder({ getState }: ICtx) {
+  const state = getState();
   // 计算边框
   if (state.rect || state.resizeType || state.isMoving) {
     state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
   }
+  return state;
+}
 
-  // 计算guides
+// 更新guides
+export function updateGuides({ getState, globalStore }: ICtx) {
+  const state = getState();
   if ((state.resizeType || state.isMoving || state.dragCompStyle) && state.border) {
     state.adsorbLines = {};
     let parent: IGrag.IFtrNode | null = null;
+    const type2Key: Record<IGrag.IAdsorptionType, 'x' | 'y'> = {
+      ht: 'x', hm: 'x', hb: 'x',
+      vl: 'y', vm: 'y', vr: 'y'
+    };
     if (state.dragCompStyle) {
       // 正在drag时的parent为hoverftr
       parent = globalStore.getNodeByFtrId(state.hoverFtr!);
@@ -152,11 +196,8 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
                       state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
                       match[k] = false;
                     }
-                    const key = k === 'x' ? 'y' : 'x';
-                    state.adsorbLines[type] = [
-                      Math.min(state.border!.lt[key], style[key], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
-                      Math.max(state.border!.rb[key], style[key] + (key === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
-                    ];
+                    const key = type2Key[type];
+                    state.adsorbLines[type] = [style[key], style[key] + (key === 'x' ? style.width : style.height)];
                   }
                 }
               });
@@ -164,9 +205,15 @@ export function mouseCoordChange({ getState, globalStore }: ICtx, param: { coord
           });
         }
       });
+      Object.keys(state.adsorbLines).forEach((type) => {
+        const key = type2Key[type];
+        state.adsorbLines[type] = [
+          Math.min(state.border!.lt[key], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+          Math.max(state.border!.rb[key], state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+        ];
+      });
     }
   }
-
   return state;
 }
 

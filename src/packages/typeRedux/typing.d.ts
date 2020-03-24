@@ -7,16 +7,18 @@ declare global {
       [p: string]: T;
     }
 
-    type IAction<S> = (ctx: IContext<S>, payload: any) => S;
+    type IAction<S> = (ctx: IContext<S, any>, payload: any) => S;
 
     type IReducers<S> = IKeyValue<IAction<S>>;
 
-    interface IContext<S> {
+    interface IContext<S, R extends IReducers<S>> {
       getState: () => S;
       getLastState: () => S;
+      doAction: IDoAction<S, R>;
     }
 
     type IDispatch<S, R extends IReducers<S>> = <K extends keyof R>(action: K, payload?: Parameters<R[K]>[1]) => void;
+    type IDoAction<S, R extends IReducers<S>> = <K extends keyof R>(action: K, payload?: Parameters<R[K]>[1]) => S;
 
     type IMappedStateFunc<S, R> = (state: S) => R;
 

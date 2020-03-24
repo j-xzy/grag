@@ -3,7 +3,7 @@ import type { GlobalStore } from '@/GlobalStore';
 
 declare global {
   namespace ITypeRedux {
-    interface IContext<S> {
+    interface IContext<S, R extends IReducers<S>> {
       globalStore: GlobalStore;
     }
   }
