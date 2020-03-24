@@ -40,15 +40,17 @@ declare namespace IGrag {
   }
 
   interface IDistLines {
-    left: IDistLine;
-    right: IDistLine;
-    top: IDistLine;
-    bottom: IDistLine;
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
   }
 
-  interface IDistLine {
-    dist: number;
-    dash: boolean;
+  interface IDashLines {
+    left: [number, number];
+    right: [number, number];
+    top: [number, number];
+    bottom: [number, number];
   }
 
   type IAdsorptionType = 'ht' | 'hm' | 'hb' | 'vl' | 'vm' | 'vr';

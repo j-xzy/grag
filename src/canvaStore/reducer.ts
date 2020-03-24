@@ -135,11 +135,17 @@ export function updateGuides({ getState, globalStore }: ICtx) {
   const state = getState();
   if ((state.resizeType || state.isMoving || state.dragCompStyle) && state.border) {
     state.adsorbLines = {};
-    let parent: IGrag.IFtrNode | null = null;
+    state.distLines = {};
     const type2Key: Record<IGrag.IAdsorptionType, 'x' | 'y'> = {
       ht: 'x', hm: 'x', hb: 'x',
       vl: 'y', vm: 'y', vr: 'y'
     };
+    const type2Dist: Record<IGrag.IAdsorptionType, Array<keyof IGrag.IDistLines>> = {
+      ht: ['left', 'right'], hm: ['left', 'right'], hb: ['left', 'right'],
+      vl: ['top', 'bottom'], vm: ['top', 'bottom'], vr: ['top', 'bottom']
+    };
+
+    let parent: IGrag.IFtrNode | null = null;
     if (state.dragCompStyle) {
       // 正在drag时的parent为hoverftr
       parent = globalStore.getNodeByFtrId(state.hoverFtr!);
@@ -196,11 +202,29 @@ export function updateGuides({ getState, globalStore }: ICtx) {
                       state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
                       match[k] = false;
                     }
-                    const key = type2Key[type];
+                    const xy = type2Key[type];
+                    const widthHeight = xy === 'x' ? 'width' : 'height';
+
+                    // 对齐线
                     state.adsorbLines[type] = [
-                      Math.min(style[key], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
-                      Math.max(style[key] + (key === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+                      Math.min(style[xy], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+                      Math.max(style[xy] + (xy === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
                     ];
+
+                    // 距离线
+                    type2Dist[type].forEach((side) => {
+                      if (side === 'left' || side === 'top') {
+                        if ((style[xy] + style[widthHeight]) < state.border!.lt[xy]) {
+                          state.distLines[side] =  Math.min(state.border!.lt[xy] - style[xy] - style[widthHeight], state.distLines[side] ?? Infinity);
+                        }
+                      }
+                      if (side === 'right' || side === 'bottom') {
+                        if (style[xy] > state.border!.rb[xy]) {
+                          state.distLines[side] = Math.min(style[xy] - state.border!.rb[xy], state.distLines[side] ?? Infinity);
+                        }
+                      }
+                    });
+
                   }
                 }
               });
