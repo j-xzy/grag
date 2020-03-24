@@ -197,7 +197,10 @@ export function updateGuides({ getState, globalStore }: ICtx) {
                       match[k] = false;
                     }
                     const key = type2Key[type];
-                    state.adsorbLines[type] = [style[key], style[key] + (key === 'x' ? style.width : style.height)];
+                    state.adsorbLines[type] = [
+                      Math.min(style[key], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+                      Math.max(style[key] + (key === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+                    ];
                   }
                 }
               });

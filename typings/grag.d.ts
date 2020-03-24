@@ -39,6 +39,18 @@ declare namespace IGrag {
     vr: [number, number];
   }
 
+  interface IDistLines {
+    left: IDistLine;
+    right: IDistLine;
+    top: IDistLine;
+    bottom: IDistLine;
+  }
+
+  interface IDistLine {
+    dist: number;
+    dash: boolean;
+  }
+
   type IAdsorptionType = 'ht' | 'hm' | 'hb' | 'vl' | 'vm' | 'vr';
 
   interface IProviderConfig {

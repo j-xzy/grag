@@ -8,10 +8,11 @@ interface IProps {
 
 export function Guides(props: IProps) {
   const { useMappedCanvasState } = React.useContext(Context);
-  const { focusedCanvas, border, adsorbLines } = useMappedCanvasState((s) => ({
+  const { focusedCanvas, border, adsorbLines, distLines } = useMappedCanvasState((s) => ({
     focusedCanvas: s.focusedCanvas,
     border: s.border,
-    adsorbLines: s.adsorbLines
+    adsorbLines: s.adsorbLines,
+    distLines: s.distLines
   }));
   if (focusedCanvas !== props.canvasId || !border) {
     return null;
@@ -19,7 +20,8 @@ export function Guides(props: IProps) {
 
   return (
     <div style={style}>
-      {adsorbLines && <AdsorbLines border={border} lines={adsorbLines} />}
+      <AdsorbLines border={border} lines={adsorbLines} />
+      <DistLines border={border} lines={distLines} />
     </div>
   );
 }
@@ -40,6 +42,24 @@ function AdsorbLines(props: { border: IGrag.IRect; lines: Partial<IGrag.IAdsorpt
       {lines.vl && <div style={{ ...style, left: border.lt.x, top: lines.vl[0], height: lines.vl[1] - lines.vl[0] }}></div>}
       {lines.vm && <div style={{ ...style, left: (border.lt.x + border.rb.x) / 2, top: lines.vm[0], height: lines.vm[1] - lines.vm[0] }}></div>}
       {lines.vr && <div style={{ ...style, left: border.rb.x, top: lines.vr[0], height: lines.vr[1] - lines.vr[0] }}></div>}
+    </>
+  );
+}
+
+function DistLines(props: { border: IGrag.IRect; lines: Partial<IGrag.IDistLines>; }) {
+  const { border, lines } = props;
+  const style: React.CSSProperties = {
+    position: 'absolute',
+    backgroundColor: '#007bff',
+    height: 1,
+    width: 1
+  };
+  return (
+    <>
+      {lines.left && <div style={{ ...style, left: border.lt.x + lines.left.dist, top: (border.lt.y + border.rb.y) / 2, width: lines.left.dist }} />}
+      {lines.right && <div style={{ ...style, left: border.rb.x, top: (border.lt.y + border.rb.y) / 2, width: lines.right.dist }} />}
+      {lines.top && <div style={{ ...style, left: (border.lt.x + border.rb.x) / 2, top: border.lt.y + lines.top.dist, height: lines.top.dist }} />}
+      {lines.bottom && <div style={{ ...style, left: (border.lt.x + border.rb.x) / 2, top: border.rb.y, height: lines.bottom.dist }} />}
     </>
   );
 }
