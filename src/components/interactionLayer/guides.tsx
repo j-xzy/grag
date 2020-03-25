@@ -22,8 +22,8 @@ export function Guides(props: IProps) {
   return (
     <div style={style}>
       <AdsorbLines border={border} lines={adsorbLines} />
-      <DistLines border={border} lines={distLines} />
       <DashLines border={border} dashLines={dashLines} distLines={distLines} />
+      <DistLines border={border} lines={distLines} />
     </div>
   );
 }

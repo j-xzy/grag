@@ -138,6 +138,7 @@ export function updateGuides({ getState, globalStore }: ICtx) {
     const closestStyles: Partial<Record<IGrag.ISides, IGrag.IFtrStyle>> = {};
     state.adsorbLines = {};
     state.distLines = {};
+    state.dashLines = {};
     const type2Key: Record<IGrag.IAdsorptionType, 'x' | 'y'> = {
       ht: 'x', hm: 'x', hb: 'x',
       vl: 'y', vm: 'y', vr: 'y'
@@ -220,7 +221,7 @@ export function updateGuides({ getState, globalStore }: ICtx) {
                         const distDelt = state.border!.lt[xy] - p;
                         if (distDelt >= adsorbDist) {
                           if (!closestStyles[side] || (closestStyles[side]![xy] + closestStyles[side]![widthHeight] < p)) {
-                            closestStyles[side] = style; 
+                            closestStyles[side] = style;
                           }
                         }
                       }
@@ -228,7 +229,7 @@ export function updateGuides({ getState, globalStore }: ICtx) {
                         const distDelt = style[xy] - state.border!.rb[xy];
                         if (distDelt >= adsorbDist) {
                           if (!closestStyles[side] || (style[xy] < closestStyles[side]![xy])) {
-                            closestStyles[side] = style; 
+                            closestStyles[side] = style;
                           }
                         }
                       }
@@ -255,13 +256,26 @@ export function updateGuides({ getState, globalStore }: ICtx) {
         const xy = (side === 'left' || side === 'right') ? 'x' : 'y';
         const widthHeight = xy === 'x' ? 'width' : 'height';
         if (side === 'left' || side === 'top') {
-          state.distLines[side] = state.border!.lt[xy] - closestStyles[side]![widthHeight] -  closestStyles[side]![xy];
+          state.distLines[side] = state.border!.lt[xy] - closestStyles[side]![widthHeight] - closestStyles[side]![xy];
         }
         if (side === 'right' || side === 'bottom') {
           state.distLines[side] = closestStyles[side]![xy] - state.border!.rb[xy];
         }
-      });  
+      });
 
+      // 根据最近的ftrstyle计算dashlines
+      Object.keys(closestStyles).forEach((side) => {
+        const xy = (side === 'left' || side === 'right') ? 'y' : 'x';
+        const widthHeight = xy === 'x' ? 'width' : 'height';
+        const mid = (state.border!.lt[xy] + state.border!.rb[xy]) / 2;
+        if (mid > closestStyles[side]![xy] + closestStyles[side]![widthHeight]) {
+          state.dashLines[side] = [closestStyles[side]![xy] + closestStyles[side]![widthHeight], state.border!.rb[xy]];
+        } else if (mid < closestStyles[side]![xy]) {
+          state.dashLines[side] = [state.border!.lt[xy], closestStyles[side]![xy]];
+        } else {
+          delete state.dashLines[side];
+        }
+      });
     }
   }
   return state;
@@ -315,8 +329,10 @@ export function clearAction({ getState }: ICtx) {
     isMousedown: false,
     resizeType: null,
     adsorbLines: {},
+    distLines: {},
+    dashLines: {},
     dragCompStyle: null,
-    hoverFtr: null
+    hoverFtr: null,
   };
 }
 
