@@ -25,7 +25,6 @@ export default {
 		ts({
 			transpiler: 'babel',
 			babelConfig: path.resolve(__dirname, '../babel.config.js'),
-			transpileOnly: true
 			// transpileOnly: true
 		}),
 		resolve({

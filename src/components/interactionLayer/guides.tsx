@@ -8,11 +8,12 @@ interface IProps {
 
 export function Guides(props: IProps) {
   const { useMappedCanvasState } = React.useContext(Context);
-  const { focusedCanvas, border, adsorbLines, distLines } = useMappedCanvasState((s) => ({
+  const { focusedCanvas, border, adsorbLines, distLines, dashLines } = useMappedCanvasState((s) => ({
     focusedCanvas: s.focusedCanvas,
     border: s.border,
     adsorbLines: s.adsorbLines,
-    distLines: s.distLines
+    distLines: s.distLines,
+    dashLines: s.dashLines
   }));
   if (focusedCanvas !== props.canvasId || !border) {
     return null;
@@ -22,6 +23,7 @@ export function Guides(props: IProps) {
     <div style={style}>
       <AdsorbLines border={border} lines={adsorbLines} />
       <DistLines border={border} lines={distLines} />
+      <DashLines border={border} dashLines={dashLines} distLines={distLines} />
     </div>
   );
 }
@@ -107,6 +109,23 @@ function DistLine(props: { style: React.CSSProperties; }) {
         <div style={{ ...innerStyle, width: iWidth, height: iHeight }}></div>
       </div>
       <div style={distStyle}>{dist}</div>
+    </>
+  );
+}
+
+function DashLines(props: { border: IGrag.IRect; dashLines: Partial<IGrag.IDashLines>; distLines: Partial<IGrag.IDistLines>; }) {
+  const { dashLines, distLines, border } = props;
+  const style: React.CSSProperties = {
+    position: 'absolute',
+    border: '1px dashed #ff0000',
+    display: 'inline-block'
+  };
+  return (
+    <>
+      {dashLines.left && distLines.left && <div style={{ ...style, left: border.lt.x - distLines.left - 2, top: dashLines.left[0], height: dashLines.left[1] - dashLines.left[0] }}></div>}
+      {dashLines.right && distLines.right && <div style={{ ...style, left: border.rb.x + distLines.right, top: dashLines.right[0], height: dashLines.right[1] - dashLines.right[0] }}></div>}
+      {dashLines.top && distLines.top && <div style={{ ...style, top: border.lt.y - distLines.top - 2, left: dashLines.top[0], width: dashLines.top[1] - dashLines.top[0] }}></div>}
+      {dashLines.bottom && distLines.bottom && <div style={{ ...style, top: border.rb.y + distLines.bottom, left: dashLines.bottom[0], width: dashLines.bottom[1] - dashLines.bottom[0] }}></div>}
     </>
   );
 }

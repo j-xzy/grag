@@ -132,15 +132,17 @@ export function updateBorder({ getState }: ICtx) {
 
 // 更新guides
 export function updateGuides({ getState, globalStore }: ICtx) {
+  const adsorbDist = 5;
   const state = getState();
   if ((state.resizeType || state.isMoving || state.dragCompStyle) && state.border) {
+    const closestStyles: Partial<Record<IGrag.ISides, IGrag.IFtrStyle>> = {};
     state.adsorbLines = {};
     state.distLines = {};
     const type2Key: Record<IGrag.IAdsorptionType, 'x' | 'y'> = {
       ht: 'x', hm: 'x', hb: 'x',
       vl: 'y', vm: 'y', vr: 'y'
     };
-    const type2Dist: Record<IGrag.IAdsorptionType, Array<keyof IGrag.IDistLines>> = {
+    const type2Dist: Record<IGrag.IAdsorptionType, Array<IGrag.ISides>> = {
       ht: ['left', 'right'], hm: ['left', 'right'], hb: ['left', 'right'],
       vl: ['top', 'bottom'], vm: ['top', 'bottom'], vr: ['top', 'bottom']
     };
@@ -182,7 +184,7 @@ export function updateGuides({ getState, globalStore }: ICtx) {
                 if (!(state.resizeType && (type === 'hm' || type === 'vm'))) {
                   const v: number = (border as any)[k][type];
                   const delt = Math.abs(s - v);
-                  if ((state.dragCompStyle && delt === 0) || (!state.dragCompStyle && delt < 5)) {
+                  if ((state.dragCompStyle && delt === 0) || (!state.dragCompStyle && delt < adsorbDist)) {
                     if (match[k] && !state.dragCompStyle) {
                       if (state.resizeType) {
                         state.selectedFtrs.forEach((id) => {
@@ -211,16 +213,23 @@ export function updateGuides({ getState, globalStore }: ICtx) {
                       Math.max(style[xy] + (xy === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
                     ];
 
-                    // 距离线
+                    // 最近的ftr
                     type2Dist[type].forEach((side) => {
                       if (side === 'left' || side === 'top') {
-                        if ((style[xy] + style[widthHeight]) < state.border!.lt[xy]) {
-                          state.distLines[side] =  Math.min(state.border!.lt[xy] - style[xy] - style[widthHeight], state.distLines[side] ?? Infinity);
+                        const p = style[xy] + style[widthHeight];
+                        const distDelt = state.border!.lt[xy] - p;
+                        if (distDelt >= adsorbDist) {
+                          if (!closestStyles[side] || (closestStyles[side]![xy] + closestStyles[side]![widthHeight] < p)) {
+                            closestStyles[side] = style; 
+                          }
                         }
                       }
                       if (side === 'right' || side === 'bottom') {
-                        if (style[xy] > state.border!.rb[xy]) {
-                          state.distLines[side] = Math.min(style[xy] - state.border!.rb[xy], state.distLines[side] ?? Infinity);
+                        const distDelt = style[xy] - state.border!.rb[xy];
+                        if (distDelt >= adsorbDist) {
+                          if (!closestStyles[side] || (style[xy] < closestStyles[side]![xy])) {
+                            closestStyles[side] = style; 
+                          }
                         }
                       }
                     });
@@ -232,6 +241,7 @@ export function updateGuides({ getState, globalStore }: ICtx) {
           });
         }
       });
+      // border计算完成后重新计算adsorbLines
       Object.keys(state.adsorbLines).forEach((type) => {
         const key = type2Key[type];
         state.adsorbLines[type] = [
@@ -239,6 +249,19 @@ export function updateGuides({ getState, globalStore }: ICtx) {
           Math.max(state.border!.rb[key], state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
         ];
       });
+
+      // 根据最近的ftrstyle计算distLines
+      Object.keys(closestStyles).forEach((side) => {
+        const xy = (side === 'left' || side === 'right') ? 'x' : 'y';
+        const widthHeight = xy === 'x' ? 'width' : 'height';
+        if (side === 'left' || side === 'top') {
+          state.distLines[side] = state.border!.lt[xy] - closestStyles[side]![widthHeight] -  closestStyles[side]![xy];
+        }
+        if (side === 'right' || side === 'bottom') {
+          state.distLines[side] = closestStyles[side]![xy] - state.border!.rb[xy];
+        }
+      });  
+
     }
   }
   return state;

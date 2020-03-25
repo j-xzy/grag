@@ -39,19 +39,10 @@ declare namespace IGrag {
     vr: [number, number];
   }
 
-  interface IDistLines {
-    left: number;
-    right: number;
-    top: number;
-    bottom: number;
-  }
+  type IDistLines = Record<ISides, number>;
+  type IDashLines = Record<ISides, [number, number]>;
 
-  interface IDashLines {
-    left: [number, number];
-    right: [number, number];
-    top: [number, number];
-    bottom: [number, number];
-  }
+  type ISides = 'left' | 'right' | 'top' | 'bottom';
 
   type IAdsorptionType = 'ht' | 'hm' | 'hb' | 'vl' | 'vm' | 'vr';
 
