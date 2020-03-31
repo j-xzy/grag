@@ -5,10 +5,10 @@ export class GlobalStore {
   private compInfos: IGrag.ICompInfos = {
     [RootCompId]: RootInfo
   }; // compId到react组件映射
-  private domMap: IGrag.IDomMap = {}; // ftrId到dom的映射
+  private domMap: IGrag.IDoms = {}; // ftrId到dom的映射
   private ftrId2CanvasId: IGrag.IIndexable<string> = {}; // ftrId到canvasId的映射
   private ftrId2Node: IGrag.IIndexable<IGrag.IFtrNode> = {}; // ftrId到node的映射
-  private canvasId2Root: IGrag.IRootMap = {}; // canvasId到root的映射
+  private canvasId2Root: IGrag.IRoots = {}; // canvasId到root的映射
   private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
   private interactionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
   private renderLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};

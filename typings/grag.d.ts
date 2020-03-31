@@ -15,15 +15,15 @@ declare namespace IGrag {
     [compId: string]: ICompInfo;
   }
 
-  interface IDomMap {
+  interface IDoms {
     [ftrid: string]: HTMLElement;
   }
 
-  interface IRootMap {
+  interface IRoots {
     [canvasId: string]: IGrag.IFtrNode;
   }
 
-  interface IFtrStyle {
+  interface IStyle {
     width: number;
     height: number;
     x: number;

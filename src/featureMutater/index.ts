@@ -2,14 +2,14 @@ import * as util from '@/lib/util';
 import { GlobalStore } from '@/GlobalStore';
 import { ICanvasStore } from '@/canvaStore';
 
-interface IInsertNewFtrParam extends IGrag.IFtrStyle {
+interface IInsertNewFtrParam extends IGrag.IStyle {
   parentFtrId: string;
   compId: string;
   ftrId: string;
 }
 
 export interface IFtrSubActMap {
-  updateStyle: IGrag.IFtrStyle;
+  updateStyle: IGrag.IStyle;
 }
 
 export type IFtrMutate = FeatureMutater['mutate'];
@@ -48,11 +48,11 @@ export class FeatureMutater {
     }
   }
 
-  public updateStyle(ftrId: string, style: IGrag.IFtrStyle) {
+  public updateStyle(ftrId: string, style: IGrag.IStyle) {
     const lastStyle = this.globalStore.getFtrStyle(ftrId);
     const deltX = style.x - lastStyle.x;
     const deltY = style.y - lastStyle.y;
-    const styles: Array<{ ftrId: string; style: IGrag.IFtrStyle; }> = [];
+    const styles: Array<{ ftrId: string; style: IGrag.IStyle; }> = [];
 
     // update child
     if (deltX !== 0 || deltY !== 0) {

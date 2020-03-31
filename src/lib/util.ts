@@ -93,7 +93,7 @@ export function removeNode<T extends IGrag.INode<T>>(node: T) {
   }
 }
 
-export function isInside(source: IGrag.IFtrStyle, target: IGrag.IFtrStyle) {
+export function isInside(source: IGrag.IStyle, target: IGrag.IStyle) {
   if (source.x < target.x || source.y < target.y) {
     return false;
   }
@@ -111,7 +111,7 @@ export function moveIn<T extends IGrag.INode<T>>(source: T, target: T) {
   appendChild(target, source);
 }
 
-export function calRect(styles: IGrag.IFtrStyle[]) {
+export function calRect(styles: IGrag.IStyle[]) {
   const rect = {
     lt: { x: Infinity, y: Infinity },
     rb: { x: -Infinity, y: -Infinity }
@@ -145,7 +145,7 @@ export function lowestCommonAncestor<T extends IGrag.INode<T>>(nodes: T[]) {
   }
 }
 
-export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IFtrStyle, delt: { deltX: number; deltY: number; }) {
+export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IStyle, delt: { deltX: number; deltY: number; }) {
   let { x, y, width, height } = style;
   const { deltX, deltY } = delt;
   if (resizeType === 'e') {
@@ -185,7 +185,7 @@ export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IFtrS
   return { width, height, x, y };
 }
 
-export function calSelectedFtrs(mouseCoord: IGrag.IXYCoord, mousedownCoord: IGrag.IXYCoord, states: Array<IGrag.IFtrStyle & { ftrId: string; }>) {
+export function calSelectedFtrs(mouseCoord: IGrag.IXYCoord, mousedownCoord: IGrag.IXYCoord, states: Array<IGrag.IStyle & { ftrId: string; }>) {
   const left = Math.min(mouseCoord.x, mousedownCoord.x);
   const right = Math.max(mouseCoord.x, mousedownCoord.x);
   const top = Math.min(mouseCoord.y, mousedownCoord.y);
@@ -215,7 +215,7 @@ export function calSelectedFtrs(mouseCoord: IGrag.IXYCoord, mousedownCoord: IGra
   return selectedFtrs;
 }
 
-export function calRectByStyle(style: IGrag.IFtrStyle) {
+export function calRectByStyle(style: IGrag.IStyle) {
   return {
     lt: {
       x: style.x,

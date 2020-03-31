@@ -135,7 +135,7 @@ export function updateGuides({ getState, globalStore }: ICtx) {
   const adsorbDist = 5;
   const state = getState();
   if ((state.resizeType || state.isMoving || state.dragCompStyle) && state.border) {
-    const closestStyles: Partial<Record<IGrag.ISides, IGrag.IFtrStyle>> = {};
+    const closestStyles: Partial<Record<IGrag.ISides, IGrag.IStyle>> = {};
     state.adsorbLines = {};
     state.distLines = {};
     state.dashLines = {};
@@ -282,7 +282,7 @@ export function updateGuides({ getState, globalStore }: ICtx) {
 }
 
 // 批量更新ftrStyle
-export function updateFtrStyles({ getState }: ICtx, param: { ftrId: string; style: IGrag.IFtrStyle; }[]) {
+export function updateFtrStyles({ getState }: ICtx, param: { ftrId: string; style: IGrag.IStyle; }[]) {
   const ftrStyles = { ...getState().ftrStyles };
   param.forEach((p) => {
     ftrStyles[p.ftrId] = p.style;
