@@ -4,7 +4,7 @@ import { useInitial } from '@/hooks/useInitial';
 import { HighLightLayer } from './highLightLayer';
 import { ResizeLayer } from './resizeLayer';
 import { BoxLayer } from './boxLayer';
-import { Guides } from './guides';
+import { GuideLayer } from './guideLayer';
 import { style } from './style';
 import { Context } from '../provider';
 
@@ -19,7 +19,7 @@ export function ActionLayer(props: { canvasId: string; }) {
       <HighLightLayer canvasId={props.canvasId} />
       <ResizeLayer canvasId={props.canvasId} />
       <BoxLayer canvasId={props.canvasId} />
-      <Guides canvasId={props.canvasId} />
+      <GuideLayer canvasId={props.canvasId} />
     </div>
   );
 }

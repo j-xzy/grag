@@ -60,7 +60,7 @@ function Border(props: { box: IGrag.IBox; }) {
     backgroundColor: 'rgba(0,0,0,0)',
     border: '1px solid #d8d8d8'
   };
-  return <div style={style}></div>;
+  return <div style={style} />;
 }
 
 function Handler(props: IHandlerProps) {

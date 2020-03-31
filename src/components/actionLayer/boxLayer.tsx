@@ -30,7 +30,7 @@ export function BoxLayer(props: IProps) {
   };
   return (
     <div style={style}>
-      <div style={rectStyle}></div>
+      <div style={rectStyle} />
     </div>
   );
 }

@@ -19,6 +19,6 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     box: null as IGrag.IStyle | null,  // 是否正在拉框
     isMousedown: false, // 鼠标是否down
     resizeType: null as IGrag.IResizeType | null, //resize时类型
-    guideLines: {} as IGrag.IIndexable<IGrag.IGuideLine>
+    guideLines: [] as IGrag.IGuideLine[]
   };
 }

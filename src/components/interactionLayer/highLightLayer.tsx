@@ -38,5 +38,5 @@ function HighLight(props: IHighLightProps) {
     width: props.width + 4,
     height: props.height + 4
   };
-  return <div style={style}></div>;
+  return <div style={style} />;
 }
