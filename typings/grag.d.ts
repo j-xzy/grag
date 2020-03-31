@@ -51,7 +51,7 @@ declare namespace IGrag {
     id?: string;
   }
 
-  interface IHighLightState {
+  interface IHighLight {
     ftrId: string;
     id: string;
     color: string;
