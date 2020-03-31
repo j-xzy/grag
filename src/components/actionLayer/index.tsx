@@ -1,14 +1,14 @@
 import * as React from 'react';
+import { useForceUpdate } from '@/hooks/useForceUpdate';
+import { useInitial } from '@/hooks/useInitial';
 import { HighLightLayer } from './highLightLayer';
 import { ResizeLayer } from './resizeLayer';
 import { BoxLayer } from './boxLayer';
 import { Guides } from './guides';
 import { style } from './style';
 import { Context } from '../provider';
-import { useForceUpdate } from '@/hooks/useForceUpdate';
-import { useInitial } from '@/hooks/useInitial';
 
-export function InteractionLayer(props: { canvasId: string; }) {
+export function ActionLayer(props: { canvasId: string; }) {
   const { globalStore } = React.useContext(Context);
   const forceUpdate = useForceUpdate();
   useInitial(() => {

@@ -10,8 +10,8 @@ export class GlobalStore {
   private ftrId2Node: IGrag.IIndexable<IGrag.IFtrNode> = {}; // ftrId到node的映射
   private canvasId2Root: IGrag.IRoots = {}; // canvasId到root的映射
   private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
-  private interactionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
-  private renderLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
+  private actionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
+  private featureLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
 
   /**
    * 得到组件的相关信息
@@ -101,28 +101,28 @@ export class GlobalStore {
    * 注册刷新ftrlayer
    */
   public subscribeFeatureLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
-    this.renderLayerForceUpdateMap[canvasId] = forceUpdate;
+    this.featureLayerForceUpdateMap[canvasId] = forceUpdate;
   }
 
   /**
    * 刷新ftrlayer
    */
   public refreshFeatureLayer(canvasId: string) {
-    this.renderLayerForceUpdateMap[canvasId].call(null);
+    this.featureLayerForceUpdateMap[canvasId].call(null);
   }
 
   /**
-   * 注册刷新InteractionLayer
+   * 注册刷新ActionLayer
    */
-  public subscribeInteractionLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
-    this.interactionLayerForceUpdateMap[canvasId] = forceUpdate;
+  public subscribeActionLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
+    this.actionLayerForceUpdateMap[canvasId] = forceUpdate;
   }
 
   /**
-   * 刷新InteractionLayer
+   * 刷新ActionLayer
    */
-  public refreshInteractionLayer(canvasId: string) {
-    this.interactionLayerForceUpdateMap[canvasId].call(null);
+  public refreshActionLayer(canvasId: string) {
+    this.actionLayerForceUpdateMap[canvasId].call(null);
   }
 
   /**

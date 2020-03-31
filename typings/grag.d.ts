@@ -20,7 +20,7 @@ declare namespace IGrag {
   }
 
   interface IRoots {
-    [canvasId: string]: IGrag.IFtrNode;
+    [canvasId: string]: IFtrNode;
   }
 
   interface IStyle {
@@ -60,7 +60,18 @@ declare namespace IGrag {
   type IResizeType = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
 
   interface IBox {
-    lt: IGrag.IPos;
-    rb: IGrag.IPos;
+    lt: IPos;
+    rb: IPos;
+  }
+
+  type IGuideLineType = 'dist' | 'dash' | 'align';
+
+  type IDirection = 'vertical' | 'horizontal';
+
+  interface IGuideLine {
+    type: IGuideLineType;
+    pos: IPos;
+    direction: IDirection;
+    length: number;
   }
 }

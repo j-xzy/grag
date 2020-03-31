@@ -5,7 +5,7 @@ import { FeatureLayer } from '@/components/featureLayer';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useMount } from '@/hooks/useMount';
 import { useMutationObserver } from '@/hooks/useMutationObserver';
-import { InteractionLayer } from '@/components/interactionLayer';
+import { ActionLayer } from '@/components/actionLayer';
 import { defaultStyle, cursorDics } from './config';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
@@ -107,7 +107,7 @@ function RawCanvas(props: IRawCanvasProps) {
       onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
       onMouseDown={handleMousedown} onMouseUp={handleMouseup} onMouseMove={handleMousemove}>
       <FeatureLayer canvasId={id} rootId={rootId.current} />
-      <InteractionLayer canvasId={id} />
+      <ActionLayer canvasId={id} />
     </div>
   );
 }

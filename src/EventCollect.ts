@@ -27,7 +27,7 @@ export class EventCollect {
       this.canvaStore.dispatch('readyMoving');
     }
 
-    this.canvaStore.dispatch('mouseCoordChange', { canvasId, pos });
+    this.canvaStore.dispatch('mousePosChange', { canvasId, pos });
 
     // resize、move
     if ((getState().resizeType || getState().isMoving) && getState().selectedFtrs.length) {
@@ -126,7 +126,7 @@ export class EventCollect {
 
   public ftrHover(ftrId: string, clientOffset: IGrag.IPos) {
     this.canvaStore.dispatch('updateHoverFtr', ftrId);
-    this.canvaStore.dispatch('mouseCoordChange', {
+    this.canvaStore.dispatch('mousePosChange', {
       pos: clientOffset,
       canvasId: this.globalStore.getCanvasIdByFtrId(ftrId)
     });

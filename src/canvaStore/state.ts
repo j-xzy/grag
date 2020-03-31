@@ -19,8 +19,6 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     box: null as IGrag.IStyle | null,  // 是否正在拉框
     isMousedown: false, // 鼠标是否down
     resizeType: null as IGrag.IResizeType | null, //resize时类型
-    adsorbLines: {} as Partial<IGrag.IAdsorption>, // 吸附线 
-    distLines: {} as Partial<IGrag.IDistLines>, // 间距线
-    dashLines: {} as Partial<IGrag.IDashLines> // 间距虚线
+    guideLines: {} as IGrag.IIndexable<IGrag.IGuideLine>
   };
 }

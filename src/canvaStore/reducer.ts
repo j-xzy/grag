@@ -3,11 +3,11 @@ import type { ICtx } from './index';
 import type { IState } from './state';
 
 // 鼠标坐标改变
-export function mouseCoordChange({ getState, doAction }: ICtx, param: { pos: IGrag.IPos; canvasId: string; }) {
+export function mousePosChange({ getState, doAction }: ICtx, param: { pos: IGrag.IPos; canvasId: string; }) {
   doAction('updateMousePos', param);
   doAction('dragging');
   doAction('moving');
-  doAction('recting');
+  doAction('Boxing');
   doAction('resizing');
   doAction('updateBorder');
   doAction('updateGuides');
@@ -64,7 +64,7 @@ export function moving({ getState }: ICtx) {
 }
 
 // 框选
-export function recting({ getState, globalStore }: ICtx) {
+export function Boxing({ getState, globalStore }: ICtx) {
   const state = getState();
   // 框选
   if (!state.resizeType && !state.isMoving && state.isMousedown && !state.mouseInFtr && state.focusedCanvas) {
@@ -131,155 +131,160 @@ export function updateBorder({ getState }: ICtx) {
 }
 
 // 更新guides
-export function updateGuides({ getState, globalStore }: ICtx) {
-  const adsorbDist = 5;
-  const state = getState();
-  if ((state.resizeType || state.isMoving || state.dragCompStyle) && state.border) {
-    const closestStyles: Partial<Record<IGrag.ISides, IGrag.IStyle>> = {};
-    state.adsorbLines = {};
-    state.distLines = {};
-    state.dashLines = {};
-    const type2Key: Record<IGrag.IAdsorptionType, 'x' | 'y'> = {
-      ht: 'x', hm: 'x', hb: 'x',
-      vl: 'y', vm: 'y', vr: 'y'
-    };
-    const type2Dist: Record<IGrag.IAdsorptionType, Array<IGrag.ISides>> = {
-      ht: ['left', 'right'], hm: ['left', 'right'], hb: ['left', 'right'],
-      vl: ['top', 'bottom'], vm: ['top', 'bottom'], vr: ['top', 'bottom']
-    };
-
-    let parent: IGrag.IFtrNode | null = null;
-    if (state.dragCompStyle) {
-      // 正在drag时的parent为hoverftr
-      parent = globalStore.getNodeByFtrId(state.hoverFtr!);
-    } else {
-      const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
-      parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
-    }
-    if (parent) {
-      const childs = [parent, ...util.getChildren(parent)];
-      childs.forEach(({ ftrId }) => {
-        if (!state.selectedFtrs.includes(ftrId)) {
-          const style = globalStore.getFtrStyle(ftrId);
-          const target = {
-            y: [style.y, style.y + style.height / 2, style.y + style.height],
-            x: [style.x, style.x + style.width / 2, style.x + style.width]
-          };
-          const border = {
-            y: {
-              ht: state.border!.lt.y,
-              hm: (state.border!.lt.y + state.border!.rb.y) / 2,
-              hb: state.border!.rb.y,
-            },
-            x: {
-              vl: state.border!.lt.x,
-              vm: (state.border!.lt.x + state.border!.rb.x) / 2,
-              vr: state.border!.rb.x
-            }
-          };
-          const match = { y: true, x: true };
-          Object.keys(target).forEach((k) => {
-            target[k].forEach((s) => {
-              Object.keys(border[k]).forEach((type: IGrag.IAdsorptionType) => {
-                // resize时不考虑hm、vm
-                if (!(state.resizeType && (type === 'hm' || type === 'vm'))) {
-                  const v: number = (border as any)[k][type];
-                  const delt = Math.abs(s - v);
-                  if ((state.dragCompStyle && delt === 0) || (!state.dragCompStyle && delt < adsorbDist)) {
-                    if (match[k] && !state.dragCompStyle) {
-                      if (state.resizeType) {
-                        state.selectedFtrs.forEach((id) => {
-                          state.ftrStyles[id] = util.calResizeStyle(
-                            state.resizeType!, state.ftrStyles[id],
-                            {
-                              deltX: k === 'x' ? s - v : 0,
-                              deltY: k === 'y' ? s - v : 0
-                            }
-                          );
-                        });
-                      } else {
-                        state.selectedFtrs.forEach((id) => {
-                          state.ftrStyles[id][k] += s - v;
-                        });
-                      }
-                      state.border = util.calMaxBox(state.selectedFtrs.map((id) => state.ftrStyles[id]));
-                      match[k] = false;
-                    }
-                    const xy = type2Key[type];
-                    const widthHeight = xy === 'x' ? 'width' : 'height';
-
-                    // 对齐线
-                    state.adsorbLines[type] = [
-                      Math.min(style[xy], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
-                      Math.max(style[xy] + (xy === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
-                    ];
-
-                    // 最近的ftr
-                    type2Dist[type].forEach((side) => {
-                      if (side === 'left' || side === 'top') {
-                        const p = style[xy] + style[widthHeight];
-                        const distDelt = state.border!.lt[xy] - p;
-                        if (distDelt >= adsorbDist) {
-                          if (!closestStyles[side] || (closestStyles[side]![xy] + closestStyles[side]![widthHeight] < p)) {
-                            closestStyles[side] = style;
-                          }
-                        }
-                      }
-                      if (side === 'right' || side === 'bottom') {
-                        const distDelt = style[xy] - state.border!.rb[xy];
-                        if (distDelt >= adsorbDist) {
-                          if (!closestStyles[side] || (style[xy] < closestStyles[side]![xy])) {
-                            closestStyles[side] = style;
-                          }
-                        }
-                      }
-                    });
-
-                  }
-                }
-              });
-            });
-          });
-        }
-      });
-      // border计算完成后重新计算adsorbLines
-      Object.keys(state.adsorbLines).forEach((type) => {
-        const key = type2Key[type];
-        state.adsorbLines[type] = [
-          Math.min(state.border!.lt[key], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
-          Math.max(state.border!.rb[key], state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
-        ];
-      });
-
-      // 根据最近的ftrstyle计算distLines
-      Object.keys(closestStyles).forEach((side) => {
-        const xy = (side === 'left' || side === 'right') ? 'x' : 'y';
-        const widthHeight = xy === 'x' ? 'width' : 'height';
-        if (side === 'left' || side === 'top') {
-          state.distLines[side] = state.border!.lt[xy] - closestStyles[side]![widthHeight] - closestStyles[side]![xy];
-        }
-        if (side === 'right' || side === 'bottom') {
-          state.distLines[side] = closestStyles[side]![xy] - state.border!.rb[xy];
-        }
-      });
-
-      // 根据最近的ftrstyle计算dashlines
-      Object.keys(closestStyles).forEach((side) => {
-        const xy = (side === 'left' || side === 'right') ? 'y' : 'x';
-        const widthHeight = xy === 'x' ? 'width' : 'height';
-        const mid = (state.border!.lt[xy] + state.border!.rb[xy]) / 2;
-        if (mid > closestStyles[side]![xy] + closestStyles[side]![widthHeight]) {
-          state.dashLines[side] = [closestStyles[side]![xy] + closestStyles[side]![widthHeight], state.border!.rb[xy]];
-        } else if (mid < closestStyles[side]![xy]) {
-          state.dashLines[side] = [state.border!.lt[xy], closestStyles[side]![xy]];
-        } else {
-          delete state.dashLines[side];
-        }
-      });
-    }
-  }
-  return state;
+export function updateGuides({ getState }: ICtx) {
+  return getState();
 }
+
+// 更新guides
+// export function updateGuidesBck({ getState, globalStore }: ICtx) {
+//   const adsorbDist = 5;
+//   const state = getState();
+//   if ((state.resizeType || state.isMoving || state.dragCompStyle) && state.border) {
+//     const closestStyles: Partial<Record<IGrag.ISides, IGrag.IStyle>> = {};
+//     state.adsorbLines = {};
+//     state.distLines = {};
+//     state.dashLines = {};
+//     const type2Key: Record<IGrag.IAdsorptionType, 'x' | 'y'> = {
+//       ht: 'x', hm: 'x', hb: 'x',
+//       vl: 'y', vm: 'y', vr: 'y'
+//     };
+//     const type2Dist: Record<IGrag.IAdsorptionType, Array<IGrag.ISides>> = {
+//       ht: ['left', 'right'], hm: ['left', 'right'], hb: ['left', 'right'],
+//       vl: ['top', 'bottom'], vm: ['top', 'bottom'], vr: ['top', 'bottom']
+//     };
+
+//     let parent: IGrag.IFtrNode | null = null;
+//     if (state.dragCompStyle) {
+//       // 正在drag时的parent为hoverftr
+//       parent = globalStore.getNodeByFtrId(state.hoverFtr!);
+//     } else {
+//       const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
+//       parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
+//     }
+//     if (parent) {
+//       const childs = [parent, ...util.getChildren(parent)];
+//       childs.forEach(({ ftrId }) => {
+//         if (!state.selectedFtrs.includes(ftrId)) {
+//           const style = globalStore.getFtrStyle(ftrId);
+//           const target = {
+//             y: [style.y, style.y + style.height / 2, style.y + style.height],
+//             x: [style.x, style.x + style.width / 2, style.x + style.width]
+//           };
+//           const border = {
+//             y: {
+//               ht: state.border!.lt.y,
+//               hm: (state.border!.lt.y + state.border!.rb.y) / 2,
+//               hb: state.border!.rb.y,
+//             },
+//             x: {
+//               vl: state.border!.lt.x,
+//               vm: (state.border!.lt.x + state.border!.rb.x) / 2,
+//               vr: state.border!.rb.x
+//             }
+//           };
+//           const match = { y: true, x: true };
+//           Object.keys(target).forEach((k) => {
+//             target[k].forEach((s) => {
+//               Object.keys(border[k]).forEach((type: IGrag.IAdsorptionType) => {
+//                 // resize时不考虑hm、vm
+//                 if (!(state.resizeType && (type === 'hm' || type === 'vm'))) {
+//                   const v: number = (border as any)[k][type];
+//                   const delt = Math.abs(s - v);
+//                   if ((state.dragCompStyle && delt === 0) || (!state.dragCompStyle && delt < adsorbDist)) {
+//                     if (match[k] && !state.dragCompStyle) {
+//                       if (state.resizeType) {
+//                         state.selectedFtrs.forEach((id) => {
+//                           state.ftrStyles[id] = util.calResizeStyle(
+//                             state.resizeType!, state.ftrStyles[id],
+//                             {
+//                               deltX: k === 'x' ? s - v : 0,
+//                               deltY: k === 'y' ? s - v : 0
+//                             }
+//                           );
+//                         });
+//                       } else {
+//                         state.selectedFtrs.forEach((id) => {
+//                           state.ftrStyles[id][k] += s - v;
+//                         });
+//                       }
+//                       state.border = util.calMaxBox(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+//                       match[k] = false;
+//                     }
+//                     const xy = type2Key[type];
+//                     const widthHeight = xy === 'x' ? 'width' : 'height';
+
+//                     // 对齐线
+//                     state.adsorbLines[type] = [
+//                       Math.min(style[xy], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+//                       Math.max(style[xy] + (xy === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+//                     ];
+
+//                     // 最近的ftr
+//                     type2Dist[type].forEach((side) => {
+//                       if (side === 'left' || side === 'top') {
+//                         const p = style[xy] + style[widthHeight];
+//                         const distDelt = state.border!.lt[xy] - p;
+//                         if (distDelt >= adsorbDist) {
+//                           if (!closestStyles[side] || (closestStyles[side]![xy] + closestStyles[side]![widthHeight] < p)) {
+//                             closestStyles[side] = style;
+//                           }
+//                         }
+//                       }
+//                       if (side === 'right' || side === 'bottom') {
+//                         const distDelt = style[xy] - state.border!.rb[xy];
+//                         if (distDelt >= adsorbDist) {
+//                           if (!closestStyles[side] || (style[xy] < closestStyles[side]![xy])) {
+//                             closestStyles[side] = style;
+//                           }
+//                         }
+//                       }
+//                     });
+
+//                   }
+//                 }
+//               });
+//             });
+//           });
+//         }
+//       });
+//       // border计算完成后重新计算adsorbLines
+//       Object.keys(state.adsorbLines).forEach((type) => {
+//         const key = type2Key[type];
+//         state.adsorbLines[type] = [
+//           Math.min(state.border!.lt[key], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+//           Math.max(state.border!.rb[key], state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+//         ];
+//       });
+
+//       // 根据最近的ftrstyle计算distLines
+//       Object.keys(closestStyles).forEach((side) => {
+//         const xy = (side === 'left' || side === 'right') ? 'x' : 'y';
+//         const widthHeight = xy === 'x' ? 'width' : 'height';
+//         if (side === 'left' || side === 'top') {
+//           state.distLines[side] = state.border!.lt[xy] - closestStyles[side]![widthHeight] - closestStyles[side]![xy];
+//         }
+//         if (side === 'right' || side === 'bottom') {
+//           state.distLines[side] = closestStyles[side]![xy] - state.border!.rb[xy];
+//         }
+//       });
+
+//       // 根据最近的ftrstyle计算dashlines
+//       Object.keys(closestStyles).forEach((side) => {
+//         const xy = (side === 'left' || side === 'right') ? 'y' : 'x';
+//         const widthHeight = xy === 'x' ? 'width' : 'height';
+//         const mid = (state.border!.lt[xy] + state.border!.rb[xy]) / 2;
+//         if (mid > closestStyles[side]![xy] + closestStyles[side]![widthHeight]) {
+//           state.dashLines[side] = [closestStyles[side]![xy] + closestStyles[side]![widthHeight], state.border!.rb[xy]];
+//         } else if (mid < closestStyles[side]![xy]) {
+//           state.dashLines[side] = [state.border!.lt[xy], closestStyles[side]![xy]];
+//         } else {
+//           delete state.dashLines[side];
+//         }
+//       });
+//     }
+//   }
+//   return state;
+// }
 
 // 批量更新ftrStyle
 export function updateFtrStyles({ getState }: ICtx, param: { ftrId: string; style: IGrag.IStyle; }[]) {
