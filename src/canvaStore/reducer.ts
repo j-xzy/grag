@@ -91,7 +91,7 @@ export function recting({ getState, globalStore }: ICtx) {
     } else {
       recty = state.mouseCoord.y;
     }
-    state.rect = {
+    state.box = {
       x: rectx, y: recty,
       width: Math.abs(state.mouseCoord.x - state.mousedownCoord.x),
       height: Math.abs(state.mouseCoord.y - state.mousedownCoord.y),
@@ -124,8 +124,8 @@ export function resizing({ getState }: ICtx) {
 export function updateBorder({ getState }: ICtx) {
   const state = getState();
   // 计算边框
-  if (state.rect || state.resizeType || state.isMoving) {
-    state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+  if (state.box || state.resizeType || state.isMoving) {
+    state.border = util.calMaxBox(state.selectedFtrs.map((id) => state.ftrStyles[id]));
   }
   return state;
 }
@@ -202,7 +202,7 @@ export function updateGuides({ getState, globalStore }: ICtx) {
                           state.ftrStyles[id][k] += s - v;
                         });
                       }
-                      state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+                      state.border = util.calMaxBox(state.selectedFtrs.map((id) => state.ftrStyles[id]));
                       match[k] = false;
                     }
                     const xy = type2Key[type];
@@ -299,7 +299,7 @@ export function readyMoving({ getState }: ICtx) {
   return {
     ...state,
     isMoving: true,
-    rect: null,
+    box: null,
     beforeChangeFtrStyles: { ...state.ftrStyles }
   };
 }
@@ -325,7 +325,7 @@ export function clearAction({ getState }: ICtx) {
   return {
     ...getState(),
     isMoving: false,
-    rect: null,
+    box: null,
     isMousedown: false,
     resizeType: null,
     adsorbLines: {},
@@ -467,7 +467,7 @@ export function updateSelectedFtrs({ getState, globalStore }: ICtx, ftrIds: stri
   return {
     ...getState(),
     selectedFtrs: ftrIds,
-    border: ftrIds.length ? util.calRect(ftrIds.map((id) => globalStore.getFtrStyle(id))) : null
+    border: ftrIds.length ? util.calMaxBox(ftrIds.map((id) => globalStore.getFtrStyle(id))) : null
   };
 }
 

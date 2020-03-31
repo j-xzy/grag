@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { HighLightLayer } from './highLightLayer';
 import { ResizeLayer } from './resizeLayer';
-import { RectLayer } from './rectLayer';
+import { BoxLayer } from './boxLayer';
 import { Guides } from './guides';
 import { style } from './style';
 import { Context } from '../provider';
@@ -18,7 +18,7 @@ export function InteractionLayer(props: { canvasId: string; }) {
     <div style={style}>
       <HighLightLayer canvasId={props.canvasId} />
       <ResizeLayer canvasId={props.canvasId} />
-      <RectLayer canvasId={props.canvasId} />
+      <BoxLayer canvasId={props.canvasId} />
       <Guides canvasId={props.canvasId} />
     </div>
   );

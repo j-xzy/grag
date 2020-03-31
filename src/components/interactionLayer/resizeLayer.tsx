@@ -4,7 +4,7 @@ import { Context } from '../provider';
 import { IEvtEmit } from '@/EventCollect';
 
 interface IHandlerProps {
-  rect: IGrag.IRect;
+  box: IGrag.IBox;
   type: IGrag.IResizeType;
   evtEmit: IEvtEmit;
 }
@@ -31,25 +31,25 @@ export function ResizeLayer(props: { canvasId: string; }) {
 
   return (
     <div style={style}>
-      <Border rect={border} />
+      <Border box={border} />
       {
         !isMoving && <>
-          {(resizeType === null || resizeType === 'nw') && <Handler evtEmit={evtEmit} rect={border} type='nw' />}
-          {(resizeType === null || resizeType === 'n') && <Handler evtEmit={evtEmit} rect={border} type='n' />}
-          {(resizeType === null || resizeType === 'ne') && <Handler evtEmit={evtEmit} rect={border} type='ne' />}
-          {(resizeType === null || resizeType === 'w') && <Handler evtEmit={evtEmit} rect={border} type='w' />}
-          {(resizeType === null || resizeType === 'e') && <Handler evtEmit={evtEmit} rect={border} type='e' />}
-          {(resizeType === null || resizeType === 'sw') && <Handler evtEmit={evtEmit} rect={border} type='sw' />}
-          {(resizeType === null || resizeType === 's') && <Handler evtEmit={evtEmit} rect={border} type='s' />}
-          {(resizeType === null || resizeType === 'se') && <Handler evtEmit={evtEmit} rect={border} type='se' />}
+          {(resizeType === null || resizeType === 'nw') && <Handler evtEmit={evtEmit} box={border} type='nw' />}
+          {(resizeType === null || resizeType === 'n') && <Handler evtEmit={evtEmit} box={border} type='n' />}
+          {(resizeType === null || resizeType === 'ne') && <Handler evtEmit={evtEmit} box={border} type='ne' />}
+          {(resizeType === null || resizeType === 'w') && <Handler evtEmit={evtEmit} box={border} type='w' />}
+          {(resizeType === null || resizeType === 'e') && <Handler evtEmit={evtEmit} box={border} type='e' />}
+          {(resizeType === null || resizeType === 'sw') && <Handler evtEmit={evtEmit} box={border} type='sw' />}
+          {(resizeType === null || resizeType === 's') && <Handler evtEmit={evtEmit} box={border} type='s' />}
+          {(resizeType === null || resizeType === 'se') && <Handler evtEmit={evtEmit} box={border} type='se' />}
         </>
       }
     </div>
   );
 }
 
-function Border(props: { rect: IGrag.IRect; }) {
-  const { rect: { lt, rb } } = props;
+function Border(props: { box: IGrag.IBox; }) {
+  const { box: { lt, rb } } = props;
   const style: React.CSSProperties = {
     position: 'absolute',
     boxSizing: 'border-box',
@@ -64,7 +64,7 @@ function Border(props: { rect: IGrag.IRect; }) {
 }
 
 function Handler(props: IHandlerProps) {
-  const { type, rect: { lt, rb }, evtEmit } = props;
+  const { type, box: { lt, rb }, evtEmit } = props;
   let top = 0;
   let left = 0;
   let cursor = '';

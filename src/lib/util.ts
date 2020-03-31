@@ -111,19 +111,19 @@ export function moveIn<T extends IGrag.INode<T>>(source: T, target: T) {
   appendChild(target, source);
 }
 
-export function calRect(styles: IGrag.IStyle[]) {
-  const rect = {
+export function calMaxBox(styles: IGrag.IStyle[]) {
+  const box = {
     lt: { x: Infinity, y: Infinity },
     rb: { x: -Infinity, y: -Infinity }
   };
 
   styles.forEach((style) => {
-    rect.lt.x = Math.min(rect.lt.x, style.x);
-    rect.lt.y = Math.min(rect.lt.y, style.y);
-    rect.rb.x = Math.max(rect.rb.x, style.x + style.width);
-    rect.rb.y = Math.max(rect.rb.y, style.y + style.height);
+    box.lt.x = Math.min(box.lt.x, style.x);
+    box.lt.y = Math.min(box.lt.y, style.y);
+    box.rb.x = Math.max(box.rb.x, style.x + style.width);
+    box.rb.y = Math.max(box.rb.y, style.y + style.height);
   });
-  return rect;
+  return box;
 }
 
 export function lowestCommonAncestor<T extends IGrag.INode<T>>(nodes: T[]) {
@@ -225,7 +225,7 @@ export function calRectByStyle(style: IGrag.IStyle) {
       x: style.x + style.width,
       y: style.y + style.height
     }
-  } as IGrag.IRect;
+  } as IGrag.IBox;
 }
 
 export function uuid() {

@@ -21,7 +21,7 @@ export class EventCollect {
   public canvasMousemove(canvasId: string, coord: IGrag.IXYCoord) {
     const getState = this.canvaStore.getState;
     if (
-      !getState().resizeType && !getState().isMoving && !getState().rect && getState().isMousedown
+      !getState().resizeType && !getState().isMoving && !getState().box && getState().isMousedown
       && getState().mouseInFtr && getState().selectedFtrs.length
     ) {
       this.canvaStore.dispatch('readyMoving');
@@ -149,11 +149,11 @@ export class EventCollect {
   }
 
   public ftrMouseover(ftrId: string) {
-    const { mouseInFtr, selectedFtrs, isMoving, rect, resizeType } = this.canvaStore.getState();
+    const { mouseInFtr, selectedFtrs, isMoving, box, resizeType } = this.canvaStore.getState();
     if (mouseInFtr === ftrId || selectedFtrs.includes(ftrId)) {
       return;
     }
-    if (isMoving || rect || resizeType) {
+    if (isMoving || box || resizeType) {
       return;
     }
     this.canvaStore.dispatch('updateMouseInFtr', ftrId);
