@@ -185,11 +185,11 @@ export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IStyl
   return { width, height, x, y };
 }
 
-export function calSelectedFtrs(mouseCoord: IGrag.IXYCoord, mousedownCoord: IGrag.IXYCoord, states: Array<IGrag.IStyle & { ftrId: string; }>) {
-  const left = Math.min(mouseCoord.x, mousedownCoord.x);
-  const right = Math.max(mouseCoord.x, mousedownCoord.x);
-  const top = Math.min(mouseCoord.y, mousedownCoord.y);
-  const bottom = Math.max(mouseCoord.y, mousedownCoord.y);
+export function calSelectedFtrs(mousePos: IGrag.IPos, mousedownCoord: IGrag.IPos, states: Array<IGrag.IStyle & { ftrId: string; }>) {
+  const left = Math.min(mousePos.x, mousedownCoord.x);
+  const right = Math.max(mousePos.x, mousedownCoord.x);
+  const top = Math.min(mousePos.y, mousedownCoord.y);
+  const bottom = Math.max(mousePos.y, mousedownCoord.y);
   const selectedFtrs: string[] = [];
 
   states.forEach((state) => {

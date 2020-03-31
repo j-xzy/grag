@@ -5,8 +5,8 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     config,
     focusedCanvas: null as string | null, // 当前焦聚的canvasId
     canvasRects: {} as IGrag.IIndexable<DOMRect>, // canvasId到domrect映射
-    mouseCoord: { x: 0, y: 0 } as IGrag.IXYCoord, // 鼠标位置
-    mousedownCoord: { x: 0, y: 0 } as IGrag.IXYCoord, // 最近一次mousedown鼠标位置
+    mousePos: { x: 0, y: 0 } as IGrag.IPos, // 鼠标位置
+    mousedownCoord: { x: 0, y: 0 } as IGrag.IPos, // 最近一次mousedown鼠标位置
     ftrStyles: {} as IGrag.IIndexable<IGrag.IStyle>, //ftrId到state的映射
     beforeChangeFtrStyles: {} as IGrag.IIndexable<IGrag.IStyle>, //开始移动之前的ftrStateMap
     dragCompStyle: null as IGrag.IStyle | null, // 当前拖拽组件的state

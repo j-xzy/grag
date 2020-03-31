@@ -18,7 +18,7 @@ export class EventCollect {
     (this[evtName] as any).apply(this, params);
   }
 
-  public canvasMousemove(canvasId: string, coord: IGrag.IXYCoord) {
+  public canvasMousemove(canvasId: string, pos: IGrag.IPos) {
     const getState = this.canvaStore.getState;
     if (
       !getState().resizeType && !getState().isMoving && !getState().box && getState().isMousedown
@@ -27,7 +27,7 @@ export class EventCollect {
       this.canvaStore.dispatch('readyMoving');
     }
 
-    this.canvaStore.dispatch('mouseCoordChange', { canvasId, coord });
+    this.canvaStore.dispatch('mouseCoordChange', { canvasId, pos });
 
     // resize、move
     if ((getState().resizeType || getState().isMoving) && getState().selectedFtrs.length) {
@@ -124,10 +124,10 @@ export class EventCollect {
     this.globalStore.setCompInfo(compId, compInfo);
   }
 
-  public ftrHover(ftrId: string, clientOffset: IGrag.IXYCoord) {
+  public ftrHover(ftrId: string, clientOffset: IGrag.IPos) {
     this.canvaStore.dispatch('updateHoverFtr', ftrId);
     this.canvaStore.dispatch('mouseCoordChange', {
-      coord: clientOffset,
+      pos: clientOffset,
       canvasId: this.globalStore.getCanvasIdByFtrId(ftrId)
     });
   }

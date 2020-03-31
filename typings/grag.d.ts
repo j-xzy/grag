@@ -60,7 +60,7 @@ declare namespace IGrag {
   type IResizeType = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
 
   interface IBox {
-    lt: IGrag.IXYCoord;
-    rb: IGrag.IXYCoord;
+    lt: IGrag.IPos;
+    rb: IGrag.IPos;
   }
 }

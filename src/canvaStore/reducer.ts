@@ -3,8 +3,8 @@ import type { ICtx } from './index';
 import type { IState } from './state';
 
 // 鼠标坐标改变
-export function mouseCoordChange({ getState, doAction }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
-  doAction('updateMouseCoord', param);
+export function mouseCoordChange({ getState, doAction }: ICtx, param: { pos: IGrag.IPos; canvasId: string; }) {
+  doAction('updateMousePos', param);
   doAction('dragging');
   doAction('moving');
   doAction('recting');
@@ -15,16 +15,16 @@ export function mouseCoordChange({ getState, doAction }: ICtx, param: { coord: I
 }
 
 // 更新mouseCoord
-export function updateMouseCoord({ getState }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
-  const { coord, canvasId } = param;
+export function updateMousePos({ getState }: ICtx, param: { pos: IGrag.IPos; canvasId: string; }) {
+  const { pos, canvasId } = param;
   const state = { ...getState(), focusedCanvas: canvasId };
-  // 计算 mouseCoord
+  // 计算 mousePos
   const canvasRect = state.canvasRects[canvasId];
-  const mouseCoord = {
-    x: coord.x - canvasRect.x,
-    y: coord.y - canvasRect.y
+  const mousePos = {
+    x: pos.x - canvasRect.x,
+    y: pos.y - canvasRect.y
   };
-  state.mouseCoord = mouseCoord;
+  state.mousePos = mousePos;
   return state;
 }
 
@@ -36,8 +36,8 @@ export function dragging({ getState }: ICtx) {
     const { width, height } = state.dragCompStyle;
     state.dragCompStyle = {
       width, height,
-      x: state.mouseCoord.x - Math.floor(width / 2),
-      y: state.mouseCoord.y - Math.floor(height / 2),
+      x: state.mousePos.x - Math.floor(width / 2),
+      y: state.mousePos.y - Math.floor(height / 2),
     };
     state.border = util.calRectByStyle(state.dragCompStyle);
   }
@@ -49,8 +49,8 @@ export function moving({ getState }: ICtx) {
   const state = getState();
   // 计算移动后的ftr
   if (state.isMoving && state.selectedFtrs.length) {
-    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
-    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
+    const deltX = state.mousePos.x - state.mousedownCoord.x;
+    const deltY = state.mousePos.y - state.mousedownCoord.y;
     state.selectedFtrs.forEach((id) => {
       const { x, y, width, height } = state.beforeChangeFtrStyles[id];
       state.ftrStyles[id] = {
@@ -72,29 +72,29 @@ export function recting({ getState, globalStore }: ICtx) {
     const rootId = globalStore.getRoot(state.focusedCanvas).ftrId;
     const nodes = globalStore.getDeepChildren(rootId);
     const selectedFtrs = util.calSelectedFtrs(
-      state.mouseCoord, state.mousedownCoord,
+      state.mousePos, state.mousedownCoord,
       nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrStyle(ftrId) }))
     );
     state.selectedFtrs = selectedFtrs;
 
     let rectx = 0;
     let recty = 0;
-    const isRight = state.mouseCoord.x > state.mousedownCoord.x;
-    const isBottom = state.mouseCoord.y > state.mousedownCoord.y;
+    const isRight = state.mousePos.x > state.mousedownCoord.x;
+    const isBottom = state.mousePos.y > state.mousedownCoord.y;
     if (isRight) {
       rectx = state.mousedownCoord.x;
     } else {
-      rectx = state.mouseCoord.x;
+      rectx = state.mousePos.x;
     }
     if (isBottom) {
       recty = state.mousedownCoord.y;
     } else {
-      recty = state.mouseCoord.y;
+      recty = state.mousePos.y;
     }
     state.box = {
       x: rectx, y: recty,
-      width: Math.abs(state.mouseCoord.x - state.mousedownCoord.x),
-      height: Math.abs(state.mouseCoord.y - state.mousedownCoord.y),
+      width: Math.abs(state.mousePos.x - state.mousedownCoord.x),
+      height: Math.abs(state.mousePos.y - state.mousedownCoord.y),
     };
   }
   return state;
@@ -105,8 +105,8 @@ export function resizing({ getState }: ICtx) {
   const state = getState();
   // 计算resize后的ftr
   if (state.resizeType && state.selectedFtrs.length) {
-    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
-    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
+    const deltX = state.mousePos.x - state.mousedownCoord.x;
+    const deltY = state.mousePos.y - state.mousedownCoord.y;
     state.selectedFtrs.forEach((id) => {
       const style = util.calResizeStyle(
         state.resizeType!, state.beforeChangeFtrStyles[id],
@@ -341,7 +341,7 @@ export function setMousedown({ getState }: ICtx) {
   return {
     ...getState(),
     isMousedown: true,
-    mousedownCoord: getState().mouseCoord
+    mousedownCoord: getState().mousePos
   };
 }
 
