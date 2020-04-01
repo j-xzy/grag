@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useInitial } from '@/hooks/useInitial';
+import { Rotate } from './rotate';
 import { HighLightLayer } from './highLightLayer';
 import { ResizeLayer } from './resizeLayer';
 import { BoxLayer } from './boxLayer';
@@ -19,6 +20,7 @@ export function ActionLayer(props: { canvasId: string; }) {
       <HighLightLayer canvasId={props.canvasId} />
       <ResizeLayer canvasId={props.canvasId} />
       <BoxLayer canvasId={props.canvasId} />
+      <Rotate canvasId={props.canvasId} />
       <GuideLayer canvasId={props.canvasId} />
     </div>
   );

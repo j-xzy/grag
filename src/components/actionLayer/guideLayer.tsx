@@ -14,7 +14,7 @@ const baseStyle: React.CSSProperties = {
 
 const lineStyle: Record<IGrag.IGuideLineType, React.CSSProperties> = {
   align: {
-    color: '#ff0000'
+    backgroundColor: '#ff0000'
   },
   dash: {},
   dist: {}
@@ -39,11 +39,16 @@ export function GuideLayer(props: IGuideLayerProps) {
 function GuideLine(props: { line: IGrag.IGuideLine; }) {
   const { line } = props;
   const style: React.CSSProperties = {
-    ...baseStyle,
-    ...lineStyle[line.type],
-    left: line.pos.x,
-    top: line.pos.y
+    ...baseStyle, ...lineStyle[line.type],
+    left: line.pos.x, top: line.pos.y,
+    width: 1, height: 1,
   };
+
+  if (line.direction === 'horizontal') {
+    style.width = line.length;
+  } else {
+    style.height = line.length;
+  }
   return <div style={style} />;
 }
 
