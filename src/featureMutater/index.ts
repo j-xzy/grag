@@ -26,9 +26,9 @@ export class FeatureMutater {
   }
 
   public insertNewFtr(param: IInsertNewFtrParam) {
-    const { parentFtrId, compId, ftrId, x, y, width, height } = param;
+    const { parentFtrId, compId, ftrId, x, y, width, height, rotate } = param;
     // 更新ftrState
-    this.canvaStore.dispatch('updateFtrStyles', [{ ftrId, style: { x, y, width, height } }]);
+    this.canvaStore.dispatch('updateFtrStyles', [{ ftrId, style: { x, y, width, height, rotate } }]);
     // 插入node到tree
     const canvasId = this.globalStore.getCanvasIdByFtrId(parentFtrId);
     const parent = this.globalStore.getNodeByFtrId(parentFtrId);
@@ -52,18 +52,20 @@ export class FeatureMutater {
     const lastStyle = this.globalStore.getFtrStyle(ftrId);
     const deltX = style.x - lastStyle.x;
     const deltY = style.y - lastStyle.y;
+    const deltRotate = style.rotate - lastStyle.rotate;
     const styles: Array<{ ftrId: string; style: IGrag.IStyle; }> = [];
 
     // update child
-    if (deltX !== 0 || deltY !== 0) {
+    if (deltX !== 0 || deltY !== 0 || deltRotate !== 0) {
       const childIds = this.globalStore.getDeepChildren(ftrId).map((p) => p.ftrId);
       childIds.forEach((id) => {
         const ftrStyle = this.globalStore.getFtrStyle(id);
         const nextStyle = {
           x: ftrStyle.x + deltX,
           y: ftrStyle.y + deltY,
-          width: id === ftrId ? style.width : ftrStyle.width,
-          height: id === ftrId ? style.height : ftrStyle.height
+          rotate: ftrStyle.rotate + deltRotate,
+          width: ftrStyle.width,
+          height: ftrStyle.height
         };
         this.notify(id, 'updateStyle', nextStyle);
         styles.push({ ftrId: id, style: nextStyle });

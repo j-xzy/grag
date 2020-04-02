@@ -28,7 +28,7 @@ declare namespace IGrag {
     height: number;
     x: number;
     y: number;
-    rotate?: number;
+    rotate: number;
   }
 
   interface IAdsorption {

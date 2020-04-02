@@ -39,6 +39,7 @@ export function dragging({ getState }: ICtx) {
       width, height,
       x: state.mousePos.x - Math.floor(width / 2),
       y: state.mousePos.y - Math.floor(height / 2),
+      rotate: 0
     };
     state.border = util.calRectByStyle(state.dragCompStyle);
   }
@@ -53,11 +54,12 @@ export function moving({ getState }: ICtx) {
     const deltX = state.mousePos.x - state.mousedownCoord.x;
     const deltY = state.mousePos.y - state.mousedownCoord.y;
     state.selectedFtrs.forEach((id) => {
-      const { x, y, width, height } = state.beforeChangeFtrStyles[id];
+      const { x, y, width, height, rotate } = state.beforeChangeFtrStyles[id];
       state.ftrStyles[id] = {
         x: x + deltX,
         y: y + deltY,
-        width, height
+        width, height,
+        rotate
       };
     });
   }
@@ -96,6 +98,7 @@ export function Boxing({ getState, globalStore }: ICtx) {
       x: rectx, y: recty,
       width: Math.abs(state.mousePos.x - state.mousedownCoord.x),
       height: Math.abs(state.mousePos.y - state.mousedownCoord.y),
+      rotate: 0
     };
   }
   return state;
@@ -139,8 +142,15 @@ export function rotating({ getState, globalStore }: ICtx) {
       const al = Math.sqrt(a.x * a.x + a.y * a.y);
       const bl = Math.sqrt(b.x * b.x + b.y * b.y);
       const rad = Math.acos(ab / (al * bl));
-      const deg = rad * 180 / Math.PI;
-      state.ftrStyles[id].rotate = deg;
+      let deg = rad * 180 / Math.PI + state.beforeChangeFtrStyles[id].rotate;
+      const z = b.x*a.y - a.x * b.y;
+      if (z < 0) {
+        deg = 360 - deg; 
+      }
+      state.ftrStyles[id] = {
+        ... state.ftrStyles[id],
+        rotate: deg
+      };
     });
   }
   return state;
@@ -468,7 +478,7 @@ export function updateDragCompSize({ getState }: ICtx, param: IGrag.ISize) {
     dragCompStyle = {
       width: Math.floor(param.width),
       height: Math.floor(param.height),
-      x: 0, y: 0
+      x: 0, y: 0, rotate: 0
     };
   }
   return {

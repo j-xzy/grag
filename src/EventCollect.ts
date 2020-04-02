@@ -77,7 +77,7 @@ export class EventCollect {
     this.canvaStore.dispatch('updateFtrStyles', [{
       ftrId,
       style: {
-        x: 0, y: 0,
+        x: 0, y: 0, rotate: 0,
         width: rect.width,
         height: rect.height
       }

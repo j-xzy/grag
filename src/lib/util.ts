@@ -93,7 +93,7 @@ export function removeNode<T extends IGrag.INode<T>>(node: T) {
   }
 }
 
-export function isInside(source: IGrag.IStyle, target: IGrag.IStyle) {
+export function isInside(source: Omit<IGrag.IStyle, 'rotate'>, target: Omit<IGrag.IStyle, 'rotate'>) {
   if (source.x < target.x || source.y < target.y) {
     return false;
   }
@@ -146,7 +146,8 @@ export function lowestCommonAncestor<T extends IGrag.INode<T>>(nodes: T[]) {
 }
 
 export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IStyle, delt: { deltX: number; deltY: number; }) {
-  let { x, y, width, height } = style;
+  // eslint-disable-next-line prefer-const
+  let { x, y, width, height, rotate } = style;
   const { deltX, deltY } = delt;
   if (resizeType === 'e') {
     width = width + deltX;
@@ -182,7 +183,7 @@ export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IStyl
     x = x + deltX;
     width = width - deltX;
   }
-  return { width, height, x, y };
+  return { width, height, x, y, rotate };
 }
 
 export function calSelectedFtrs(mousePos: IGrag.IPos, mousedownCoord: IGrag.IPos, states: Array<IGrag.IStyle & { ftrId: string; }>) {
@@ -228,7 +229,7 @@ export function calRectByStyle(style: IGrag.IStyle) {
   } as IGrag.IBox;
 }
 
-export function calCenterByStyle(style: IGrag.IStyle) {
+export function calCenterByStyle(style: Omit<IGrag.IStyle, 'rotate'>) {
   return {
     x: style.x + style.width / 2,
     y: style.y + style.height / 2
@@ -238,7 +239,7 @@ export function calCenterByStyle(style: IGrag.IStyle) {
 export function calCenterByBox(box: IGrag.IBox) {
   return {
     x: (box.lt.x + box.rb.x) / 2,
-    y: (box.lt.y+ box.rb.y) / 2
+    y: (box.lt.y + box.rb.y) / 2
   };
 }
 
