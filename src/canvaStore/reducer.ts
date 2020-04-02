@@ -142,14 +142,14 @@ export function rotating({ getState, globalStore }: ICtx) {
       const al = Math.sqrt(a.x * a.x + a.y * a.y);
       const bl = Math.sqrt(b.x * b.x + b.y * b.y);
       const rad = Math.acos(ab / (al * bl));
-      let deg = rad * 180 / Math.PI + state.beforeChangeFtrStyles[id].rotate;
       const z = b.x*a.y - a.x * b.y;
+      let deg = rad * 180 / Math.PI;
       if (z < 0) {
         deg = 360 - deg; 
       }
       state.ftrStyles[id] = {
         ... state.ftrStyles[id],
-        rotate: deg
+        rotate: deg +  state.beforeChangeFtrStyles[id].rotate
       };
     });
   }
