@@ -29,8 +29,8 @@ export class EventCollect {
 
     this.canvaStore.dispatch('mousePosChange', { canvasId, pos });
 
-    // resize、move
-    if ((getState().resizeType || getState().isMoving) && getState().selectedFtrs.length) {
+    // resize、move、rotate
+    if ((getState().resizeType || getState().isMoving || getState().isRotate) && getState().selectedFtrs.length) {
       this.syncSelectedFtrStyle();
     }
   }
@@ -183,6 +183,15 @@ export class EventCollect {
     this.mouseup();
   }
 
+  public rotateMousedown() {
+    this.canvaStore.dispatch('setMousedown');
+    this.canvaStore.dispatch('readyRotate');
+  }
+
+  public rotateMouseup() {
+    this.mouseup();
+  }
+
   private syncSelectedFtrStyle() {
     const { ftrStyles, selectedFtrs } = this.canvaStore.getState();
     selectedFtrs.forEach((id) => {
@@ -191,8 +200,8 @@ export class EventCollect {
   }
 
   private mouseup() {
-    const { isMoving, resizeType, focusedCanvas, selectedFtrs } = this.canvaStore.getState();
-    if ((isMoving || resizeType) && focusedCanvas) {
+    const { isMoving, resizeType, focusedCanvas, selectedFtrs, isRotate } = this.canvaStore.getState();
+    if ((isMoving || resizeType || isRotate) && focusedCanvas) {
       this.globalStore.refreshFeatureLayer(focusedCanvas);
       selectedFtrs.forEach((id) => {
         this.ftrMutate('checkChildren', id);

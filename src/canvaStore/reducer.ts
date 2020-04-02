@@ -9,6 +9,7 @@ export function mousePosChange({ getState, doAction }: ICtx, param: { pos: IGrag
   doAction('moving');
   doAction('Boxing');
   doAction('resizing');
+  doAction('rotating');
   doAction('updateBorder');
   doAction('updateGuides');
   return getState();
@@ -67,7 +68,7 @@ export function moving({ getState }: ICtx) {
 export function Boxing({ getState, globalStore }: ICtx) {
   const state = getState();
   // 框选
-  if (!state.resizeType && !state.isMoving && state.isMousedown && !state.mouseInFtr && state.focusedCanvas) {
+  if (!state.resizeType && !state.isMoving && !state.isRotate && state.isMousedown && !state.mouseInFtr && state.focusedCanvas) {
     state.isMoving = false;
     const rootId = globalStore.getRoot(state.focusedCanvas).ftrId;
     const nodes = globalStore.getDeepChildren(rootId);
@@ -115,6 +116,31 @@ export function resizing({ getState }: ICtx) {
       if (style.width > 1 && style.height > 1) {
         state.ftrStyles[id] = style;
       }
+    });
+  }
+  return state;
+}
+
+// 旋转
+export function rotating({ getState, globalStore }: ICtx) {
+  const state = getState();
+  if (state.isRotate && state.isMousedown && state.selectedFtrs.length) {
+    state.selectedFtrs.forEach((id) => {
+      const center = util.calCenterByStyle(globalStore.getFtrRect(id));
+      const a = {
+        x: state.mousePos.x - center.x,
+        y: state.mousePos.y - center.y
+      };
+      const b = {
+        x: state.mousedownCoord.x - center.x,
+        y: state.mousedownCoord.y - center.y
+      };
+      const ab = a.x * b.x + a.y * b.y;
+      const al = Math.sqrt(a.x * a.x + a.y * a.y);
+      const bl = Math.sqrt(b.x * b.x + b.y * b.y);
+      const rad = Math.acos(ab / (al * bl));
+      const deg = rad * 180 / Math.PI;
+      state.ftrStyles[id].rotate = deg;
     });
   }
   return state;
@@ -330,6 +356,7 @@ export function clearAction({ getState }: ICtx) {
   return {
     ...getState(),
     isMoving: false,
+    isRotate: false,
     box: null,
     isMousedown: false,
     resizeType: null,
@@ -337,7 +364,7 @@ export function clearAction({ getState }: ICtx) {
     distLines: {},
     dashLines: {},
     dragCompStyle: null,
-    hoverFtr: null,
+    hoverFtr: null
   };
 }
 
@@ -456,6 +483,15 @@ export function readyResize({ getState }: ICtx, resizeType: IGrag.IResizeType) {
     ...getState(),
     beforeChangeFtrStyles: { ...getState().ftrStyles },
     resizeType,
+  };
+}
+
+// 准备rotate
+export function readyRotate({ getState }: ICtx) {
+  return {
+    ...getState(),
+    beforeChangeFtrStyles: { ...getState().ftrStyles },
+    isRotate: true
   };
 }
 

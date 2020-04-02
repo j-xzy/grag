@@ -82,7 +82,8 @@ function RawCanvas(props: IRawCanvasProps) {
     const unSubscribe = subscribeCanvaStore((s) => ({
       isMoving: s.isMoving,
       resizeType: s.resizeType,
-      focusedCanvas: s.focusedCanvas
+      focusedCanvas: s.focusedCanvas,
+      isRotate: s.isRotate
     }), (state) => {
       if (state.focusedCanvas !== props.id) {
         return;
@@ -92,6 +93,8 @@ function RawCanvas(props: IRawCanvasProps) {
         cursor = 'move';
       } else if (state.resizeType) {
         cursor = cursorDics[state.resizeType];
+      } else if (state.isRotate) {
+        cursor = 'pointer';
       }
       if (domRef.current) {
         domRef.current.style.cursor = cursor;

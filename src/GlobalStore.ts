@@ -136,9 +136,24 @@ export class GlobalStore {
    * 根据ftrid得到style
    */
   public getFtrStyle(ftrId: string) {
+    const dom = this.getDom(ftrId);
+    const { width, height, left, top } = window.getComputedStyle(dom);
+    return {
+      width: parseInt(width),
+      height: parseInt(height),
+      x: parseInt(left),
+      y: parseInt(top),
+      rotate: util.parseRotate(dom.style.transform)
+    };
+  }
+
+  /**
+   * 根据ftrid得到boundingRect
+   */
+  public getFtrRect(ftrId: string) {
     const canvasId = this.ftrId2CanvasId[ftrId];
-    const canvasRect = this.getDom(canvasId)?.getBoundingClientRect();
-    const ftrRect = this.getDom(ftrId)?.getBoundingClientRect();
+    const canvasRect = this.getDom(canvasId).getBoundingClientRect();
+    const ftrRect = this.getDom(ftrId).getBoundingClientRect();
     return {
       width: ftrRect.width,
       height: ftrRect.height,

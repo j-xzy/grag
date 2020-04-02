@@ -228,6 +228,25 @@ export function calRectByStyle(style: IGrag.IStyle) {
   } as IGrag.IBox;
 }
 
+export function calCenterByStyle(style: IGrag.IStyle) {
+  return {
+    x: style.x + style.width / 2,
+    y: style.y + style.height / 2
+  };
+}
+
+export function calCenterByBox(box: IGrag.IBox) {
+  return {
+    x: (box.lt.x + box.rb.x) / 2,
+    y: (box.lt.y+ box.rb.y) / 2
+  };
+}
+
 export function uuid() {
   return 'id' + Math.ceil((Math.random() * 100000)) + Math.ceil((Math.random() * 100000));
+}
+
+export function parseRotate(str: string) {
+  const result = /(?<=rotate\().*?(?=\))/.exec(str);
+  return result ? parseFloat(result[0]) : 0;
 }
