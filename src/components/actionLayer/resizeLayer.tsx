@@ -58,13 +58,16 @@ function Border(props: { box: IGrag.IStyle; }) {
     left: box.x - 1,
     top: box.y - 1,
     backgroundColor: 'rgba(0,0,0,0)',
-    border: '1px solid #d8d8d8'
+    border: '1px solid #d8d8d8',
+    transform: `rotate(${box.rotate}deg)`
   };
   return <div style={style} />;
 }
 
 function Handler(props: IHandlerProps) {
   const { type, box, evtEmit } = props;
+  const offset = 4;
+  const origin = {x: offset, y: offset};
   let top = 0;
   let left = 0;
   let cursor = '';
@@ -98,6 +101,41 @@ function Handler(props: IHandlerProps) {
   if (type === 'w' || type === 'e') {
     cursor = 'ew';
   }
+
+  if (type === 'nw') {
+    origin.x = box.width / 2 + offset;
+    origin.y = box.height /2 + offset;
+  }
+  if (type === 'n') {
+    origin.y = box.height /2 + offset;
+  }
+
+  if (type === 'ne') {
+    origin.x = 0 - box.width / 2 + offset;
+    origin.y = box.height /2 + offset;
+  }
+
+  if (type === 'w') {
+    origin.x = box.width / 2 + offset;
+  }
+
+  if (type === 'e') {
+    origin.x = 0 - box.width / 2 + offset;
+  }
+
+  if (type === 'sw') {
+    origin.x = box.width / 2 + offset;
+    origin.y = 0 - box.height /2 + offset;
+  }
+  if (type === 's') {
+    origin.y = 0 - box.height /2 + offset;
+  }
+
+  if (type === 'se') {
+    origin.x = 0 - box.width / 2 + offset;
+    origin.y = 0 - box.height /2 + offset;
+  }
+
   const style: React.CSSProperties = {
     position: 'absolute',
     boxSizing: 'border-box',
@@ -107,10 +145,11 @@ function Handler(props: IHandlerProps) {
     backgroundColor: '#fff',
     boxShadow: '0px 0px 5px #b9b9b9',
     cursor: `${cursor}-resize`,
-    top: top - 4,
-    left: left - 4,
+    top: top - offset,
+    left: left - offset,
+    transform: `rotate(${box.rotate}deg)`,
+    transformOrigin: `${origin.x}px ${origin.y}px`
   };
-
   const handleMousedown = React.useCallback((e: React.MouseEvent) => {
     evtEmit('resizeMousedown', type);
     e.stopPropagation();

@@ -8,6 +8,7 @@ interface IHighLightProps {
   x: number;
   y: number;
   color: string;
+  rotate: number;
 }
 
 export function HighLightLayer(props: { canvasId: string; }) {
@@ -36,7 +37,8 @@ function HighLight(props: IHighLightProps) {
     top: props.y - 2,
     border: `2px solid ${props.color}`,
     width: props.width + 4,
-    height: props.height + 4
+    height: props.height + 4,
+    transform: `rotate(${props.rotate}deg)`
   };
   return <div style={style} />;
 }

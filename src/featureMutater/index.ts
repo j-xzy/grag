@@ -60,7 +60,7 @@ export class FeatureMutater {
       const childIds = this.globalStore.getDeepChildren(ftrId).map((p) => p.ftrId);
       childIds.forEach((id) => {
         const ftrStyle = this.globalStore.getFtrStyle(id);
-        const nextStyle = {
+        const nextStyle: IGrag.IStyle = {
           x: ftrStyle.x + deltX,
           y: ftrStyle.y + deltY,
           rotate: ftrStyle.rotate + deltRotate,

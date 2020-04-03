@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as util from '@/lib/util';
 import { Context } from '@/components/provider';
 
 interface IProps {
@@ -43,10 +42,9 @@ export function Rotate(props: IProps) {
 
   const left = border.x + border.width / 2 - 6;
   const top = border.y - 24;
-  const center = util.getCenterByStyle(border);
   const origin = {
-    x: center.x - left,
-    y: center.y - top
+    x: 6,
+    y: border.height / 2 + 24
   };
   const rotate = selectedFtrs.length === 1 ? globalStore.getFtrStyle(selectedFtrs[0]).rotate : 0;
   return (

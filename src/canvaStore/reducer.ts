@@ -10,7 +10,11 @@ export function mousePosChange({ getState, doAction }: ICtx, param: { pos: IGrag
   doAction('Boxing');
   doAction('resizing');
   doAction('rotating');
-  doAction('updateBorder');
+
+  if (getState().box || getState().resizeType || getState().isMoving || getState().isRotate) {
+    doAction('updateBorder');
+  }
+
   doAction('updateGuides');
   return getState();
 }
@@ -129,7 +133,7 @@ export function rotating({ getState, globalStore }: ICtx) {
   const state = getState();
   if (state.isRotate && state.isMousedown && state.selectedFtrs.length) {
     state.selectedFtrs.forEach((id) => {
-      const center = util.getCenterByStyle(globalStore.getFtrRect(id));
+      const center = util.calCenterByStyle(globalStore.getFtrRect(id));
       const a = {
         x: state.mousePos.x - center.x,
         y: state.mousePos.y - center.y
@@ -142,14 +146,14 @@ export function rotating({ getState, globalStore }: ICtx) {
       const al = Math.sqrt(a.x * a.x + a.y * a.y);
       const bl = Math.sqrt(b.x * b.x + b.y * b.y);
       const rad = Math.acos(ab / (al * bl));
-      const z = b.x*a.y - a.x * b.y;
+      const z = b.x * a.y - a.x * b.y;
       let deg = rad * 180 / Math.PI;
       if (z < 0) {
-        deg = 360 - deg; 
+        deg = 360 - deg;
       }
       state.ftrStyles[id] = {
-        ... state.ftrStyles[id],
-        rotate: deg +  state.beforeChangeFtrStyles[id].rotate
+        ...state.ftrStyles[id],
+        rotate: deg + state.beforeChangeFtrStyles[id].rotate
       };
     });
   }
@@ -160,8 +164,10 @@ export function rotating({ getState, globalStore }: ICtx) {
 export function updateBorder({ getState }: ICtx) {
   const state = getState();
   // 计算边框
-  if (state.box || state.resizeType || state.isMoving || state.isRotate) {
-    state.border = {...util.calMaxBox(state.selectedFtrs.map((id) => state.ftrStyles[id])), rotate: 0};
+  if (state.selectedFtrs.length === 1) {
+    state.border = state.ftrStyles[state.selectedFtrs[0]];
+  } else if (state.selectedFtrs.length > 1) {
+    state.border = { ...util.calMaxBox(state.selectedFtrs.map((id) => state.ftrStyles[id])), rotate: 0 };
   }
   return state;
 }
@@ -514,11 +520,12 @@ export function updateHoverFtr({ getState }: ICtx, ftrId: string) {
 }
 
 // 更新选中的ftr
-export function updateSelectedFtrs({ getState }: ICtx, ftrIds: string[]) {
-  return {
-    ...getState(),
+export function updateSelectedFtrs({ getState, doAction }: ICtx, ftrIds: string[]) {
+  doAction('updateState', {
     selectedFtrs: ftrIds
-  };
+  });
+  doAction('updateBorder');
+  return getState();
 }
 
 // 更新state

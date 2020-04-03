@@ -93,7 +93,7 @@ export function removeNode<T extends IGrag.INode<T>>(node: T) {
   }
 }
 
-export function isInside(source: Omit<IGrag.IStyle, 'rotate'>, target: Omit<IGrag.IStyle, 'rotate'>) {
+export function isInside(source: IGrag.IBaseStyle, target: IGrag.IBaseStyle) {
   if (source.x < target.x || source.y < target.y) {
     return false;
   }
@@ -117,7 +117,7 @@ export function calMaxBox(styles: IGrag.IStyle[]) {
   let maxX = -Infinity;
   let maxY = -Infinity;
   styles.forEach((style) => {
-    const center = getCenterByStyle(style);
+    const center = calCenterByStyle(style);
     getVertexByStyle(style)
       .map((p => ({ x: p.x - center.x, y: p.y - center.y })))
       .forEach((p) => {
@@ -135,7 +135,7 @@ export function calMaxBox(styles: IGrag.IStyle[]) {
   };
 }
 
-export function getVertexByStyle(style: Omit<IGrag.IStyle, 'rotate'>) {
+export function getVertexByStyle(style: IGrag.IBaseStyle) {
   return [
     { x: style.x, y: style.y },
     { x: style.x + style.width, y: style.y },
@@ -250,7 +250,7 @@ export function calSelectedFtrs(mousePos: IGrag.IPos, mousedownCoord: IGrag.IPos
   return selectedFtrs;
 }
 
-export function getCenterByStyle(style: Omit<IGrag.IStyle, 'rotate'>) {
+export function calCenterByStyle(style: IGrag.IBaseStyle) {
   return {
     x: style.x + style.width / 2,
     y: style.y + style.height / 2

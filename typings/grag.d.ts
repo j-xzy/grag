@@ -23,12 +23,15 @@ declare namespace IGrag {
     [canvasId: string]: IFtrNode;
   }
 
-  interface IStyle {
+  interface IStyle extends IBaseStyle {
+    rotate: number;
+  }
+
+  interface IBaseStyle {
     width: number;
     height: number;
     x: number;
     y: number;
-    rotate: number;
   }
 
   interface IAdsorption {
