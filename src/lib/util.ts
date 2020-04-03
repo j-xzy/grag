@@ -111,23 +111,41 @@ export function moveIn<T extends IGrag.INode<T>>(source: T, target: T) {
   appendChild(target, source);
 }
 
-export function calMaxBox(styles: IGrag.IStyle[]) {
+export function calMaxBox(styles: IGrag.IBaseStyle[]) {
+  const box = {
+    lt: { x: Infinity, y: Infinity },
+    rb: { x: -Infinity, y: -Infinity }
+  };
+
+  styles.forEach((style) => {
+    box.lt.x = Math.min(box.lt.x, style.x);
+    box.lt.y = Math.min(box.lt.y, style.y);
+    box.rb.x = Math.max(box.rb.x, style.x + style.width);
+    box.rb.y = Math.max(box.rb.y, style.y + style.height);
+  });
+  return {
+    x: box.lt.x,
+    y: box.lt.y,
+    width: box.rb.x - box.lt.x,
+    height: box.rb.y - box.lt.y
+  };
+}
+
+export function calBoundRect(style: IGrag.IBaseStyle, rotate: number) {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
-  styles.forEach((style) => {
-    const center = calCenterByStyle(style);
-    getVertexByStyle(style)
-      .map((p => ({ x: p.x - center.x, y: p.y - center.y })))
-      .forEach((p) => {
-        const v = vectorRotate(p, style.rotate);
-        minX = Math.min(minX, v.x + center.x);
-        minY = Math.min(minY, v.y + center.y);
-        maxX = Math.max(maxX, v.x + center.x);
-        maxY = Math.max(maxY, v.y + center.y);
-      });
-  });
+  const center = calCenterByStyle(style);
+  calVertexByStyle(style)
+    .map((p => ({ x: p.x - center.x, y: p.y - center.y })))
+    .forEach((p) => {
+      const v = vectorRotate(p, rotate);
+      minX = Math.min(minX, v.x + center.x);
+      minY = Math.min(minY, v.y + center.y);
+      maxX = Math.max(maxX, v.x + center.x);
+      maxY = Math.max(maxY, v.y + center.y);
+    });
   return {
     x: minX, y: minY,
     width: maxX - minX,
@@ -135,13 +153,29 @@ export function calMaxBox(styles: IGrag.IStyle[]) {
   };
 }
 
-export function getVertexByStyle(style: IGrag.IBaseStyle) {
+export function calVertexByStyle(style: IGrag.IBaseStyle) {
   return [
     { x: style.x, y: style.y },
     { x: style.x + style.width, y: style.y },
     { x: style.x + style.width, y: style.y + style.height },
     { x: style.x, y: style.y + style.height }
   ];
+}
+
+export function calDegByTwoVector(a: IGrag.IVector, b: IGrag.IVector) {
+  const ab = a.x * b.x + a.y * b.y;
+  const al = Math.sqrt(a.x * a.x + a.y * a.y);
+  const bl = Math.sqrt(b.x * b.x + b.y * b.y);
+  const rad = Math.acos(ab / (al * bl));
+  if (isNaN(rad)) {
+    return 0;
+  }
+  const z = b.x * a.y - a.x * b.y;
+  let deg = rad * 180 / Math.PI;
+  if (z < 0) {
+    deg = 360 - deg;
+  }
+  return deg;
 }
 
 export function vectorRotate(vectror: IGrag.IVector, rotate: number, unit: 'deg' | 'rad' = 'deg') {
@@ -220,30 +254,16 @@ export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IStyl
   return { width, height, x, y, rotate };
 }
 
-export function calSelectedFtrs(mousePos: IGrag.IPos, mousedownCoord: IGrag.IPos, states: Array<IGrag.IStyle & { ftrId: string; }>) {
+export function calSelectedFtrs(mousePos: IGrag.IPos, mousedownCoord: IGrag.IPos, styles: Array<IGrag.IBaseStyle & { ftrId: string; }>) {
   const left = Math.min(mousePos.x, mousedownCoord.x);
   const right = Math.max(mousePos.x, mousedownCoord.x);
   const top = Math.min(mousePos.y, mousedownCoord.y);
   const bottom = Math.max(mousePos.y, mousedownCoord.y);
   const selectedFtrs: string[] = [];
 
-  states.forEach((state) => {
-    const { x, y, height, width, ftrId } = state;
-    let xIn = false;
-    let yIn = false;
-    if ((x >= left && x <= right) || ((x + width) >= left && (x + width) <= right)) {
-      xIn = true;
-    }
-    if ((left >= x && left <= (x + width)) || (right >= x && right <= (x + width))) {
-      xIn = true;
-    }
-    if ((y >= top && y <= bottom) || ((y + height) >= top && (y + height) <= bottom)) {
-      yIn = true;
-    }
-    if ((top >= y && top <= (y + height)) || (bottom >= y && bottom <= (y + height))) {
-      yIn = true;
-    }
-    if (xIn && yIn) {
+  styles.forEach((style) => {
+    const { x, y, height, width, ftrId } = style;
+    if (x >= left && (x + width) <= right && y >= top && (y + height) <= bottom) {
       selectedFtrs.push(ftrId);
     }
   });

@@ -63,7 +63,7 @@ export class FeatureMutater {
         const nextStyle: IGrag.IStyle = {
           x: ftrStyle.x + deltX,
           y: ftrStyle.y + deltY,
-          rotate: ftrStyle.rotate + deltRotate,
+          rotate: ftrStyle.rotate, // + deltRotate,
           width: ftrStyle.width,
           height: ftrStyle.height
         };
@@ -175,8 +175,8 @@ export class FeatureMutater {
   }
 
   private ftrInside(sourceftrId: string, targetFtrId: string) {
-    const sourceRect = this.globalStore.getFtrRect(sourceftrId);
-    const targetRect = this.globalStore.getFtrRect(targetFtrId);
+    const sourceRect = this.globalStore.getFtrStyle(sourceftrId);
+    const targetRect = this.globalStore.getFtrStyle(targetFtrId);
     return util.isInside(sourceRect, targetRect);
   }
 }
