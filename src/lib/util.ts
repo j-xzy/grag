@@ -112,18 +112,52 @@ export function moveIn<T extends IGrag.INode<T>>(source: T, target: T) {
 }
 
 export function calMaxBox(styles: IGrag.IStyle[]) {
-  const box = {
-    lt: { x: Infinity, y: Infinity },
-    rb: { x: -Infinity, y: -Infinity }
-  };
-
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
   styles.forEach((style) => {
-    box.lt.x = Math.min(box.lt.x, style.x);
-    box.lt.y = Math.min(box.lt.y, style.y);
-    box.rb.x = Math.max(box.rb.x, style.x + style.width);
-    box.rb.y = Math.max(box.rb.y, style.y + style.height);
+    const center = getCenterByStyle(style);
+    getVertexByStyle(style)
+      .map((p => ({ x: p.x - center.x, y: p.y - center.y })))
+      .forEach((p) => {
+        const v = vectorRotate(p, style.rotate);
+        minX = Math.min(minX, v.x + center.x);
+        minY = Math.min(minY, v.y + center.y);
+        maxX = Math.max(maxX, v.x + center.x);
+        maxY = Math.max(maxY, v.y + center.y);
+      });
   });
-  return box;
+  return {
+    x: minX, y: minY,
+    width: maxX - minX,
+    height: maxY - minY
+  };
+}
+
+export function getVertexByStyle(style: Omit<IGrag.IStyle, 'rotate'>) {
+  return [
+    { x: style.x, y: style.y },
+    { x: style.x + style.width, y: style.y },
+    { x: style.x + style.width, y: style.y + style.height },
+    { x: style.x, y: style.y + style.height }
+  ];
+}
+
+export function vectorRotate(vectror: IGrag.IVector, rotate: number, unit: 'deg' | 'rad' = 'deg') {
+  const rad = unit === 'rad' ? rotate : deg2Rad(rotate);
+  return {
+    x: vectror.x * Math.cos(rad) - vectror.y * Math.sin(rad),
+    y: vectror.x * Math.sin(rad) + vectror.y * Math.cos(rad)
+  };
+}
+
+export function rad2Deg(rad: number) {
+  return rad * 180 / Math.PI;
+}
+
+export function deg2Rad(deg: number) {
+  return deg * Math.PI / 180;
 }
 
 export function lowestCommonAncestor<T extends IGrag.INode<T>>(nodes: T[]) {
@@ -216,30 +250,10 @@ export function calSelectedFtrs(mousePos: IGrag.IPos, mousedownCoord: IGrag.IPos
   return selectedFtrs;
 }
 
-export function calRectByStyle(style: IGrag.IStyle) {
-  return {
-    lt: {
-      x: style.x,
-      y: style.y
-    },
-    rb: {
-      x: style.x + style.width,
-      y: style.y + style.height
-    }
-  } as IGrag.IBox;
-}
-
-export function calCenterByStyle(style: Omit<IGrag.IStyle, 'rotate'>) {
+export function getCenterByStyle(style: Omit<IGrag.IStyle, 'rotate'>) {
   return {
     x: style.x + style.width / 2,
     y: style.y + style.height / 2
-  };
-}
-
-export function calCenterByBox(box: IGrag.IBox) {
-  return {
-    x: (box.lt.x + box.rb.x) / 2,
-    y: (box.lt.y + box.rb.y) / 2
   };
 }
 

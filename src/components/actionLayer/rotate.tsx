@@ -41,9 +41,9 @@ export function Rotate(props: IProps) {
     return null;
   }
 
-  const left = (border.lt.x + border.rb.x) / 2 - 6;
-  const top = border.lt.y - 24;
-  const center = util.calCenterByBox(border);
+  const left = border.x + border.width / 2 - 6;
+  const top = border.y - 24;
+  const center = util.getCenterByStyle(border);
   const origin = {
     x: center.x - left,
     y: center.y - top

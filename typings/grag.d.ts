@@ -60,11 +60,6 @@ declare namespace IGrag {
 
   type IResizeType = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
 
-  interface IBox {
-    lt: IPos;
-    rb: IPos;
-  }
-
   type IGuideLineType = 'dist' | 'dash' | 'align';
 
   type IDirection = 'vertical' | 'horizontal';
@@ -74,5 +69,10 @@ declare namespace IGrag {
     pos: IPos;
     direction: IDirection;
     length: number;
+  }
+
+  interface IVector {
+    x: number;
+    y: number;
   }
 }

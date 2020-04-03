@@ -41,7 +41,7 @@ export function dragging({ getState }: ICtx) {
       y: state.mousePos.y - Math.floor(height / 2),
       rotate: 0
     };
-    state.border = util.calRectByStyle(state.dragCompStyle);
+    state.border = state.dragCompStyle;
   }
   return state;
 }
@@ -129,7 +129,7 @@ export function rotating({ getState, globalStore }: ICtx) {
   const state = getState();
   if (state.isRotate && state.isMousedown && state.selectedFtrs.length) {
     state.selectedFtrs.forEach((id) => {
-      const center = util.calCenterByStyle(globalStore.getFtrRect(id));
+      const center = util.getCenterByStyle(globalStore.getFtrRect(id));
       const a = {
         x: state.mousePos.x - center.x,
         y: state.mousePos.y - center.y
@@ -160,8 +160,8 @@ export function rotating({ getState, globalStore }: ICtx) {
 export function updateBorder({ getState }: ICtx) {
   const state = getState();
   // 计算边框
-  if (state.box || state.resizeType || state.isMoving) {
-    state.border = util.calMaxBox(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+  if (state.box || state.resizeType || state.isMoving || state.isRotate) {
+    state.border = {...util.calMaxBox(state.selectedFtrs.map((id) => state.ftrStyles[id])), rotate: 0};
   }
   return state;
 }
@@ -514,11 +514,10 @@ export function updateHoverFtr({ getState }: ICtx, ftrId: string) {
 }
 
 // 更新选中的ftr
-export function updateSelectedFtrs({ getState, globalStore }: ICtx, ftrIds: string[]) {
+export function updateSelectedFtrs({ getState }: ICtx, ftrIds: string[]) {
   return {
     ...getState(),
-    selectedFtrs: ftrIds,
-    border: ftrIds.length ? util.calMaxBox(ftrIds.map((id) => globalStore.getFtrStyle(id))) : null
+    selectedFtrs: ftrIds
   };
 }
 

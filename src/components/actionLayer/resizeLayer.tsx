@@ -4,7 +4,7 @@ import { Context } from '../provider';
 import { IEvtEmit } from '@/EventCollect';
 
 interface IHandlerProps {
-  box: IGrag.IBox;
+  box: IGrag.IStyle;
   type: IGrag.IResizeType;
   evtEmit: IEvtEmit;
 }
@@ -48,15 +48,15 @@ export function ResizeLayer(props: { canvasId: string; }) {
   );
 }
 
-function Border(props: { box: IGrag.IBox; }) {
-  const { box: { lt, rb } } = props;
+function Border(props: { box: IGrag.IStyle; }) {
+  const { box } = props;
   const style: React.CSSProperties = {
     position: 'absolute',
     boxSizing: 'border-box',
-    width: rb.x - lt.x + 2,
-    height: rb.y - lt.y + 2,
-    left: lt.x - 1,
-    top: lt.y - 1,
+    width: box.width + 2,
+    height: box.height + 2,
+    left: box.x - 1,
+    top: box.y - 1,
     backgroundColor: 'rgba(0,0,0,0)',
     border: '1px solid #d8d8d8'
   };
@@ -64,27 +64,27 @@ function Border(props: { box: IGrag.IBox; }) {
 }
 
 function Handler(props: IHandlerProps) {
-  const { type, box: { lt, rb }, evtEmit } = props;
+  const { type, box, evtEmit } = props;
   let top = 0;
   let left = 0;
   let cursor = '';
   if (type === 'nw' || type === 'n' || type === 'ne') {
-    top = lt.y;
+    top = box.y;
   }
   if (type === 'w' || type === 'e') {
-    top = lt.y + Math.floor((rb.y - lt.y) / 2);
+    top = box.y + Math.floor(box.height / 2);
   }
   if (type === 'sw' || type === 's' || type === 'se') {
-    top = rb.y;
+    top = box.y + box.height;
   }
   if (type === 'nw' || type === 'w' || type === 'sw') {
-    left = lt.x;
+    left = box.x;
   }
   if (type === 'n' || type === 's') {
-    left = lt.x + Math.floor((rb.x - lt.x) / 2);
+    left = box.x + Math.floor(box.width / 2);
   }
   if (type === 'ne' || type === 'e' || type === 'se') {
-    left = rb.x;
+    left = box.x + box.width;
   }
   if (type === 'nw' || type === 'se') {
     cursor = 'nwse';
