@@ -175,8 +175,8 @@ export class FeatureMutater {
   }
 
   private ftrInside(sourceftrId: string, targetFtrId: string) {
-    const sourceRect = this.globalStore.getFtrStyle(sourceftrId);
-    const targetRect = this.globalStore.getFtrStyle(targetFtrId);
-    return util.isInside(sourceRect, targetRect);
+    const sourceStyle = this.globalStore.getFtrStyle(sourceftrId);
+    const targetStyle = this.globalStore.getFtrStyle(targetFtrId);
+    return util.isInside(sourceStyle, targetStyle);
   }
 }

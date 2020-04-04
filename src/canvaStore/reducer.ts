@@ -80,7 +80,7 @@ export function Boxing({ getState, globalStore }: ICtx) {
     const nodes = globalStore.getDeepChildren(rootId);
     const selectedFtrs = util.calSelectedFtrs(
       state.mousePos, state.mousedownCoord,
-      nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrRect(ftrId) }))
+      nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrBoundRect(ftrId) }))
     );
     state.selectedFtrs = selectedFtrs;
 
@@ -133,7 +133,7 @@ export function rotating({ getState, globalStore }: ICtx) {
   const state = getState();
   if (state.isRotate && state.isMousedown && state.selectedFtrs.length) {
     state.selectedFtrs.forEach((id) => {
-      const center = util.calCenterByStyle(globalStore.getFtrRect(id));
+      const center = util.calRectCenter(globalStore.getFtrBoundRect(id));
       const a = {
         x: state.mousePos.x - center.x,
         y: state.mousePos.y - center.y
@@ -160,7 +160,7 @@ export function updateBorder({ getState }: ICtx) {
     state.border = state.ftrStyles[state.selectedFtrs[0]];
   } else if (state.selectedFtrs.length > 1) {
     state.border = {
-      ...util.calMaxBox(state.selectedFtrs.map((id) => util.calBoundRect(state.ftrStyles[id], state.ftrStyles[id].rotate))),
+      ...util.calMaxRect(state.selectedFtrs.map((id) => util.rotateRect(state.ftrStyles[id], state.ftrStyles[id].rotate))),
       rotate: 0
     };
   }

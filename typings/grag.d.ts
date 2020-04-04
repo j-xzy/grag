@@ -1,4 +1,9 @@
 declare namespace IGrag {
+  interface IFtrNode extends INode<IFtrNode> {
+    compId: string;
+    ftrId: string;
+  }
+  
   interface ICompOption {
     allowChild?: boolean;
     width?: number;
@@ -23,11 +28,11 @@ declare namespace IGrag {
     [canvasId: string]: IFtrNode;
   }
 
-  interface IStyle extends IBaseStyle {
+  interface IStyle extends IRect {
     rotate: number;
   }
 
-  interface IBaseStyle {
+  interface IRect {
     width: number;
     height: number;
     x: number;
@@ -72,10 +77,5 @@ declare namespace IGrag {
     pos: IPos;
     direction: IDirection;
     length: number;
-  }
-
-  interface IVector {
-    x: number;
-    y: number;
   }
 }

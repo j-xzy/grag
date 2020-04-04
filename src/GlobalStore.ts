@@ -150,7 +150,7 @@ export class GlobalStore {
   /**
    * 根据ftrid得到boundingRect
    */
-  public getFtrRect(ftrId: string) {
+  public getFtrBoundRect(ftrId: string) {
     const canvasId = this.ftrId2CanvasId[ftrId];
     const canvasRect = this.getDom(canvasId).getBoundingClientRect();
     const ftrRect = this.getDom(ftrId).getBoundingClientRect();
