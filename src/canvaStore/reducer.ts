@@ -145,7 +145,7 @@ export function rotating({ getState, globalStore }: ICtx) {
       const deg = util.calDegByTwoVector(a, b);
       state.ftrStyles[id] = {
         ...state.ftrStyles[id],
-        rotate: deg + state.beforeChangeFtrStyles[id].rotate
+        rotate: (deg + state.beforeChangeFtrStyles[id].rotate) % 360
       };
     });
   }
