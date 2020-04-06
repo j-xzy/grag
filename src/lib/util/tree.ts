@@ -14,6 +14,13 @@ export function getChildren<T extends IGrag.INode<T>>(root: T): T[] {
 }
 
 /**
+ * 得到父亲节点
+ */
+export function getParentNode<T extends IGrag.INode<T>>(node: T) {
+  return node.parent;
+}
+
+/**
  * 得到所有children(深)
  */
 export function getDeepChildren<T extends IGrag.INode<T>>(root: T): T[] {

@@ -46,14 +46,13 @@ export function calDegByTwoVector(a: IVector, b: IVector) {
 /**
  * 旋转向量
  */
-export function vectorRotate(vectror: IVector, rotate: number, unit: 'deg' | 'rad' = 'deg') {
+export function rotateVector(vectror: IVector, rotate: number, unit: 'deg' | 'rad' = 'deg') {
   const rad = unit === 'rad' ? rotate : deg2Rad(rotate);
   return {
     x: vectror.x * Math.cos(rad) - vectror.y * Math.sin(rad),
     y: vectror.x * Math.sin(rad) + vectror.y * Math.cos(rad)
   };
 }
-
 
 /**
  * 点在面内 

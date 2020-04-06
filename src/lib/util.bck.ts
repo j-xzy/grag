@@ -168,7 +168,7 @@
 //   calVertexByStyle(style)
 //     .map((p => ({ x: p.x - center.x, y: p.y - center.y })))
 //     .forEach((p) => {
-//       const v = vectorRotate(p, rotate);
+//       const v = rotateVector(p, rotate);
 //       minX = Math.min(minX, v.x + center.x);
 //       minY = Math.min(minY, v.y + center.y);
 //       maxX = Math.max(maxX, v.x + center.x);
@@ -206,7 +206,7 @@
 //   return deg;
 // }
 
-// export function vectorRotate(vectror: IGrag.IVector, rotate: number, unit: 'deg' | 'rad' = 'deg') {
+// export function rotateVector(vectror: IGrag.IVector, rotate: number, unit: 'deg' | 'rad' = 'deg') {
 //   const rad = unit === 'rad' ? rotate : deg2Rad(rotate);
 //   return {
 //     x: vectror.x * Math.cos(rad) - vectror.y * Math.sin(rad),

@@ -3,7 +3,7 @@ declare namespace IGrag {
     compId: string;
     ftrId: string;
   }
-  
+
   interface ICompOption {
     allowChild?: boolean;
     width?: number;
@@ -39,22 +39,6 @@ declare namespace IGrag {
     y: number;
   }
 
-  interface IAdsorption {
-    ht: [number, number];
-    hm: [number, number];
-    hb: [number, number];
-    vl: [number, number];
-    vm: [number, number];
-    vr: [number, number];
-  }
-
-  type IDistLines = Record<ISides, number>;
-  type IDashLines = Record<ISides, [number, number]>;
-
-  type ISides = 'left' | 'right' | 'top' | 'bottom';
-
-  type IAdsorptionType = 'ht' | 'hm' | 'hb' | 'vl' | 'vm' | 'vr';
-
   interface IProviderConfig {
     color?: string;
     id?: string;
@@ -66,7 +50,7 @@ declare namespace IGrag {
     color: string;
   }
 
-  type IResizeType = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
+  type IResizeType = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
   type IGuideLineType = 'dist' | 'dash' | 'align';
 
@@ -75,7 +59,7 @@ declare namespace IGrag {
   interface IGuideLine {
     type: IGuideLineType;
     pos: IPos;
-    direction: IDirection;
+    direction: 'vertical' | 'horizontal';
     length: number;
   }
 }

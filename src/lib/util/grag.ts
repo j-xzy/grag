@@ -24,13 +24,6 @@ export function getNodeByFtrId(root: IGrag.IFtrNode, ftrId: string) {
 }
 
 /**
- * 得到父亲节点
- */
-export function getParentNode(node: IGrag.IFtrNode) {
-  return node.parent;
-}
-
-/**
  * 构建空的ftrNode
  */
 export function buildEmptyFtrNode(param: { ftrId: string; compId: string; }): IGrag.IFtrNode {
@@ -53,18 +46,61 @@ export function isInside(source: IGrag.IStyle, target: IGrag.IStyle) {
 }
 
 /**
- * 旋转后的四个顶点 
+ * 旋转后的4个顶点
  */
 export function calRotateRectVertex(rect: IGrag.IRect, rotate: number) {
   const center = calRectCenter(rect);
   const vertexs = calRectVertex(rect).map((v) => {
-    const pt = mathUtil.vectorRotate({ x: v.x - center.x ,y: v.y - center.y }, rotate);
+    const pt = mathUtil.rotateVector({ x: v.x - center.x, y: v.y - center.y }, rotate);
     return {
       x: pt.x + center.x,
       y: pt.y + center.y
     };
   });
   return vertexs;
+}
+
+/**
+ * 旋转后的八个方位点['nw' , 'n' , 'ne' , 'e' , 'se' , 's' , 'sw' , 'w']
+ */
+export function calRotateRectEightPts(rect: IGrag.IRect, rotate: number) {
+  const center = calRectCenter(rect);
+  const pts = calRectEightPts(rect).map((v) => {
+    const pt = mathUtil.rotateVector({ x: v.x - center.x, y: v.y - center.y }, rotate);
+    return {
+      x: pt.x + center.x,
+      y: pt.y + center.y
+    };
+  });
+  return pts;
+}
+
+/**
+ * 计算矩形4个顶点
+ */
+export function calRectVertex(rect: IGrag.IRect) {
+  return [
+    { x: rect.x, y: rect.y },
+    { x: rect.x + rect.width, y: rect.y },
+    { x: rect.x + rect.width, y: rect.y + rect.height },
+    { x: rect.x, y: rect.y + rect.height }
+  ];
+}
+
+/**
+ * 计算矩形八个方位点 ['nw' , 'n' , 'ne' , 'e' , 'se' , 's' , 'sw' , 'w']
+ */
+export function calRectEightPts(rect: IGrag.IRect) {
+  return [
+    { x: rect.x, y: rect.y }, // nw
+    { x: rect.x + rect.width / 2, y: rect.y }, // n
+    { x: rect.x + rect.width, y: rect.y }, // ne
+    { x: rect.x + rect.width, y: rect.y + rect.height / 2 }, // e
+    { x: rect.x + rect.width, y: rect.y + rect.height }, // se
+    { x: rect.x + rect.width / 2, y: rect.y + rect.height }, // s
+    { x: rect.x, y: rect.y + rect.height }, // sw
+    { x: rect.x, y: rect.y + rect.height / 2 } // w
+  ];
 }
 
 /**
@@ -93,7 +129,7 @@ export function calMaxRect(rects: IGrag.IRect[]) {
 /**
  * 旋转矩形后构成的最大的矩形 
  */
-export function rotateRect(rect: IGrag.IRect, rotate: number) {
+export function rotateRect(rect: IGrag.IRect, deg: number) {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
@@ -102,7 +138,7 @@ export function rotateRect(rect: IGrag.IRect, rotate: number) {
   calRectVertex(rect)
     .map((p => ({ x: p.x - center.x, y: p.y - center.y })))
     .forEach((p) => {
-      const v = mathUtil.vectorRotate(p, rotate);
+      const v = mathUtil.rotateVector(p, deg);
       minX = Math.min(minX, v.x + center.x);
       minY = Math.min(minY, v.y + center.y);
       maxX = Math.max(maxX, v.x + center.x);
@@ -113,18 +149,6 @@ export function rotateRect(rect: IGrag.IRect, rotate: number) {
     width: maxX - minX,
     height: maxY - minY
   };
-}
-
-/**
- * 计算矩形四个顶点
- */
-export function calRectVertex(style: IGrag.IRect) {
-  return [
-    { x: style.x, y: style.y },
-    { x: style.x + style.width, y: style.y },
-    { x: style.x + style.width, y: style.y + style.height },
-    { x: style.x, y: style.y + style.height }
-  ];
 }
 
 /**
