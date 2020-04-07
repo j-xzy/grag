@@ -11,7 +11,7 @@ const style: React.CSSProperties = {
   pointerEvents: 'all'
 };
 
-export function Rotate(props: IProps) {
+export function RotateLayer(props: IProps) {
   const { useMappedCanvasState, evtEmit, globalStore } = React.useContext(Context);
   const { border, selectedFtrs, isMoving, isResizing } = useMappedCanvasState((s) => ({
     focusedCanvas: s.focusedCanvas,
