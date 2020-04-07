@@ -61,21 +61,6 @@ export function calRotateRectVertex(rect: IGrag.IRect, rotate: number) {
 }
 
 /**
- * 旋转后的八个方位点['nw' , 'n' , 'ne' , 'e' , 'se' , 's' , 'sw' , 'w']
- */
-export function calRotateRectEightPts(rect: IGrag.IRect, rotate: number) {
-  const center = calRectCenter(rect);
-  const pts = calRectEightPts(rect).map((v) => {
-    const pt = mathUtil.rotateVector({ x: v.x - center.x, y: v.y - center.y }, rotate);
-    return {
-      x: pt.x + center.x,
-      y: pt.y + center.y
-    };
-  });
-  return pts;
-}
-
-/**
  * 计算矩形4个顶点
  */
 export function calRectVertex(rect: IGrag.IRect) {
@@ -88,19 +73,24 @@ export function calRectVertex(rect: IGrag.IRect) {
 }
 
 /**
- * 计算矩形八个方位点 ['nw' , 'n' , 'ne' , 'e' , 'se' , 's' , 'sw' , 'w']
+ * 计算ResizeHanlder相关state
  */
-export function calRectEightPts(rect: IGrag.IRect) {
-  return [
-    { x: rect.x, y: rect.y }, // nw
-    { x: rect.x + rect.width / 2, y: rect.y }, // n
-    { x: rect.x + rect.width, y: rect.y }, // ne
-    { x: rect.x + rect.width, y: rect.y + rect.height / 2 }, // e
-    { x: rect.x + rect.width, y: rect.y + rect.height }, // se
-    { x: rect.x + rect.width / 2, y: rect.y + rect.height }, // s
-    { x: rect.x, y: rect.y + rect.height }, // sw
-    { x: rect.x, y: rect.y + rect.height / 2 } // w
-  ];
+export function calResizeHandler(border: IGrag.IStyle, offset = 0) {
+  const result = [];
+  const xProduct = [0, 0.5, 1, 1, 1, 0.5, 0, 0];
+  const yProduct = [0, 0, 0, 0.5, 1, 1, 1, 0.5];
+  const originProduct = [[0.5, 0.5], [0, 0.5], [-0.5, 0.5], [-0.5, 0], [-0.5, - 0.5], [0, -0.5], [0.5, -0.5], [0.5, 0]];
+  const types1: IGrag.IResizeType[] = ['nw', 'n', 'ne', 'ne', 'e', 'se', 'se', 's', 'sw', 'sw', 'w', 'nw'];
+  const types2: IGrag.IResizeType[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+  for (let idx = 0; idx < 8; ++idx) {
+    const x = xProduct[idx] * border.width + border.x - offset;
+    const y = yProduct[idx] * border.height + border.y - offset;
+    const origin = [originProduct[idx][0] * border.width + offset, originProduct[idx][1] * border.height + offset] as [number, number];
+    let type = types1[Math.floor(border.rotate / 30)];
+    type = types2[(types2.indexOf(type) + idx) % 8];
+    result.push({ x, y, origin, type });
+  }
+  return result;
 }
 
 /**

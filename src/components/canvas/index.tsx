@@ -6,7 +6,7 @@ import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useMount } from '@/hooks/useMount';
 import { useMutationObserver } from '@/hooks/useMutationObserver';
 import { ActionLayer } from '@/components/actionLayer';
-import { defaultStyle, cursorDics } from './config';
+import { defaultStyle } from './config';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
   id: string;
@@ -92,7 +92,7 @@ function RawCanvas(props: IRawCanvasProps) {
       if (state.isMoving) {
         cursor = 'move';
       } else if (state.resizeType) {
-        cursor = cursorDics[state.resizeType];
+        cursor = `${state.resizeType }-resize`;
       } else if (state.isRotate) {
         cursor = 'pointer';
       }
