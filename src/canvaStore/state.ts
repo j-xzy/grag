@@ -17,7 +17,7 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     hoverFtr: null as string | null, // drag时hove的ftrId
     isMoving: false, // 是否正在拖动
     isRotate: false, // 是否正在旋转
-    box: null as IGrag.IStyle | null, // 是否正在拉框
+    selectBox: null as IGrag.IStyle | null, // 框选
     isMousedown: false, // 鼠标是否down
     resizeType: null as IGrag.IResizeType | null, //resize时类型
     guideLines: [] as IGrag.IGuideLine[]

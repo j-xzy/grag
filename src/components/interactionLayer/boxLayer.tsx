@@ -9,7 +9,7 @@ interface IProps {
 export function BoxLayer(props: IProps) {
   const { useMappedCanvasState } = React.useContext(Context);
   const { box, focusedCanvas } = useMappedCanvasState((s) => ({
-    box: s.box, focusedCanvas: s.focusedCanvas
+    box: s.selectBox, focusedCanvas: s.focusedCanvas
   }));
 
   if (!box || focusedCanvas !== props.canvasId) {

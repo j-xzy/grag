@@ -11,7 +11,7 @@ export function mousePosChange({ getState, doAction }: ICtx, param: { pos: IGrag
   doAction('resizing');
   doAction('rotating');
 
-  if (getState().box || getState().resizeType || getState().isMoving || getState().isRotate) {
+  if (getState().selectBox || getState().resizeType || getState().isMoving || getState().isRotate) {
     doAction('updateBorder');
   }
 
@@ -98,7 +98,7 @@ export function Boxing({ getState, globalStore }: ICtx) {
     } else {
       recty = state.mousePos.y;
     }
-    state.box = {
+    state.selectBox = {
       x: rectx, y: recty,
       width: Math.abs(state.mousePos.x - state.mousedownCoord.x),
       height: Math.abs(state.mousePos.y - state.mousedownCoord.y),
@@ -368,7 +368,7 @@ export function clearAction({ getState }: ICtx) {
     ...getState(),
     isMoving: false,
     isRotate: false,
-    box: null,
+    selectBox: null,
     isMousedown: false,
     resizeType: null,
     adsorbLines: {},
