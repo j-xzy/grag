@@ -88,6 +88,9 @@ export class GlobalStore {
    */
   public subscribeCanvasForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
     this.canvasForceUpdateMap[canvasId] = forceUpdate;
+    return () => {
+      delete this.canvasForceUpdateMap[canvasId];
+    };
   }
 
   /**
@@ -102,6 +105,9 @@ export class GlobalStore {
    */
   public subscribeFeatureLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
     this.featureLayerForceUpdateMap[canvasId] = forceUpdate;
+    return () => {
+      delete this.featureLayerForceUpdateMap[canvasId];
+    };
   }
 
   /**
@@ -116,6 +122,9 @@ export class GlobalStore {
    */
   public subscribeActionLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
     this.actionLayerForceUpdateMap[canvasId] = forceUpdate;
+    return () => {
+      delete this.actionLayerForceUpdateMap[canvasId];
+    };
   }
 
   /**

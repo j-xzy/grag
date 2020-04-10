@@ -177,6 +177,7 @@ export class EventCollect {
   public resizeMousedown(type: IGrag.IResizeType) {
     this.canvaStore.dispatch('setMousedown');
     this.canvaStore.dispatch('readyResize', type);
+    this.canvaStore.dispatch('updateCursor', `${type}-resize`);
   }
 
   public resizeMouseup() {
@@ -186,6 +187,7 @@ export class EventCollect {
   public rotateMousedown() {
     this.canvaStore.dispatch('setMousedown');
     this.canvaStore.dispatch('readyRotate');
+    this.canvaStore.dispatch('updateCursor', 'pointer');
   }
 
   public rotateMouseup() {
@@ -208,5 +210,6 @@ export class EventCollect {
       });
     }
     this.canvaStore.dispatch('clearAction');
+    this.canvaStore.dispatch('updateCursor', 'default');
   }
 }

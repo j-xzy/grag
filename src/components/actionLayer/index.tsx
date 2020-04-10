@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
-import { useInitial } from '@/hooks/useInitial';
+import { useMount } from '@/hooks/useMount';
 import { RotateLayer } from './rotateLayer';
 import { HighLightLayer } from './highLightLayer';
 import { ResizeLayer } from './resizeLayer';
@@ -12,9 +12,12 @@ import { Context } from '../provider';
 export function ActionLayer(props: { canvasId: string; }) {
   const { globalStore } = React.useContext(Context);
   const forceUpdate = useForceUpdate();
-  useInitial(() => {
-    globalStore.subscribeActionLayerForceUpdate(props.canvasId, forceUpdate);
+
+  useMount(() => {
+    const unSubscribeUpdate = globalStore.subscribeActionLayerForceUpdate(props.canvasId, forceUpdate);
+    return unSubscribeUpdate;
   });
+
   return (
     <div style={style}>
       <HighLightLayer canvasId={props.canvasId} />

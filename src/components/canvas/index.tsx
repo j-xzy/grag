@@ -80,24 +80,14 @@ function RawCanvas(props: IRawCanvasProps) {
 
   useMount(() => {
     const unSubscribe = subscribeCanvaStore((s) => ({
-      isMoving: s.isMoving,
-      resizeType: s.resizeType,
+      cursor: s.cursor,
       focusedCanvas: s.focusedCanvas,
-      isRotate: s.isRotate
     }), (state) => {
       if (state.focusedCanvas !== props.id) {
         return;
       }
-      let cursor = 'default';
-      if (state.isMoving) {
-        cursor = 'move';
-      } else if (state.resizeType) {
-        cursor = `${state.resizeType }-resize`;
-      } else if (state.isRotate) {
-        cursor = 'pointer';
-      }
       if (domRef.current) {
-        domRef.current.style.cursor = cursor;
+        domRef.current.style.cursor = state.cursor;
       }
     });
     return () => {
@@ -122,7 +112,8 @@ export function Canvas(props: ICanvasProps) {
   const canvasId = React.useRef(id ?? util.uuid());
 
   useMount(() => {
-    globalStore.subscribeCanvasForceUpdate(canvasId.current, forceUpdate);
+    const unSubscribe = globalStore.subscribeCanvasForceUpdate(canvasId.current, forceUpdate);
+    return unSubscribe;
   });
 
   return <RawCanvas {...restProps} id={canvasId.current} />;

@@ -523,6 +523,14 @@ export function updateSelectedFtrs({ getState, doAction }: ICtx, ftrIds: string[
   return getState();
 }
 
+// 更新cursor
+export function updateCursor({ getState }: ICtx, cursor: string) {
+  return {
+    ...getState(),
+    cursor
+  };
+}
+
 // 更新state
 export function updateState({ getState }: ICtx, state: Partial<IState>) {
   return {
