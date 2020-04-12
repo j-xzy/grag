@@ -21,7 +21,7 @@ export class EventCollect {
   public canvasMousemove(canvasId: string, pos: IGrag.IPos) {
     const getState = this.canvaStore.getState;
     if (
-      !getState().resizeType && !getState().isMoving && !getState().selectBox && !getState().isRotate
+      !getState().resize && !getState().isMoving && !getState().selectBox && !getState().isRotate
       && getState().isMousedown && getState().mouseInFtr && getState().selectedFtrs.length
     ) {
       this.canvaStore.dispatch('readyMoving');
@@ -30,7 +30,7 @@ export class EventCollect {
     this.canvaStore.dispatch('mousePosChange', { canvasId, pos });
 
     // resize、move、rotate
-    if ((getState().resizeType || getState().isMoving || getState().isRotate) && getState().selectedFtrs.length) {
+    if ((getState().resize || getState().isMoving || getState().isRotate) && getState().selectedFtrs.length) {
       this.syncSelectedFtrStyle();
     }
   }
@@ -149,11 +149,11 @@ export class EventCollect {
   }
 
   public ftrMouseover(ftrId: string) {
-    const { mouseInFtr, selectedFtrs, isMoving, isRotate, selectBox: box, resizeType } = this.canvaStore.getState();
+    const { mouseInFtr, selectedFtrs, isMoving, isRotate, selectBox: box, resize } = this.canvaStore.getState();
     if (mouseInFtr === ftrId || selectedFtrs.includes(ftrId)) {
       return;
     }
-    if (isMoving || box || resizeType || isRotate) {
+    if (isMoving || box || resize || isRotate) {
       return;
     }
     this.canvaStore.dispatch('updateMouseInFtr', ftrId);
@@ -174,10 +174,10 @@ export class EventCollect {
     this.canvaStore.dispatch('clearDragState');
   }
 
-  public resizeMousedown(type: IGrag.IResizeType) {
+  public resizeMousedown(resize: IGrag.IResize) {
     this.canvaStore.dispatch('setMousedown');
-    this.canvaStore.dispatch('readyResize', type);
-    this.canvaStore.dispatch('updateCursor', `${type}-resize`);
+    this.canvaStore.dispatch('readyResize', resize);
+    this.canvaStore.dispatch('updateCursor', `${resize.type}-resize`);
   }
 
   public resizeMouseup() {
@@ -202,8 +202,8 @@ export class EventCollect {
   }
 
   private mouseup() {
-    const { isMoving, resizeType, focusedCanvas, selectedFtrs, isRotate } = this.canvaStore.getState();
-    if ((isMoving || resizeType || isRotate) && focusedCanvas) {
+    const { isMoving, resize, focusedCanvas, selectedFtrs, isRotate } = this.canvaStore.getState();
+    if ((isMoving || resize || isRotate) && focusedCanvas) {
       this.globalStore.refreshFeatureLayer(focusedCanvas);
       selectedFtrs.forEach((id) => {
         this.ftrMutate('checkChildren', id);

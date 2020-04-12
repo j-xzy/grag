@@ -11,7 +11,7 @@ export function mousePosChange({ getState, doAction }: ICtx, param: { pos: IGrag
   doAction('resizing');
   doAction('rotating');
 
-  if (getState().selectBox || getState().resizeType || getState().isMoving || getState().isRotate) {
+  if (getState().selectBox || getState().resize || getState().isMoving || getState().isRotate) {
     doAction('updateBorder');
   }
 
@@ -74,7 +74,7 @@ export function moving({ getState }: ICtx) {
 export function Boxing({ getState, globalStore }: ICtx) {
   const state = getState();
   // 框选
-  if (!state.resizeType && !state.isMoving && !state.isRotate && state.isMousedown && !state.mouseInFtr && state.focusedCanvas) {
+  if (!state.resize && !state.isMoving && !state.isRotate && state.isMousedown && !state.mouseInFtr && state.focusedCanvas) {
     state.isMoving = false;
     const rootId = globalStore.getRoot(state.focusedCanvas).ftrId;
     const nodes = globalStore.getDeepChildren(rootId);
@@ -112,12 +112,12 @@ export function Boxing({ getState, globalStore }: ICtx) {
 export function resizing({ getState }: ICtx) {
   const state = getState();
   // 计算resize后的ftr
-  if (state.resizeType && state.selectedFtrs.length) {
+  if (state.resize && state.selectedFtrs.length) {
     const deltX = state.mousePos.x - state.mousedownCoord.x;
     const deltY = state.mousePos.y - state.mousedownCoord.y;
     state.selectedFtrs.forEach((id) => {
       const style = util.calResizeStyle(
-        state.resizeType!, state.beforeChangeFtrStyles[id],
+        state.resize!.idx, state.beforeChangeFtrStyles[id],
         { deltX, deltY }
       );
       if (style.width > 1 && style.height > 1) {
@@ -176,7 +176,7 @@ export function updateGuides({ getState }: ICtx) {
 // export function updateGuidesBck({ getState, globalStore }: ICtx) {
 //   const adsorbDist = 5;
 //   const state = getState();
-//   if ((state.resizeType || state.isMoving || state.dragCompStyle) && state.border) {
+//   if ((state.resize || state.isMoving || state.dragCompStyle) && state.border) {
 //     const closestStyles: Partial<Record<IGrag.ISides, IGrag.IStyle>> = {};
 //     state.adsorbLines = {};
 //     state.distLines = {};
@@ -224,15 +224,15 @@ export function updateGuides({ getState }: ICtx) {
 //             target[k].forEach((s) => {
 //               Object.keys(border[k]).forEach((type: IGrag.IAdsorptionType) => {
 //                 // resize时不考虑hm、vm
-//                 if (!(state.resizeType && (type === 'hm' || type === 'vm'))) {
+//                 if (!(state.resize && (type === 'hm' || type === 'vm'))) {
 //                   const v: number = (border as any)[k][type];
 //                   const delt = Math.abs(s - v);
 //                   if ((state.dragCompStyle && delt === 0) || (!state.dragCompStyle && delt < adsorbDist)) {
 //                     if (match[k] && !state.dragCompStyle) {
-//                       if (state.resizeType) {
+//                       if (state.resize) {
 //                         state.selectedFtrs.forEach((id) => {
 //                           state.ftrStyles[id] = util.calResizeStyle(
-//                             state.resizeType!, state.ftrStyles[id],
+//                             state.resize!, state.ftrStyles[id],
 //                             {
 //                               deltX: k === 'x' ? s - v : 0,
 //                               deltY: k === 'y' ? s - v : 0
@@ -370,7 +370,7 @@ export function clearAction({ getState }: ICtx) {
     isRotate: false,
     selectBox: null,
     isMousedown: false,
-    resizeType: null,
+    resize: null,
     adsorbLines: {},
     distLines: {},
     dashLines: {},
@@ -489,11 +489,11 @@ export function updateDragCompSize({ getState }: ICtx, param: IGrag.ISize) {
 }
 
 // 准备resize
-export function readyResize({ getState }: ICtx, resizeType: IGrag.IResizeType) {
+export function readyResize({ getState }: ICtx, resize: IGrag.IResize) {
   return {
     ...getState(),
     beforeChangeFtrStyles: { ...getState().ftrStyles },
-    resizeType,
+    resize,
   };
 }
 

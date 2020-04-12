@@ -151,49 +151,20 @@ export function parseRotate(str: string) {
 
 /**
  * 计算resize后的style
- * @param resizeType resize类型
+ * @param resizeIdx resize下标
  * @param style 当前style
  * @param delt 偏移量
  */
-export function calResizeStyle(resizeType: IGrag.IResizeType, style: IGrag.IStyle, delt: { deltX: number; deltY: number; }) {
+export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, delt: { deltX: number; deltY: number; }) {
   // eslint-disable-next-line prefer-const
   let { x, y, width, height, rotate } = style;
   const { deltX, deltY } = delt;
-  if (resizeType === 'e') {
-    width = width + deltX;
-  }
-  if (resizeType === 's') {
-    height = height + deltY;
-  }
-  if (resizeType === 'n') {
-    y = y + deltY;
-    height = height - deltY;
-  }
-  if (resizeType === 'w') {
-    x = x + deltX;
-    width = width - deltX;
-  }
-  if (resizeType === 'se') {
-    height = height + deltY;
-    width = width + deltX;
-  }
-  if (resizeType === 'ne') {
-    y = y + deltY;
-    height = height - deltY;
-    width = width + deltX;
-  }
-  if (resizeType === 'nw') {
-    y = y + deltY;
-    height = height - deltY;
-    x = x + deltX;
-    width = width - deltX;
-  }
-  if (resizeType === 'sw') {
-    height = height + deltY;
-    x = x + deltX;
-    width = width - deltX;
-  }
-  return { width, height, x, y, rotate };
+  console.log(resizeIdx);
+  return {
+    x,y,rotate,
+    width: deltX + width,
+    height: height + deltY
+  };
 }
 
 /**

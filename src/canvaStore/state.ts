@@ -19,7 +19,7 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     isRotate: false, // 是否正在旋转
     selectBox: null as IGrag.IStyle | null, // 框选
     isMousedown: false, // 鼠标是否down
-    resizeType: null as IGrag.IResizeType | null, //resize时类型
+    resize: null as IGrag.IResize | null, //resize时类型
     guideLines: [] as IGrag.IGuideLine[],
     cursor: 'default'
   };

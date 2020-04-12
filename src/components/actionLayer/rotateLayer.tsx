@@ -18,7 +18,7 @@ export function RotateLayer(props: IProps) {
     border: s.border,
     selectedFtrs: s.selectedFtrs,
     isMoving: s.isMoving,
-    isResizing: !!s.resizeType
+    isResizing: !!s.resize
   }));
   const handleMousedown = React.useCallback((e: React.MouseEvent) => {
     e.stopPropagation();

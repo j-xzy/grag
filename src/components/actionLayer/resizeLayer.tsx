@@ -11,13 +11,14 @@ interface IHandlerProps {
   rotate: number;
   origin: [number, number];
   type: IGrag.IResizeType;
+  idx: number;
 }
 
 export function ResizeLayer(props: { canvasId: string; }) {
   const { useMappedCanvasState, globalStore, evtEmit } = React.useContext(Context);
-  const { selectedFtrs, isMoving, resizeType, border } = useMappedCanvasState((s) => ({
+  const { selectedFtrs, isMoving, resize, border } = useMappedCanvasState((s) => ({
     selectedFtrs: s.selectedFtrs, isMoving: s.isMoving,
-    resizeType: s.resizeType, border: s.border
+    resize: s.resize, border: s.border
   }));
 
   if (!selectedFtrs.length || !border) {
@@ -35,11 +36,11 @@ export function ResizeLayer(props: { canvasId: string; }) {
     <div style={style}>
       <Border box={border} />
       {
-        isMoving ? null : calResizeHandler(border, 4).map((p) => {
-          if(resizeType && resizeType !== p.type) {
+        isMoving ? null : calResizeHandler(border, 4).map((p, idx) => {
+          if (resize && resize.type !== p.type) {
             return null;
           }
-          return <Handler key={p.type} evtEmit={evtEmit} rotate={border.rotate} {...p} />;
+          return <Handler key={p.type} evtEmit={evtEmit} rotate={border.rotate} idx={idx} {...p} />;
         })
       }
     </div>
@@ -63,7 +64,7 @@ function Border(props: { box: IGrag.IStyle; }) {
 }
 
 function Handler(props: IHandlerProps) {
-  const { x, y, rotate, origin, type, evtEmit } = props;
+  const { x, y, rotate, origin, type, idx, evtEmit } = props;
   const style: React.CSSProperties = {
     position: 'absolute',
     boxSizing: 'border-box',
@@ -80,9 +81,9 @@ function Handler(props: IHandlerProps) {
   };
 
   const handleMousedown = React.useCallback((e: React.MouseEvent) => {
-    evtEmit('resizeMousedown', type);
+    evtEmit('resizeMousedown', { type, idx });
     e.stopPropagation();
-  }, [type]);
+  }, [type, idx]);
 
   const handleMouseup = React.useCallback((e: React.MouseEvent) => {
     evtEmit('resizeMouseup');

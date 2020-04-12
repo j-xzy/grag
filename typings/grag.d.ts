@@ -52,6 +52,11 @@ declare namespace IGrag {
 
   type IResizeType = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
+  interface IResize {
+    type: IResizeType;
+    idx: number;
+  }
+
   type IGuideLineType = 'dist' | 'dash' | 'align';
 
   type IDirection = 'vertical' | 'horizontal';
