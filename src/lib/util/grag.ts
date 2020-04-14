@@ -159,12 +159,17 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, delt: { d
   // eslint-disable-next-line prefer-const
   let { x, y, width, height, rotate } = style;
   const { deltX, deltY } = delt;
-  console.log(resizeIdx);
-  return {
-    x,y,rotate,
-    width: deltX + width,
-    height: height + deltY
+  const result = {
+    x, y, rotate,
+    width, height
   };
+  const deltZ = Math.sqrt(deltX * deltX + deltY * deltY);
+  if (resizeIdx === 5) {
+    const rad = Math.atan(deltY / Math.abs(deltX));
+    console.log(mathUtil.rad2Deg(rad), deltX, deltY);
+    result.height += Math.sin(rad - mathUtil.deg2Rad(rotate)) * deltZ;
+  }
+  return result;
 }
 
 /**
