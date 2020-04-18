@@ -155,20 +155,33 @@ export function parseRotate(str: string) {
  * @param style 当前style
  * @param delt 偏移量
  */
-export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, delt: { deltX: number; deltY: number; }) {
+export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos: IGrag.IPos, mousedownPos: IGrag.IPos) {
   // eslint-disable-next-line prefer-const
   let { x, y, width, height, rotate } = style;
-  const { deltX, deltY } = delt;
+  const deltX = mousePos.x - mousedownPos.x;
+  const deltY = mousePos.y - mousedownPos.y;
   const result = {
     x, y, rotate,
     width, height
   };
   const deltZ = Math.sqrt(deltX * deltX + deltY * deltY);
   if (resizeIdx === 5) {
-    const rad = Math.atan(deltY / Math.abs(deltX));
-    console.log(mathUtil.rad2Deg(rad), deltX, deltY);
-    result.height += Math.sin(rad - mathUtil.deg2Rad(rotate)) * deltZ;
+    const pts = calRotateRectVertex(style, style.rotate);
+    const vector ={
+      x: pts[2].x - pts[1].x,
+      y: pts[2].y - pts[1].y
+    };
+    const foo = vector.x*deltX + vector.y*deltY;
+    const rad = Math.atan(Math.abs(deltY / deltX));
+    console.log(mathUtil.rad2Deg(rad), rotate%90);
+    result.height += Math.sin(rad - mathUtil.deg2Rad(rotate)) * deltZ * foo / Math.abs(foo);
+    const resizePts = calRotateRectVertex(result, result.rotate);
+    const xx = pts[0].x - resizePts[0].x;
+    const yy = pts[0].y - resizePts[0].y;
+    result.x += xx;
+    result.y += yy;
   }
+
   return result;
 }
 

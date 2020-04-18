@@ -55,8 +55,8 @@ export function moving({ getState }: ICtx) {
   const state = getState();
   // 计算移动后的ftr
   if (state.isMoving && state.selectedFtrs.length) {
-    const deltX = state.mousePos.x - state.mousedownCoord.x;
-    const deltY = state.mousePos.y - state.mousedownCoord.y;
+    const deltX = state.mousePos.x - state.mousedownPos.x;
+    const deltY = state.mousePos.y - state.mousedownPos.y;
     state.selectedFtrs.forEach((id) => {
       const { x, y, width, height, rotate } = state.beforeChangeFtrStyles[id];
       state.ftrStyles[id] = {
@@ -79,29 +79,29 @@ export function Boxing({ getState, globalStore }: ICtx) {
     const rootId = globalStore.getRoot(state.focusedCanvas).ftrId;
     const nodes = globalStore.getDeepChildren(rootId);
     const selectedFtrs = util.calSelectedFtrs(
-      state.mousePos, state.mousedownCoord,
+      state.mousePos, state.mousedownPos,
       nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrBoundRect(ftrId) }))
     );
     state.selectedFtrs = selectedFtrs;
 
     let rectx = 0;
     let recty = 0;
-    const isRight = state.mousePos.x > state.mousedownCoord.x;
-    const isBottom = state.mousePos.y > state.mousedownCoord.y;
+    const isRight = state.mousePos.x > state.mousedownPos.x;
+    const isBottom = state.mousePos.y > state.mousedownPos.y;
     if (isRight) {
-      rectx = state.mousedownCoord.x;
+      rectx = state.mousedownPos.x;
     } else {
       rectx = state.mousePos.x;
     }
     if (isBottom) {
-      recty = state.mousedownCoord.y;
+      recty = state.mousedownPos.y;
     } else {
       recty = state.mousePos.y;
     }
     state.selectBox = {
       x: rectx, y: recty,
-      width: Math.abs(state.mousePos.x - state.mousedownCoord.x),
-      height: Math.abs(state.mousePos.y - state.mousedownCoord.y),
+      width: Math.abs(state.mousePos.x - state.mousedownPos.x),
+      height: Math.abs(state.mousePos.y - state.mousedownPos.y),
       rotate: 0
     };
   }
@@ -113,12 +113,10 @@ export function resizing({ getState }: ICtx) {
   const state = getState();
   // 计算resize后的ftr
   if (state.resize && state.selectedFtrs.length) {
-    const deltX = state.mousePos.x - state.mousedownCoord.x;
-    const deltY = state.mousePos.y - state.mousedownCoord.y;
     state.selectedFtrs.forEach((id) => {
       const style = util.calResizeStyle(
         state.resize!.idx, state.beforeChangeFtrStyles[id],
-        { deltX, deltY }
+        state.mousePos, state.mousedownPos
       );
       if (style.width > 1 && style.height > 1) {
         state.ftrStyles[id] = style;
@@ -139,8 +137,8 @@ export function rotating({ getState, globalStore }: ICtx) {
         y: state.mousePos.y - center.y
       };
       const b = {
-        x: state.mousedownCoord.x - center.x,
-        y: state.mousedownCoord.y - center.y
+        x: state.mousedownPos.x - center.x,
+        y: state.mousedownPos.y - center.y
       };
       const deg = util.calDegByTwoVector(a, b);
       state.ftrStyles[id] = {
@@ -384,7 +382,7 @@ export function setMousedown({ getState }: ICtx) {
   return {
     ...getState(),
     isMousedown: true,
-    mousedownCoord: getState().mousePos
+    mousedownPos: getState().mousePos
   };
 }
 
