@@ -67,7 +67,7 @@ export function FeatureLayer(props: IProps) {
     };
   });
 
-  const nodes = globalStore.getAllChildren(rootId);
+  const nodes = globalStore.getDeepChildren(rootId);
 
   return (
     <div ref={domRef} style={style}>

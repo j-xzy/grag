@@ -33,7 +33,7 @@ export class FeatureMutater {
     const canvasId = this.globalStore.getCanvasIdByFtrId(parentFtrId);
     const parent = this.globalStore.getNodeByFtrId(parentFtrId);
     if (parent) {
-      const child = util.buildNode({ compId, ftrId });
+      const child = util.buildEmptyFtrNode({ compId, ftrId });
       util.appendChild(parent, child);
     }
     this.globalStore.refreshFeatureLayer(canvasId);
@@ -41,22 +41,22 @@ export class FeatureMutater {
 
   public removeFtr(ftrId: string) {
     const canvasId = this.globalStore.getCanvasIdByFtrId(ftrId);
-    const parent = this.globalStore.getParentNodeByFtrId(ftrId);
-    if (parent) {
-      parent.node.children.splice(parent.index, 1)[0];
+    const node = this.globalStore.getNodeByFtrId(ftrId);
+    if (node) {
+      util.removeNode(node);
+      this.globalStore.refreshFeatureLayer(canvasId);
     }
-    this.globalStore.refreshFeatureLayer(canvasId);
   }
 
   public updateStyle(ftrId: string, style: IGrag.IFtrStyle) {
     const lastStyle = this.globalStore.getFtrStyle(ftrId);
     const deltX = style.x - lastStyle.x;
     const deltY = style.y - lastStyle.y;
-    const styles: Array<{ ftrId: string; style: IGrag.IFtrStyle }> = [];
+    const styles: Array<{ ftrId: string; style: IGrag.IFtrStyle; }> = [];
 
     // update child
     if (deltX !== 0 || deltY !== 0) {
-      const childIds = this.globalStore.getAllChildren(ftrId).map((p) => p.ftrId);
+      const childIds = this.globalStore.getDeepChildren(ftrId).map((p) => p.ftrId);
       childIds.forEach((id) => {
         const ftrStyle = this.globalStore.getFtrStyle(id);
         const nextStyle = {
@@ -74,6 +74,8 @@ export class FeatureMutater {
     this.notify(ftrId, 'updateStyle', style);
     styles.push({ ftrId, style });
     this.canvaStore.dispatch('updateFtrStyles', styles);
+
+    this.moveInPositionParent(ftrId);
   }
 
   public subscribe<T extends keyof IFtrSubActMap>(id: string, action: T, callback: (payload: IFtrSubActMap[T]) => void) {
@@ -90,10 +92,89 @@ export class FeatureMutater {
     delete this.listeners[id];
   }
 
+  public checkChildren(ftrId: string) {
+    const ftrNode = this.globalStore.getNodeByFtrId(ftrId);
+    if (!ftrNode) {
+      return;
+    }
+    const { option: { allowChild } } = this.globalStore.getCompInfo(ftrNode.compId);
+    if (!allowChild) {
+      return;
+    }
+    const children = util.getChildren(ftrNode);
+    const leaveChilds: IGrag.IFtrNode[] = [];
+    children.forEach((child) => {
+      if (!this.ftrInside(child.ftrId, ftrId)) {
+        leaveChilds.push(child);
+      }
+    });
+
+    const inChilds: IGrag.IFtrNode[] = [];
+    const parent = this.globalStore.getParentNodeByFtrId(ftrId);
+    if (parent) {
+      const brothers = util.getChildren(parent);
+      brothers.forEach((brother) => {
+        if (brother.ftrId !== ftrId && this.ftrInside(brother.ftrId, ftrId)) {
+          inChilds.push(brother);
+        }
+      });
+    }
+
+    inChilds.forEach((child) => {
+      util.moveIn(child, ftrNode);
+    });
+
+    leaveChilds.forEach((child) => {
+      this.moveInPositionParent(child.ftrId);
+    });
+  }
+
   private notify<T extends keyof IFtrSubActMap>(id: string, action: T, payload: IFtrSubActMap[T]) {
     const list = [...this.listeners[id][action]];
     list.forEach((cb) => {
       cb(payload);
     });
+  }
+
+  private moveInPositionParent(ftrId: string) {
+    const parent = this.getPositionParent(ftrId);
+    const lastParent = this.globalStore.getParentNodeByFtrId(ftrId);
+    const ftrNode = this.globalStore.getNodeByFtrId(ftrId)!;
+    const { option: { allowChild } } = this.globalStore.getCompInfo(parent.compId);
+    if (allowChild && lastParent !== parent) {
+      util.moveIn(ftrNode, parent);
+    }
+  }
+
+  private getPositionParent(ftrId: string) {
+    let target = this.globalStore.getParentNodeByFtrId(ftrId);
+    if (!target || !this.ftrInside(ftrId, target.ftrId)) {
+      target = this.globalStore.getRoot(this.globalStore.getCanvasIdByFtrId(ftrId));
+    }
+    while (target) {
+      const children: IGrag.IFtrNode[] = util.getChildren(target);
+      let inChild = false;
+      for (let i = 0; i < children.length; ++i) {
+        const child = children[i];
+        if (child.ftrId === ftrId) {
+          continue;
+        }
+        if (this.ftrInside(ftrId, child.ftrId)) {
+          target = child;
+          inChild = true;
+          break;
+        }
+      }
+      if (!inChild) {
+        break;
+      }
+    }
+    return target;
+  }
+
+  private ftrInside(sourceftrId: string, targetFtrId: string) {
+    const sourceStyle = this.globalStore.getFtrStyle(sourceftrId);
+    const targetStyle = this.globalStore.getFtrStyle(targetFtrId);
+    return util.isInside(sourceStyle, targetStyle);
   }
 }

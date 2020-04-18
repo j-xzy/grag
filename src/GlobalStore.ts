@@ -7,7 +7,7 @@ export class GlobalStore {
   }; // compId到react组件映射
   private domMap: IGrag.IDomMap = {}; // ftrId到dom的映射
   private ftrId2CanvasId: IGrag.IIndexable<string> = {}; // ftrId到canvasId的映射
-  private ftrId2Node: IGrag.IIndexable<IGrag.INode> = {}; // ftrId到node的映射
+  private ftrId2Node: IGrag.IIndexable<IGrag.IFtrNode> = {}; // ftrId到node的映射
   private canvasId2Root: IGrag.IRootMap = {}; // canvasId到root的映射
   private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
   private interactionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
@@ -52,8 +52,8 @@ export class GlobalStore {
   /**
    * 初始root(ftrLayer)
    */
-  public initRoot(param: { canvasId: string; rootId: string; dom: HTMLDivElement }) {
-    const node = util.buildNode({
+  public initRoot(param: { canvasId: string; rootId: string; dom: HTMLDivElement; }) {
+    const node = util.buildEmptyFtrNode({
       ftrId: param.rootId,
       compId: RootCompId
     });
@@ -157,10 +157,10 @@ export class GlobalStore {
   /**
    * 初始ftr
    */
-  public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
+  public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement; }) {
     this.setDom(params.ftrId, params.dom);
     this.ftrId2CanvasId[params.ftrId] = params.canvasId;
-    const node = util.getNodeByFtrId(this.getRoot(params.canvasId) , params.ftrId);
+    const node = util.getNodeByFtrId(this.getRoot(params.canvasId), params.ftrId);
     if (node) {
       this.ftrId2Node[params.ftrId] = node;
     }
@@ -187,24 +187,27 @@ export class GlobalStore {
     if (root) {
       return util.getNodeByFtrId(root, ftrId);
     }
+    return null;
   }
 
   /**
    * 得到parentnode
    */
   public getParentNodeByFtrId(ftrId: string) {
-    const root = this.canvasId2Root[this.ftrId2CanvasId[ftrId]];
-    return util.getParentNodeByFtrId(root, ftrId);
+    const node = this.getNodeByFtrId(ftrId);
+    if (node) {
+      return util.getParentNode(node);
+    }
   }
 
   /**
    * 得到所有的孩子节点（deep）
    */
-  public getAllChildren(ftrId: string) {
+  public getDeepChildren(ftrId: string) {
     const node = this.getNodeByFtrId(ftrId);
     if (!node) {
       return [];
     }
-    return util.getAllChildren(node);
+    return util.getDeepChildren(node);
   }
 }

@@ -1,7 +1,13 @@
 declare namespace IGrag {
-  interface INode {
+  interface IFtrNode extends INode<IFtrNode> {
     compId: string;
     ftrId: string;
-    children: INode[];
+  }
+  
+  interface INode<T extends INode<T>> {
+    parent: T | null;
+    firstChild: T | null;
+    prev: T | null;
+    next: T | null;
   }
 }

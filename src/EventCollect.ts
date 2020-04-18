@@ -21,36 +21,17 @@ export class EventCollect {
   public canvasMousemove(canvasId: string, coord: IGrag.IXYCoord) {
     const getState = this.canvaStore.getState;
     if (
-      !getState().resizeType && !getState().isMoving && !getState().isRect && getState().isMousedown
+      !getState().resizeType && !getState().isMoving && !getState().rect && getState().isMousedown
       && getState().mouseInFtr && getState().selectedFtrs.length
     ) {
       this.canvaStore.dispatch('readyMoving');
     }
 
-    if (
-      !getState().resizeType && !getState().isMoving && !getState().isRect && getState().isMousedown
-      && !getState().mouseInFtr && !getState().selectedFtrs.length
-    ) {
-      this.canvaStore.dispatch('readyRect');
-    }
-
     this.canvaStore.dispatch('mouseCoordChange', { canvasId, coord });
 
-    // move
-    if (getState().isMoving && getState().selectedFtrs.length > 0) {
-      this.moveFtrs();
-      this.globalStore.refreshInteractionLayer(getState().focusedCanvas!);
-    }
-
-    // resize
-    if (getState().resizeType) {
-      this.resizeFtrs();
-      this.globalStore.refreshInteractionLayer(getState().focusedCanvas!);
-    }
-
-    // rect
-    if (getState().isRect) {
-      this.rectSelect();
+    // resize、move
+    if ((getState().resizeType || getState().isMoving) && getState().selectedFtrs.length) {
+      this.syncSelectedFtrStyle();
     }
   }
 
@@ -69,7 +50,7 @@ export class EventCollect {
   }
 
   public canvasMouseup() {
-    this.canvaStore.dispatch('clearAction');
+    this.mouseup();
   }
 
   public canvasMount(canvasId: string, dom: HTMLElement) {
@@ -103,7 +84,7 @@ export class EventCollect {
     }]);
   }
 
-  public ftrLayerMount(param: { canvasId: string; rootId: string; dom: HTMLDivElement }) {
+  public ftrLayerMount(param: { canvasId: string; rootId: string; dom: HTMLDivElement; }) {
     this.globalStore.initRoot(param);
   }
 
@@ -111,8 +92,9 @@ export class EventCollect {
     this.globalStore.deleteRoot(rootId);
   }
 
-  public ftrDropEnd(param: { compId: string; parentFtrId: string }) {
+  public ftrDropEnd(param: { compId: string; parentFtrId: string; }) {
     const { dragCompStyle } = this.canvaStore.getState();
+
     if (dragCompStyle) {
       const ftrId = util.uuid();
       this.ftrMutate('insertNewFtr', {
@@ -125,7 +107,7 @@ export class EventCollect {
     this.canvaStore.dispatch('clearDragState');
   }
 
-  public ftrDomDone(params: { ftrId: string; canvasId: string; dom: HTMLElement }) {
+  public ftrDomDone(params: { ftrId: string; canvasId: string; dom: HTMLElement; }) {
     const { ftrId } = params;
     this.globalStore.initFtr(params);
     const style = this.canvaStore.getState().ftrStyles[ftrId];
@@ -163,15 +145,15 @@ export class EventCollect {
   }
 
   public ftrMouseup() {
-    this.canvaStore.dispatch('clearAction');
+    this.mouseup();
   }
 
   public ftrMouseover(ftrId: string) {
-    const { mouseInFtr, selectedFtrs, isMoving, isRect } = this.canvaStore.getState();
+    const { mouseInFtr, selectedFtrs, isMoving, rect, resizeType } = this.canvaStore.getState();
     if (mouseInFtr === ftrId || selectedFtrs.includes(ftrId)) {
       return;
     }
-    if (isMoving || isRect) {
+    if (isMoving || rect || resizeType) {
       return;
     }
     this.canvaStore.dispatch('updateMouseInFtr', ftrId);
@@ -183,7 +165,8 @@ export class EventCollect {
     this.canvaStore.dispatch('deleteHighLightFtr');
   }
 
-  public compBeginDrag(param: { compId: string; width: number; height: number }) {
+  public compBeginDrag(param: { compId: string; width: number; height: number; }) {
+    this.canvaStore.dispatch('clearSelectedFtrs');
     this.canvaStore.dispatch('updateDragCompSize', param);
   }
 
@@ -197,102 +180,24 @@ export class EventCollect {
   }
 
   public resizeMouseup() {
-    this.canvaStore.dispatch('clearAction');
+    this.mouseup();
   }
 
-  private moveFtrs() {
-    const state = this.canvaStore.getState();
-    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
-    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
-    state.selectedFtrs.forEach((id) => {
-      const { x, y, width, height } = state.beforeChangeFtrStyles[id];
-      this.ftrMutate('updateStyle', id, {
-        x: x + deltX,
-        y: y + deltY,
-        width, height
+  private syncSelectedFtrStyle() {
+    const { ftrStyles, selectedFtrs } = this.canvaStore.getState();
+    selectedFtrs.forEach((id) => {
+      this.ftrMutate('updateStyle', id, ftrStyles[id]);
+    });
+  }
+
+  private mouseup() {
+    const { isMoving, resizeType, focusedCanvas, selectedFtrs } = this.canvaStore.getState();
+    if ((isMoving || resizeType) && focusedCanvas) {
+      this.globalStore.refreshFeatureLayer(focusedCanvas);
+      selectedFtrs.forEach((id) => {
+        this.ftrMutate('checkChildren', id);
       });
-    });
-  }
-
-  private resizeFtrs() {
-    const state = this.canvaStore.getState();
-    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
-    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
-    state.selectedFtrs.forEach((id) => {
-      let { x, y, width, height } = state.beforeChangeFtrStyles[id];
-      if (state.resizeType === 'e') {
-        width = width + deltX;
-      }
-      if (state.resizeType === 's') {
-        height = height + deltY;
-      }
-      if (state.resizeType === 'n') {
-        y = y + deltY;
-        height = height - deltY;
-      }
-      if (state.resizeType === 'w') {
-        x = x + deltX;
-        width = width - deltX;
-      }
-      if (state.resizeType === 'se') {
-        height = height + deltY;
-        width = width + deltX;
-      }
-      if (state.resizeType === 'ne') {
-        y = y + deltY;
-        height = height - deltY;
-        width = width + deltX;
-      }
-      if (state.resizeType === 'nw') {
-        y = y + deltY;
-        height = height - deltY;
-        x = x + deltX;
-        width = width - deltX;
-      }
-      if (state.resizeType === 'sw') {
-        height = height + deltY;
-        x = x + deltX;
-        width = width - deltX;
-      }
-      if (width > 1 && height > 1) {
-        this.ftrMutate('updateStyle', id, { x, y, height, width });
-      }
-    });
-  }
-
-  private rectSelect() {
-    const state = this.canvaStore.getState();
-    if (!state.focusedCanvas) {
-      return;
     }
-    const left = Math.min(state.mouseCoord.x, state.mousedownCoord.x);
-    const right = Math.max(state.mouseCoord.x, state.mousedownCoord.x);
-    const top = Math.min(state.mouseCoord.y, state.mousedownCoord.y);
-    const bottom = Math.max(state.mouseCoord.y, state.mousedownCoord.y);
-    const selectedFtrs: string[] = [];
-    const rootId = this.globalStore.getRoot(state.focusedCanvas).ftrId;
-    const nodes = this.globalStore.getAllChildren(rootId);
-
-    nodes.forEach((p) => {
-      const { x, y, height, width } = this.globalStore.getFtrStyle(p.ftrId);
-      let xIn = false;
-      let yIn = false;
-      if ((x >= left && x <= right) || ((x + width) >= left && (x + width) <= right)) {
-        xIn = true;
-      }
-      if ((left >= x && left <= (x + width)) || (right >= x && right <= (x + width))) {
-        xIn = true;
-      }
-      if ((y >= top && y <= bottom) || ((y + height) >= top && (y + height) <= bottom)) {
-        yIn = true;
-      }
-      if ((top >= y && top <= (y + height)) || (bottom >= y && bottom <= (y + height)))  {
-        yIn = true;
-      }
-      if (xIn && yIn) {
-        selectedFtrs.push(p.ftrId);
-      }
-    });
-    this.canvaStore.dispatch('updateSelectedFtrs', selectedFtrs);    
+    this.canvaStore.dispatch('clearAction');
   }
 }

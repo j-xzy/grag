@@ -1,24 +1,8 @@
 import { IEnhancer, applyMiddleware } from './applyMiddleware';
 import { shallowEqual } from './shallowEqual';
 
-interface IKeyValue<T> {
-  [p: string]: T;
-}
-
-type IAction<S> = (getState: () => S, payload: any) => S;
-
-export type IReducers<S> = IKeyValue<IAction<S>>;
-
-interface IContext<S, R extends IReducers<S>> {
-  getState: () => S;
-  getLastState: () => S;
-  dispatch: IDispatch<S, R>;
-}
-
-export type IDispatch<S, R extends IReducers<S>> = <K extends keyof R>(action: K, payload?: Parameters<R[K]>[1]) => void;
-
-export class Store<S, R extends IReducers<S>>  {
-  public context: IContext<S, R>;
+export class Store<S, R extends ITypeRedux.IReducers<S>> {
+  public context: ITypeRedux.IContext<S, R>;
   private state: S;
   private lastState: S;
   private actions: R;
@@ -29,6 +13,7 @@ export class Store<S, R extends IReducers<S>>  {
     this.actions = reducers;
 
     this.dispatch = this.dispatch.bind(this);
+    this.doAction = this.doAction.bind(this);
     this.getState = this.getState.bind(this);
     this.getLastState = this.getLastState.bind(this);
     this.wrapperListener = this.wrapperListener.bind(this);
@@ -37,14 +22,16 @@ export class Store<S, R extends IReducers<S>>  {
     this.context = {
       getState: this.getState,
       getLastState: this.getLastState,
-      dispatch: this.dispatch
-    };
+      doAction: this.doAction
+    } as any;
 
     const dispatch = enhancer(this);
-    this.context.dispatch = this.dispatch = dispatch.bind(this);
+    this.dispatch = dispatch.bind(this);
+    this.getState = this.getState.bind(this);
+    this.getLastState = this.getLastState.bind(this);
   }
 
-  public dispatch: IDispatch<S, R> = (action, payload) => {
+  public dispatch: ITypeRedux.IDispatch<S, R> = (action, payload) => {
     if (typeof action !== 'string') {
       return this.adapterReduxDispatch(action as any);
     }
@@ -55,8 +42,17 @@ export class Store<S, R extends IReducers<S>>  {
     }
 
     this.lastState = this.state;
-    this.state = act(this.getState, payload);
+    this.state = act(this.context, payload);
     this.notify();
+  }
+
+  public doAction: ITypeRedux.IDoAction<S, R> = (action, payload) => {
+    const act = this.actions[action];
+    if (!act) {
+      return this.state;
+    }
+    this.state = act(this.context, payload);
+    return this.state;
   }
 
   public subscribe(listener: (state: S) => any): () => void
@@ -113,7 +109,7 @@ export class Store<S, R extends IReducers<S>>  {
 
 export function createStore<
   S,
-  R extends IReducers<S>
+  R extends ITypeRedux.IReducers<S>
 >(preloadedState: S, reducers: R, enhancer: IEnhancer = applyMiddleware()) {
   return new Store(preloadedState, reducers, enhancer);
 }

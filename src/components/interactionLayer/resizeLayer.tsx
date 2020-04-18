@@ -4,25 +4,21 @@ import { Context } from '../provider';
 import { IEvtEmit } from '@/EventCollect';
 
 interface IHandlerProps {
-  rect: IRect;
+  rect: IGrag.IRect;
   type: IGrag.IResizeType;
   evtEmit: IEvtEmit;
 }
 
-interface IRect {
-  lt: IGrag.IXYCoord;
-  rb: IGrag.IXYCoord;
-}
-
-export function ResizeLayer(props: { canvasId: string }) {
+export function ResizeLayer(props: { canvasId: string; }) {
   const { useMappedCanvasState, globalStore, evtEmit } = React.useContext(Context);
-  const { selectedFtrs, isMoving, resizeType } = useMappedCanvasState((s) => ({
+  const { selectedFtrs, isMoving, resizeType, border } = useMappedCanvasState((s) => ({
     selectedFtrs: s.selectedFtrs,
     isMoving: s.isMoving,
-    resizeType: s.resizeType
+    resizeType: s.resizeType,
+    border: s.border
   }));
 
-  if (!selectedFtrs.length) {
+  if (!selectedFtrs.length || !border) {
     return null;
   }
 
@@ -33,38 +29,26 @@ export function ResizeLayer(props: { canvasId: string }) {
     return null;
   }
 
-  const rect = {
-    lt: { x: Infinity, y: Infinity },
-    rb: { x: -Infinity, y: -Infinity }
-  };
-  selectedFtrs.forEach((ftrId) => {
-    const style = globalStore.getFtrStyle(ftrId);
-    rect.lt.x = Math.min(rect.lt.x, style.x);
-    rect.lt.y = Math.min(rect.lt.y, style.y);
-    rect.rb.x = Math.max(rect.rb.x, style.x + style.width);
-    rect.rb.y = Math.max(rect.rb.y, style.y + style.height);
-  });
-
   return (
     <div style={style}>
-      <Border rect={rect} />
+      <Border rect={border} />
       {
         !isMoving && <>
-          {(resizeType === null || resizeType === 'nw') && <Handler evtEmit={evtEmit} rect={rect} type='nw' />}
-          {(resizeType === null || resizeType === 'n') && <Handler evtEmit={evtEmit} rect={rect} type='n' />}
-          {(resizeType === null || resizeType === 'ne') && <Handler evtEmit={evtEmit} rect={rect} type='ne' />}
-          {(resizeType === null || resizeType === 'w') && <Handler evtEmit={evtEmit} rect={rect} type='w' />}
-          {(resizeType === null || resizeType === 'e') && <Handler evtEmit={evtEmit} rect={rect} type='e' />}
-          {(resizeType === null || resizeType === 'sw') && <Handler evtEmit={evtEmit} rect={rect} type='sw' />}
-          {(resizeType === null || resizeType === 's') && <Handler evtEmit={evtEmit} rect={rect} type='s' />}
-          {(resizeType === null || resizeType === 'se') && <Handler evtEmit={evtEmit} rect={rect} type='se' />}
+          {(resizeType === null || resizeType === 'nw') && <Handler evtEmit={evtEmit} rect={border} type='nw' />}
+          {(resizeType === null || resizeType === 'n') && <Handler evtEmit={evtEmit} rect={border} type='n' />}
+          {(resizeType === null || resizeType === 'ne') && <Handler evtEmit={evtEmit} rect={border} type='ne' />}
+          {(resizeType === null || resizeType === 'w') && <Handler evtEmit={evtEmit} rect={border} type='w' />}
+          {(resizeType === null || resizeType === 'e') && <Handler evtEmit={evtEmit} rect={border} type='e' />}
+          {(resizeType === null || resizeType === 'sw') && <Handler evtEmit={evtEmit} rect={border} type='sw' />}
+          {(resizeType === null || resizeType === 's') && <Handler evtEmit={evtEmit} rect={border} type='s' />}
+          {(resizeType === null || resizeType === 'se') && <Handler evtEmit={evtEmit} rect={border} type='se' />}
         </>
       }
     </div>
   );
 }
 
-function Border(props: { rect: IRect }) {
+function Border(props: { rect: IGrag.IRect; }) {
   const { rect: { lt, rb } } = props;
   const style: React.CSSProperties = {
     position: 'absolute',

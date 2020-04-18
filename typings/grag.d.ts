@@ -20,7 +20,7 @@ declare namespace IGrag {
   }
 
   interface IRootMap {
-    [canvasId: string]: IGrag.INode;
+    [canvasId: string]: IGrag.IFtrNode;
   }
 
   interface IFtrStyle {
@@ -30,14 +30,21 @@ declare namespace IGrag {
     y: number;
   }
 
-  interface IAuxiliaryState {
-    ht: number;
-    hm: number;
-    hb: number;
-    vl: number;
-    vm: number;
-    vr: number;
+  interface IAdsorption {
+    ht: [number, number];
+    hm: [number, number];
+    hb: [number, number];
+    vl: [number, number];
+    vm: [number, number];
+    vr: [number, number];
   }
+
+  type IDistLines = Record<ISides, number>;
+  type IDashLines = Record<ISides, [number, number]>;
+
+  type ISides = 'left' | 'right' | 'top' | 'bottom';
+
+  type IAdsorptionType = 'ht' | 'hm' | 'hb' | 'vl' | 'vm' | 'vr';
 
   interface IProviderConfig {
     color?: string;
@@ -51,4 +58,9 @@ declare namespace IGrag {
   }
 
   type IResizeType = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
+
+  interface IRect {
+    lt: IGrag.IXYCoord;
+    rb: IGrag.IXYCoord;
+  }
 }
