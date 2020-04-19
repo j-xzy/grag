@@ -140,7 +140,12 @@ export function rotating({ getState, globalStore }: ICtx) {
         x: state.mousedownPos.x - center.x,
         y: state.mousedownPos.y - center.y
       };
-      const deg = util.calDegByTwoVector(a, b);
+      let deg = util.calDegByTwoVector(a, b);
+      // 外积
+      const z = b.x * a.y - a.x * b.y;
+      if (z < 0) {
+        deg = 360 - deg;
+      }
       state.ftrStyles[id] = {
         ...state.ftrStyles[id],
         rotate: (deg + state.beforeChangeFtrStyles[id].rotate) % 360

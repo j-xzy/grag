@@ -37,10 +37,8 @@ export function calDegByTwoVector(a: IVector, b: IVector) {
   if (isNaN(rad)) {
     return 0;
   }
-  // 外积
-  const z = b.x * a.y - a.x * b.y;
   let deg = rad * 180 / Math.PI;
-  if (z < 0) {
+  while(deg > 180) {
     deg = 360 - deg;
   }
   return deg;

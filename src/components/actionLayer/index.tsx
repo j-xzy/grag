@@ -6,8 +6,8 @@ import { HighLightLayer } from './highLightLayer';
 import { ResizeLayer } from './resizeLayer';
 import { BoxLayer } from './boxLayer';
 import { GuideLayer } from './guideLayer';
-import { style } from './style';
 import { Context } from '../provider';
+import { style } from './style';
 
 export function ActionLayer(props: { canvasId: string; }) {
   const { globalStore } = React.useContext(Context);

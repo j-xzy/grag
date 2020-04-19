@@ -151,9 +151,6 @@ export function parseRotate(str: string) {
 
 /**
  * 计算resize后的style
- * @param resizeIdx resize下标
- * @param style 当前style
- * @param delt 偏移量
  */
 export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos: IGrag.IPos, mousedownPos: IGrag.IPos) {
   // eslint-disable-next-line prefer-const
@@ -172,16 +169,31 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos:
       y: pts[2].y - pts[1].y
     };
     const foo = vector.x*deltX + vector.y*deltY;
-    const rad = Math.atan(Math.abs(deltY / deltX));
-    console.log(mathUtil.rad2Deg(rad), rotate%90);
-    result.height += Math.sin(rad - mathUtil.deg2Rad(rotate)) * deltZ * foo / Math.abs(foo);
+    if (rotate > 180) {
+      rotate = 360 - rotate;
+    }
+    const vector2 = {
+      x: pts[3].x - pts[2].x,
+      y: pts[3].y - pts[2].y
+    };
+    const vector3 = {
+      x: mousedownPos.x - mousePos.x,
+      y: mousedownPos.y - mousePos.y
+    };
+    let r = mathUtil.calDegByTwoVector(vector3,vector2);
+    if (r > 90) {
+      r = 180 - r;
+    }
+    result.height += Math.sin(mathUtil.deg2Rad(r)) * deltZ * foo / Math.abs(foo);
     const resizePts = calRotateRectVertex(result, result.rotate);
     const xx = pts[0].x - resizePts[0].x;
     const yy = pts[0].y - resizePts[0].y;
     result.x += xx;
     result.y += yy;
   }
-
+  if (resizeIdx === 5) {
+    //
+  }
   return result;
 }
 
