@@ -140,7 +140,7 @@ export function rotating({ getState, globalStore }: ICtx) {
         x: state.mousedownPos.x - center.x,
         y: state.mousedownPos.y - center.y
       };
-      let deg = util.calDegByTwoVector(a, b);
+      let deg = util.rad2Deg(util.calAngleByVectors(a, b));
       // 外积
       const z = b.x * a.y - a.x * b.y;
       if (z < 0) {

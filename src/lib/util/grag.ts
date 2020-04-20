@@ -153,46 +153,31 @@ export function parseRotate(str: string) {
  * 计算resize后的style
  */
 export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos: IGrag.IPos, mousedownPos: IGrag.IPos) {
-  // eslint-disable-next-line prefer-const
-  let { x, y, width, height, rotate } = style;
+  const result = { ...style };
   const deltX = mousePos.x - mousedownPos.x;
   const deltY = mousePos.y - mousedownPos.y;
-  const result = {
-    x, y, rotate,
-    width, height
-  };
   const deltZ = Math.sqrt(deltX * deltX + deltY * deltY);
+  const pts = calRotateRectVertex(style, style.rotate);
   if (resizeIdx === 5) {
-    const pts = calRotateRectVertex(style, style.rotate);
-    const vector ={
-      x: pts[2].x - pts[1].x,
-      y: pts[2].y - pts[1].y
-    };
-    const foo = vector.x*deltX + vector.y*deltY;
-    if (rotate > 180) {
-      rotate = 360 - rotate;
-    }
-    const vector2 = {
+    // 内积，判断正负
+    let positive = (pts[2].x - pts[1].x) * deltX + (pts[2].y - pts[1].y) * deltY;
+    positive = positive / Math.abs(positive);
+    let r = mathUtil.calAngleByVectors({
       x: pts[3].x - pts[2].x,
       y: pts[3].y - pts[2].y
-    };
-    const vector3 = {
-      x: mousedownPos.x - mousePos.x,
-      y: mousedownPos.y - mousePos.y
-    };
-    let r = mathUtil.calDegByTwoVector(vector3,vector2);
-    if (r > 90) {
-      r = 180 - r;
+    }, {
+      x: 0 - deltX,
+      y: 0 - deltY
+    });
+    if (r > Math.PI / 2) {
+      r = Math.PI - r;
     }
-    result.height += Math.sin(mathUtil.deg2Rad(r)) * deltZ * foo / Math.abs(foo);
+    result.height += Math.sin(r) * deltZ * positive;
     const resizePts = calRotateRectVertex(result, result.rotate);
     const xx = pts[0].x - resizePts[0].x;
     const yy = pts[0].y - resizePts[0].y;
     result.x += xx;
     result.y += yy;
-  }
-  if (resizeIdx === 5) {
-    //
   }
   return result;
 }

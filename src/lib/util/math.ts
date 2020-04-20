@@ -25,23 +25,22 @@ export function deg2Rad(deg: number) {
 }
 
 /**
- * 计算两向量夹角
+ * 计算两向量夹角弧度制
  */
-export function calDegByTwoVector(a: IVector, b: IVector) {
+export function calAngleByVectors(a: IVector, b: IVector) {
   // 内积
   const ab = a.x * b.x + a.y * b.y;
   const al = Math.sqrt(a.x * a.x + a.y * a.y);
   const bl = Math.sqrt(b.x * b.x + b.y * b.y);
   // 余弦定理
-  const rad = Math.acos(ab / (al * bl));
+  let rad = Math.acos(ab / (al * bl));
   if (isNaN(rad)) {
     return 0;
   }
-  let deg = rad * 180 / Math.PI;
-  while(deg > 180) {
-    deg = 360 - deg;
+  while(rad > Math.PI) {
+    rad = Math.PI * 2 - rad;
   }
-  return deg;
+  return rad;
 }
 
 /**
