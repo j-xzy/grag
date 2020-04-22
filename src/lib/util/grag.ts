@@ -159,24 +159,27 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos:
   const deltZ = Math.sqrt(deltX * deltX + deltY * deltY);
   const pts = calRotateRectVertex(style, style.rotate);
 
-  let positive = 1;
-  if (resizeIdx === 1) {
-    positive = (pts[1].x - pts[2].x) * deltX + (pts[1].y - pts[2].y) * deltY;
+  let heightPositive = 1;
+  let widthPositive = 1;
+  if ([0, 1, 2].includes(resizeIdx)) {
+    heightPositive = (pts[1].x - pts[2].x) * deltX + (pts[1].y - pts[2].y) * deltY;
   }
-  if (resizeIdx === 3) {
-    positive = (pts[1].x - pts[0].x) * deltX + (pts[1].y - pts[0].y) * deltY;
+  if ([4, 5, 6].includes(resizeIdx)) {
+    heightPositive = (pts[2].x - pts[1].x) * deltX + (pts[2].y - pts[1].y) * deltY;
   }
-  if (resizeIdx === 5) {
-    positive = (pts[2].x - pts[1].x) * deltX + (pts[2].y - pts[1].y) * deltY;
+  if ([2, 3, 4].includes(resizeIdx)) {
+    widthPositive = (pts[1].x - pts[0].x) * deltX + (pts[1].y - pts[0].y) * deltY;
   }
-  if (resizeIdx === 7) {
-    positive = (pts[0].x - pts[1].x) * deltX + (pts[0].y - pts[1].y) * deltY;
+  if ([0, 6, 7].includes(resizeIdx)) {
+    widthPositive = (pts[0].x - pts[1].x) * deltX + (pts[0].y - pts[1].y) * deltY;
   }
-  positive = positive / Math.abs(positive);
+  heightPositive = heightPositive / Math.abs(heightPositive);
+  widthPositive = widthPositive / Math.abs(widthPositive);
 
-  let r = 0;
-  if ([1, 5].includes(resizeIdx)) {
-    r = mathUtil.calAngleByVectors({
+  let heightR = 0;
+  let widthR = 0;
+  if ([0, 2, 4, 6, 1, 5].includes(resizeIdx)) {
+    heightR = mathUtil.calAngleByVectors({
       x: pts[2].x - pts[3].x,
       y: pts[2].y - pts[3].y
     }, {
@@ -184,8 +187,8 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos:
       y: deltY
     });
   }
-  if ([3, 7].includes(resizeIdx)) {
-    r = mathUtil.calAngleByVectors({
+  if ([0, 2, 4, 6, 3, 7].includes(resizeIdx)) {
+    widthR = mathUtil.calAngleByVectors({
       x: pts[1].x - pts[2].x,
       y: pts[1].y - pts[2].y
     }, {
@@ -193,14 +196,18 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos:
       y: deltY
     });
   }
-  if (r > Math.PI / 2) {
-    r = Math.PI - r;
+  if (heightR > Math.PI / 2) {
+    heightR = Math.PI - heightR;
   }
-  if ([1, 5].includes(resizeIdx)) {
-    result.height += Math.sin(r) * deltZ * positive;
+  if (widthR > Math.PI / 2) {
+    widthR = Math.PI - widthR;
   }
-  if ([3, 7].includes(resizeIdx)) {
-    result.width += Math.sin(r) * deltZ * positive;
+
+  if ([0, 2, 4, 6, 1, 5].includes(resizeIdx)) {
+    result.height += Math.sin(heightR) * deltZ * heightPositive;
+  }
+  if ([0, 2, 4, 6, 3, 7].includes(resizeIdx)) {
+    result.width += Math.sin(widthR) * deltZ * widthPositive;
   }
 
   let xx = 0;
@@ -224,7 +231,7 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos:
   }
   result.x += xx;
   result.y += yy;
-  
+
   return result;
 }
 
