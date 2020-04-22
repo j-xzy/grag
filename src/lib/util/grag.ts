@@ -158,15 +158,16 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos:
   const deltY = mousePos.y - mousedownPos.y;
   const deltZ = Math.sqrt(deltX * deltX + deltY * deltY);
   const pts = calRotateRectVertex(style, style.rotate);
+
   let positive = 1;
-  if (resizeIdx === 5) {
-    positive = (pts[2].x - pts[1].x) * deltX + (pts[2].y - pts[1].y) * deltY;
-  }
   if (resizeIdx === 1) {
     positive = (pts[1].x - pts[2].x) * deltX + (pts[1].y - pts[2].y) * deltY;
   }
   if (resizeIdx === 3) {
     positive = (pts[1].x - pts[0].x) * deltX + (pts[1].y - pts[0].y) * deltY;
+  }
+  if (resizeIdx === 5) {
+    positive = (pts[2].x - pts[1].x) * deltX + (pts[2].y - pts[1].y) * deltY;
   }
   if (resizeIdx === 7) {
     positive = (pts[0].x - pts[1].x) * deltX + (pts[0].y - pts[1].y) * deltY;
@@ -174,7 +175,7 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos:
   positive = positive / Math.abs(positive);
 
   let r = 0;
-  if ([5, 1].includes(resizeIdx)) {
+  if ([1, 5].includes(resizeIdx)) {
     r = mathUtil.calAngleByVectors({
       x: pts[2].x - pts[3].x,
       y: pts[2].y - pts[3].y
@@ -195,7 +196,7 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos:
   if (r > Math.PI / 2) {
     r = Math.PI - r;
   }
-  if ([5, 1].includes(resizeIdx)) {
+  if ([1, 5].includes(resizeIdx)) {
     result.height += Math.sin(r) * deltZ * positive;
   }
   if ([3, 7].includes(resizeIdx)) {
@@ -205,13 +206,21 @@ export function calResizeStyle(resizeIdx: number, style: IGrag.IStyle, mousePos:
   let xx = 0;
   let yy = 0;
   const resizePts = calRotateRectVertex(result, result.rotate);
-  if ([5, 3].includes(resizeIdx)) {
+  if ([3, 4, 5].includes(resizeIdx)) {
     xx = pts[0].x - resizePts[0].x;
     yy = pts[0].y - resizePts[0].y;
   }
-  if ([1, 7].includes(resizeIdx)) {
+  if ([0, 1, 7].includes(resizeIdx)) {
     xx = pts[2].x - resizePts[2].x;
     yy = pts[2].y - resizePts[2].y;
+  }
+  if (resizeIdx === 2) {
+    xx = pts[3].x - resizePts[3].x;
+    yy = pts[3].y - resizePts[3].y;
+  }
+  if (resizeIdx === 6) {
+    xx = pts[1].x - resizePts[1].x;
+    yy = pts[1].y - resizePts[1].y;
   }
   result.x += xx;
   result.y += yy;
