@@ -52,25 +52,42 @@ export class FeatureMutater {
     const lastStyle = this.globalStore.getFtrStyle(ftrId);
     const deltX = style.x - lastStyle.x;
     const deltY = style.y - lastStyle.y;
-    const deltRotate = style.rotate - lastStyle.rotate;
+    const deltWidth = style.width - lastStyle.width;
+    const deltHeight = style.height - lastStyle.height;
+    // const deltRotate = style.rotate - lastStyle.rotate;
     const styles: Array<{ ftrId: string; style: IGrag.IStyle; }> = [];
 
-    // update child
-    if (deltX !== 0 || deltY !== 0 || deltRotate !== 0) {
+    // 只是位置移动
+    if (deltWidth === 0 && deltHeight === 0 && (deltX !== 0 || deltY !== 0)) {
       const childIds = this.globalStore.getDeepChildren(ftrId).map((p) => p.ftrId);
       childIds.forEach((id) => {
         const ftrStyle = this.globalStore.getFtrStyle(id);
         const nextStyle: IGrag.IStyle = {
+          ...ftrStyle,
           x: ftrStyle.x + deltX,
           y: ftrStyle.y + deltY,
-          rotate: ftrStyle.rotate, // + deltRotate,
-          width: ftrStyle.width,
-          height: ftrStyle.height
         };
         this.notify(id, 'updateStyle', nextStyle);
         styles.push({ ftrId: id, style: nextStyle });
       });
     }
+
+    // update child
+    // if (deltX !== 0 || deltY !== 0 || deltRotate !== 0) {
+    //   const childIds = this.globalStore.getDeepChildren(ftrId).map((p) => p.ftrId);
+    //   childIds.forEach((id) => {
+    //     const ftrStyle = this.globalStore.getFtrStyle(id);
+    //     const nextStyle: IGrag.IStyle = {
+    //       x: ftrStyle.x + deltX,
+    //       y: ftrStyle.y + deltY,
+    //       rotate: ftrStyle.rotate, // + deltRotate,
+    //       width: ftrStyle.width,
+    //       height: ftrStyle.height
+    //     };
+    //     this.notify(id, 'updateStyle', nextStyle);
+    //     styles.push({ ftrId: id, style: nextStyle });
+    //   });
+    // }
 
     // update currftr
     this.notify(ftrId, 'updateStyle', style);

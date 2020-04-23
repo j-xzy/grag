@@ -33,11 +33,11 @@ function HighLight(props: IHighLightProps) {
   const style: React.CSSProperties = {
     position: 'absolute',
     boxSizing: 'border-box',
-    left: props.x - 2,
-    top: props.y - 2,
+    left: props.x,
+    top: props.y,
     border: `2px solid ${props.color}`,
-    width: props.width + 4,
-    height: props.height + 4,
+    width: props.width,
+    height: props.height,
     transform: `rotate(${props.rotate}deg)`
   };
   return <div style={style} />;

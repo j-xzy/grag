@@ -25,10 +25,10 @@ export function updateMousePos({ getState }: ICtx, param: { pos: IGrag.IPos; can
   const state = { ...getState(), focusedCanvas: canvasId };
   // 计算 mousePos
   const canvasRect = state.canvasRects[canvasId];
-  const mousePos = {
+  const mousePos = util.roundObj({
     x: pos.x - canvasRect.x,
     y: pos.y - canvasRect.y
-  };
+  });
   state.mousePos = mousePos;
   return state;
 }
@@ -39,12 +39,13 @@ export function dragging({ getState }: ICtx) {
   // 计算拖拽的compState
   if (state.dragCompStyle && state.hoverFtr) {
     const { width, height } = state.dragCompStyle;
-    state.dragCompStyle = {
-      width, height,
+    state.dragCompStyle = util.roundObj({
+      width: width,
+      height: height,
       x: state.mousePos.x - Math.floor(width / 2),
       y: state.mousePos.y - Math.floor(height / 2),
       rotate: 0
-    };
+    });
     state.border = state.dragCompStyle;
   }
   return state;
@@ -59,12 +60,13 @@ export function moving({ getState }: ICtx) {
     const deltY = state.mousePos.y - state.mousedownPos.y;
     state.selectedFtrs.forEach((id) => {
       const { x, y, width, height, rotate } = state.beforeChangeFtrStyles[id];
-      state.ftrStyles[id] = {
+      state.ftrStyles[id] = util.roundObj({
         x: x + deltX,
         y: y + deltY,
-        width, height,
+        width: width, 
+        height: height,
         rotate
-      };
+      });
     });
   }
   return state;
@@ -98,12 +100,12 @@ export function Boxing({ getState, globalStore }: ICtx) {
     } else {
       recty = state.mousePos.y;
     }
-    state.selectBox = {
+    state.selectBox = util.roundObj({
       x: rectx, y: recty,
       width: Math.abs(state.mousePos.x - state.mousedownPos.x),
       height: Math.abs(state.mousePos.y - state.mousedownPos.y),
       rotate: 0
-    };
+    });
   }
   return state;
 }
@@ -114,10 +116,10 @@ export function resizing({ getState }: ICtx) {
   // 计算resize后的ftr
   if (state.resize && state.selectedFtrs.length) {
     state.selectedFtrs.forEach((id) => {
-      const style = util.calResizeStyle(
+      const style = util.roundObj(util.calResizeStyle(
         state.resize!.idx, state.beforeChangeFtrStyles[id],
         state.mousePos, state.mousedownPos
-      );
+      ));
       if (style.width > 1 && style.height > 1) {
         state.ftrStyles[id] = style;
       }

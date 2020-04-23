@@ -270,3 +270,16 @@ export function calRectCenter(style: IGrag.IRect) {
 export function uuid() {
   return 'id' + Math.ceil((Math.random() * 100000)) + Math.ceil((Math.random() * 100000));
 }
+
+/**
+ * @param obj {x: 1.1, width: 2.7} => {x: 1, width: 3}
+ */
+export function roundObj<T extends any>(obj: T): T {
+  const result = { ...obj };
+  for (const k in result) {
+    if (typeof result[k] === 'number') {
+      result[k] = Math.round(result[k]);
+    }
+  }
+  return result;
+}
