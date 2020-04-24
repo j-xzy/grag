@@ -148,10 +148,23 @@ export function rotating({ getState, globalStore }: ICtx) {
       if (z < 0) {
         deg = 360 - deg;
       }
-      state.ftrStyles[id] = {
+      deg =  (deg + state.beforeChangeFtrStyles[id].rotate) % 360;
+      if (deg > 355 || deg < 5) {
+        deg = 0;
+      }
+      if (deg > 85 && deg < 95) {
+        deg = 90;
+      }
+      if (deg > 175 && deg < 185) {
+        deg = 180;
+      }
+      if (deg > 265 && deg < 275) {
+        deg = 270;
+      }
+      state.ftrStyles[id] = util.roundObj({
         ...state.ftrStyles[id],
-        rotate: (deg + state.beforeChangeFtrStyles[id].rotate) % 360
-      };
+        rotate: deg
+      });
     });
   }
   return state;

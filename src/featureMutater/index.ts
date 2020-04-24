@@ -72,23 +72,6 @@ export class FeatureMutater {
       });
     }
 
-    // update child
-    // if (deltX !== 0 || deltY !== 0 || deltRotate !== 0) {
-    //   const childIds = this.globalStore.getDeepChildren(ftrId).map((p) => p.ftrId);
-    //   childIds.forEach((id) => {
-    //     const ftrStyle = this.globalStore.getFtrStyle(id);
-    //     const nextStyle: IGrag.IStyle = {
-    //       x: ftrStyle.x + deltX,
-    //       y: ftrStyle.y + deltY,
-    //       rotate: ftrStyle.rotate, // + deltRotate,
-    //       width: ftrStyle.width,
-    //       height: ftrStyle.height
-    //     };
-    //     this.notify(id, 'updateStyle', nextStyle);
-    //     styles.push({ ftrId: id, style: nextStyle });
-    //   });
-    // }
-
     // update currftr
     this.notify(ftrId, 'updateStyle', style);
     styles.push({ ftrId, style });

@@ -272,7 +272,7 @@ export function uuid() {
 }
 
 /**
- * @param obj {x: 1.1, width: 2.7} => {x: 1, width: 3}
+ * @example {x: 1.1, width: 2.7} => {x: 1, width: 3}
  */
 export function roundObj<T extends any>(obj: T): T {
   const result = { ...obj };
