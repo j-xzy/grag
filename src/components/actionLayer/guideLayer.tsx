@@ -51,14 +51,3 @@ function GuideLine(props: { line: IGrag.IGuideLine; }) {
   }
   return <div style={style} />;
 }
-
-// position: absolute;
-// display: inline-block;
-// width: 5px;
-// height: 100px;
-// border-top: 1px solid #000;
-// border-bottom: 1px solid #000;
-// background-color: red;
-// box-sizing: border-box;
-// padding: 0px 2px;
-// background-clip: content-box;
