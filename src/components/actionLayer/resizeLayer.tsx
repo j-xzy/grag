@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IEvtEmit } from '@/EventCollect';
+import { IEvtEmit } from '@/EventBus';
 import { calResizeHandler } from '@/lib/util';
 import { Context } from '@/components/provider';
 import { style } from './style';

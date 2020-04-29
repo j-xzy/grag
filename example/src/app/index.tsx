@@ -2,8 +2,12 @@ import * as React from 'react';
 import { Canvas, Feature, GragProvider } from '../../../src';
 
 export function App() {
+  const gragRef = React.useRef(null);
+  React.useEffect(() => {
+    console.debug('ref', gragRef.current);
+  }, []);
   return (
-    <GragProvider>
+    <GragProvider ref={gragRef}>
       <div className='comp-bar'>
         <FtrFunc />
         <FtrClass />
@@ -11,10 +15,10 @@ export function App() {
         <FtrChart />
       </div>
       <div className='border1'>
-        <Canvas style={{ width: '100%', height: '100%' }} />
+        <Canvas id="canvas1" style={{ width: '100%', height: '100%' }} />
       </div>
       <div className='border2'>
-        <Canvas style={{ width: '100%', height: '100%' }} />
+        <Canvas id="canvas2" style={{ width: '100%', height: '100%' }} />
       </div>
     </GragProvider>
   );
@@ -22,7 +26,7 @@ export function App() {
 
 function FtrFunc() {
   return (
-    <Feature component={Table}>
+    <Feature id='id_func' component={Table}>
       {(ref) => <div ref={ref} className='preview'>Func组件</div>}
     </Feature>
   );
@@ -30,7 +34,7 @@ function FtrFunc() {
 
 function FtrClass() {
   return (
-    <Feature component={Select}>
+    <Feature id='id_class' component={Select}>
       {(ref) => <div ref={ref} className='preview'>Class组件</div>}
     </Feature>
   );
@@ -38,7 +42,7 @@ function FtrClass() {
 
 function FtrBox() {
   return (
-    <Feature allowChild={true} component={Box}>
+    <Feature id='id_box' allowChild={true} component={Box}>
       {(ref) => <div ref={ref} className='preview'>Box</div>}
     </Feature>
   );
@@ -46,7 +50,7 @@ function FtrBox() {
 
 function FtrChart() {
   return (
-    <Feature img="/preview.png" component={Chart}>
+    <Feature id='id_chart' img="/preview.png" component={Chart}>
       {(ref) => <div ref={ref} className='preview'>chart</div>}
     </Feature>
   );

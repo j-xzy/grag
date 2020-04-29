@@ -9,9 +9,9 @@ export class GlobalStore {
   private ftrId2CanvasId: IGrag.IIndexable<string> = {}; // ftrId到canvasId的映射
   private ftrId2Node: IGrag.IIndexable<IGrag.IFtrNode> = {}; // ftrId到node的映射
   private canvasId2Root: IGrag.IRoots = {}; // canvasId到root的映射
-  private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
-  private actionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
-  private featureLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
+  private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {}; // 强刷<Canvas />
+  private actionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};  // 强刷<ActionLayer />
+  private featureLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {}; // 强刷<FeatureLayer />
 
   /**
    * 得到组件的相关信息

@@ -3,9 +3,9 @@ import { IFtrMutate } from '@/featureMutater';
 import * as util from '@/lib/util';
 import { ICanvasStore } from './canvaStore';
 
-export type IEvtEmit = EventCollect['emit'];
+export type IEvtEmit = EventBus['emit'];
 
-export class EventCollect {
+export class EventBus {
   constructor(
     private ftrMutate: IFtrMutate,
     private globalStore: GlobalStore,
@@ -14,7 +14,7 @@ export class EventCollect {
     this.emit = this.emit.bind(this);
   }
 
-  public emit<T extends Exclude<keyof EventCollect, 'emit'>>(evtName: T, ...params: Parameters<EventCollect[T]>) {
+  public emit<T extends Exclude<keyof EventBus, 'emit'>>(evtName: T, ...params: Parameters<EventBus[T]>) {
     (this[evtName] as any).apply(this, params);
   }
 

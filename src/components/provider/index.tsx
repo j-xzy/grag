@@ -2,7 +2,7 @@ import * as React from 'react';
 import { createStore, createUseMappedState, applyMiddleware } from 'typeRedux';
 import { createInitState, reducers, IUseMappedState, ICanvasStore } from '@/canvaStore';
 import { createGlobalMiddleware } from '@/canvaStore/middlewares/createGlobalMiddleware';
-import { EventCollect, IEvtEmit } from '@/EventCollect';
+import { EventBus, IEvtEmit } from '@/EventBus';
 import { GlobalStore } from '@/GlobalStore';
 import { FeatureMutater } from '@/featureMutater';
 import { Provider } from 'dnd';
@@ -19,7 +19,7 @@ export const Context = React.createContext({
 
 export type ICtxValue = IGrag.IReactCtxValue<typeof Context>;
 
-export function GragProvider(props: React.Props<any> & IGrag.IProviderConfig) {
+export const GragProvider = React.forwardRef((props: React.Props<any> & IGrag.IProviderConfig) => {
   const globalStore = React.useRef(new GlobalStore());
   const canvaStore = React.useRef(createStore(
     createInitState(mergeDefaultConfig(props)), reducers,
@@ -28,7 +28,7 @@ export function GragProvider(props: React.Props<any> & IGrag.IProviderConfig) {
   const useMappedCanvasState = React.useRef(createUseMappedState(canvaStore.current));
   const featureMutater = React.useRef(new FeatureMutater(globalStore.current, canvaStore.current));
   const useFtrSubscribe = React.useRef(createFtrSubscribe(featureMutater.current));
-  const evtCollect = React.useRef(new EventCollect(
+  const evtBus = React.useRef(new EventBus(
     featureMutater.current.mutate,
     globalStore.current,
     canvaStore.current
@@ -39,13 +39,13 @@ export function GragProvider(props: React.Props<any> & IGrag.IProviderConfig) {
     (window as any).__canvaStore = canvaStore.current;
     (window as any).__globalStore = globalStore.current;
     (window as any).__featureMutater = featureMutater.current;
-    (window as any).__evtCollect = evtCollect.current;
+    (window as any).__evtBus = evtBus.current;
   }
 
   return (
     <Context.Provider value={{
       globalStore: globalStore.current,
-      evtEmit: evtCollect.current.emit,
+      evtEmit: evtBus.current.emit,
       useFtrSubscribe: useFtrSubscribe.current,
       useMappedCanvasState: useMappedCanvasState.current,
       subscribeCanvaStore: canvaStore.current.subscribe
@@ -55,4 +55,4 @@ export function GragProvider(props: React.Props<any> & IGrag.IProviderConfig) {
       </Provider>
     </Context.Provider>
   );
-}
+});
