@@ -36,7 +36,7 @@ export class GlobalStore {
   }
 
   /**
-   * 设置don
+   * 设置dom
    */
   public setDom(id: string, dom: HTMLElement) {
     this.domMap[id] = dom;
