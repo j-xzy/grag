@@ -1,5 +1,6 @@
 // 业务耦合的工具函数
 import * as mathUtil from './math';
+import * as treeUtil from './tree';
 
 /**
  * 根据id得到节点
@@ -282,4 +283,16 @@ export function roundObj<T extends any>(obj: T): T {
     }
   }
   return result;
+}
+
+/**
+ * IFtrNode => IStraightFtrNode
+ */
+export function straightNode(ftrNode: IGrag.IFtrNode) {
+  const node: IGrag.IStraightFtrNode = {
+    ftrId: ftrNode.ftrId,
+    compId: ftrNode.compId,
+    children: treeUtil.getChildren(ftrNode).map(straightNode)
+  };
+  return node;
 }

@@ -2,10 +2,7 @@ import * as React from 'react';
 import { Canvas, Feature, GragProvider } from '../../../src';
 
 export function App() {
-  const gragRef = React.useRef(null);
-  React.useEffect(() => {
-    console.debug('ref', gragRef.current);
-  }, []);
+  const gragRef: React.MutableRefObject<IGrag.IGragInterface | null> = React.useRef(null);
   return (
     <GragProvider ref={gragRef}>
       <div className='comp-bar'>
@@ -13,6 +10,9 @@ export function App() {
         <FtrClass />
         <FtrBox />
         <FtrChart />
+      </div>
+      <div className="tools">
+        <button onClick={() => console.debug('getCanvas', gragRef.current?.getCanvas())}>getCanvas</button>
       </div>
       <div className='border1'>
         <Canvas id="canvas1" style={{ width: '100%', height: '100%' }} />

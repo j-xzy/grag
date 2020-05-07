@@ -4,6 +4,12 @@ declare namespace IGrag {
     ftrId: string;
   }
 
+  interface IStraightFtrNode {
+    compId: string;
+    ftrId: string;
+    children: IStraightFtrNode[];
+  }
+
   interface ICompOption {
     allowChild?: boolean;
     width?: number;
@@ -66,5 +72,9 @@ declare namespace IGrag {
     pos: IPos;
     direction: 'vertical' | 'horizontal';
     length: number;
+  }
+
+  interface IGragInterface {
+    getCanvas: () => { roots: IIndexable<IStraightFtrNode>; styles: IIndexable<IStyle>; };
   }
 }

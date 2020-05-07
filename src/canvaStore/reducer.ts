@@ -190,33 +190,34 @@ export function updateBorder({ getState }: ICtx) {
 // 更新guides
 export function updateGuides({ getState, globalStore }: ICtx) {
   const state = getState();
-  if (!state.selectedFtrs.length || !state.border) {
-    return state;
-  }
+  globalStore;
+  // if (!state.selectedFtrs.length || !state.border) {
+  //   return state;
+  // }
 
-  // 计算最大矩形
-  const rect = util.rotateRect(state.border, state.border.rotate);
+  // // 计算最大矩形
+  // const rect = util.rotateRect(state.border, state.border.rotate);
 
-  // 找到父亲节点
-  let parent: IGrag.IFtrNode | null = null;
-  if (state.dragCompStyle) {
-    // 正在drag时的parent为hoverftr
-    parent = globalStore.getNodeByFtrId(state.hoverFtr!);
-  } else {
-    const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
-    parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
-  }
-  if (!parent) {
-    return state;
-  }
+  // // 找到父亲节点
+  // let parent: IGrag.IFtrNode | null = null;
+  // if (state.dragCompStyle) {
+  //   // 正在drag时的parent为hoverftr
+  //   parent = globalStore.getNodeByFtrId(state.hoverFtr!);
+  // } else {
+  //   const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
+  //   parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
+  // }
+  // if (!parent) {
+  //   return state;
+  // }
 
-  // 得到包括父节点在内的所有兄弟节点id
-  const brotherIds = [parent.ftrId, ...util.getChildren(parent).map(({ftrId})=> ftrId)];
+  // // 得到包括父节点在内的所有兄弟节点id
+  // const brotherIds = [parent.ftrId, ...util.getChildren(parent).map(({ftrId})=> ftrId)];
 
-  // 遍历所有兄弟节点(包括父节点)
-  for (let idx = 0; idx < brotherIds.length; ++idx) {
-    const brotherRect = globalStore.getFtrBoundRect(brotherIds[idx]);
-  }
+  // // 遍历所有兄弟节点(包括父节点)
+  // for (let idx = 0; idx < brotherIds.length; ++idx) {
+  //   const brotherRect = globalStore.getFtrBoundRect(brotherIds[idx]);
+  // }
 
   return state;
 }

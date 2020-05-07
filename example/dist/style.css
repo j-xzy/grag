@@ -14,9 +14,13 @@ tfoot {
   display: inline-block;
 }
 
+.tools {
+  
+}
+
 .border1 {
   position: absolute !important;
-  top: 50px;
+  top: 100px;
   left: 50px;
   width: 500px;
   height: 500px;
@@ -25,7 +29,7 @@ tfoot {
 
 .border2 {
   position: absolute !important;
-  top: 50px;
+  top: 100px;
   left: 600px;
   width: 500px;
   height: 500px;

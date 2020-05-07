@@ -84,6 +84,13 @@ export class GlobalStore {
   }
 
   /**
+   * 得到Roots
+   */
+  public getRoots() {
+    return this.canvasId2Root;
+  }
+
+  /**
    * 注册刷新canvas 
    */
   public subscribeCanvasForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
@@ -233,5 +240,17 @@ export class GlobalStore {
       return [];
     }
     return util.getDeepChildren(node);
+  }
+
+  /**
+   * 得到无循环的roots
+   */
+  public getStraightRoots() {
+    const roots: IGrag.IIndexable<IGrag.IStraightFtrNode> = {};
+    for (const cnavasId in this.canvasId2Root) {
+      const root = this.canvasId2Root[cnavasId];
+      roots[cnavasId] = util.straightNode(root);
+    }
+    return roots;
   }
 }

@@ -19,7 +19,9 @@ export const Context = React.createContext({
 
 export type ICtxValue = IGrag.IReactCtxValue<typeof Context>;
 
-export const GragProvider = React.forwardRef((props: React.Props<any> & IGrag.IProviderConfig) => {
+// export interface IProviderProps extends React.Props<>
+
+export const GragProvider = React.forwardRef<IGrag.IGragInterface, React.Props<IGrag.IGragInterface> & IGrag.IProviderConfig>((props, ref) => {
   const globalStore = React.useRef(new GlobalStore());
   const canvaStore = React.useRef(createStore(
     createInitState(mergeDefaultConfig(props)), reducers,
@@ -33,13 +35,21 @@ export const GragProvider = React.forwardRef((props: React.Props<any> & IGrag.IP
     globalStore.current,
     canvaStore.current
   ));
+  const getCanvas = React.useCallback(() => {
+    return {
+      roots: globalStore.current.getStraightRoots(),
+      styles: canvaStore.current.getState().ftrStyles
+    };
+  }, [globalStore, canvaStore]);
 
-  // debug
-  if (process.env.NODE_ENV === 'development') {
-    (window as any).__canvaStore = canvaStore.current;
-    (window as any).__globalStore = globalStore.current;
-    (window as any).__featureMutater = featureMutater.current;
-    (window as any).__evtBus = evtBus.current;
+  const refCurrent = React.useMemo(() => ({
+    getCanvas
+  }), [getCanvas]);
+
+  if (typeof ref === 'function') {
+    ref(refCurrent);
+  } else if (ref) {
+    ref.current = refCurrent;
   }
 
   return (
@@ -51,7 +61,7 @@ export const GragProvider = React.forwardRef((props: React.Props<any> & IGrag.IP
       subscribeCanvaStore: canvaStore.current.subscribe
     }}>
       <Provider>
-        {props.children}
+        {props?.children}
       </Provider>
     </Context.Provider>
   );

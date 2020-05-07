@@ -68,7 +68,6 @@ export function FeatureLayer(props: IProps) {
   });
 
   const nodes = globalStore.getDeepChildren(rootId);
-
   return (
     <div ref={domRef} style={style}>
       <Dropable idx={RootIdx} ftrId={rootId} option={rootOption} registerDom={registerChildDom}>
