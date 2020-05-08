@@ -1,5 +1,17 @@
 // tree工具函数
 
+export function traverse<T extends IGrag.INode<T>>(root: T) {
+  return (cb: (node: T) => void) => {
+    const queue = [root];
+    while (queue.length) {
+      const node = queue.shift()!;
+      node.next && queue.push(node.next);
+      node.firstChild && queue.push(node.firstChild);
+      cb(node);
+    }
+  };
+}
+
 /**
  * 得到直系children
  */

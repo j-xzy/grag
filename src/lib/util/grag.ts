@@ -296,3 +296,22 @@ export function straightNode(ftrNode: IGrag.IFtrNode) {
   };
   return node;
 }
+
+/**
+ * IStraightFtrNode => IFtrNode
+ */
+export function unStraightNode(straightNode: IGrag.IStraightFtrNode, parent: IGrag.IFtrNode | null) {
+  const root = buildEmptyFtrNode(straightNode);
+  root.parent = parent;
+  straightNode.children.reduce((prev, next) => {
+    const node = unStraightNode(next, root);
+    node.prev = prev;
+    if (prev) {
+      prev.next = node;
+    } else {
+      root.firstChild = node;
+    }
+    return node;
+  }, null as IGrag.IFtrNode | null);
+  return root;
+}

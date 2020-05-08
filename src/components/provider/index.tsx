@@ -19,12 +19,15 @@ export const Context = React.createContext({
 
 export type ICtxValue = IGrag.IReactCtxValue<typeof Context>;
 
-// export interface IProviderProps extends React.Props<>
+interface IProps extends React.Props<IGrag.IGragInterface> {
+  config?: IGrag.IProviderConfig;
+  initialState?: IGrag.IInitialState;
+}
 
-export const GragProvider = React.forwardRef<IGrag.IGragInterface, React.Props<IGrag.IGragInterface> & IGrag.IProviderConfig>((props, ref) => {
+export const GragProvider = React.forwardRef<IGrag.IGragInterface, IProps>((props, ref) => {
   const globalStore = React.useRef(new GlobalStore());
   const canvaStore = React.useRef(createStore(
-    createInitState(mergeDefaultConfig(props)), reducers,
+    createInitState(mergeDefaultConfig(props.config ?? {})), reducers,
     applyMiddleware(createGlobalMiddleware(globalStore.current)))
   );
   const useMappedCanvasState = React.useRef(createUseMappedState(canvaStore.current));
@@ -35,6 +38,7 @@ export const GragProvider = React.forwardRef<IGrag.IGragInterface, React.Props<I
     globalStore.current,
     canvaStore.current
   ));
+
   const getCanvas = React.useCallback(() => {
     return {
       roots: globalStore.current.getStraightRoots(),
@@ -50,6 +54,11 @@ export const GragProvider = React.forwardRef<IGrag.IGragInterface, React.Props<I
     ref(refCurrent);
   } else if (ref) {
     ref.current = refCurrent;
+  }
+
+  if (props.initialState) {
+    canvaStore.current.dispatch('updateState', { ftrStyles: props.initialState.styles });
+    globalStore.current.setRoots(props.initialState.roots);
   }
 
   return (

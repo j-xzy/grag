@@ -102,6 +102,9 @@ export class EventBus {
         ...param,
         ...dragCompStyle
       });
+      this.globalStore.refreshFeatureLayer(
+        this.globalStore.getCanvasIdByFtrId(param.parentFtrId)
+      );
       this.canvaStore.dispatch('updateMouseInFtr', ftrId);
     }
     this.canvaStore.dispatch('clearDragState');
@@ -111,8 +114,12 @@ export class EventBus {
     const { ftrId } = params;
     this.globalStore.initFtr(params);
     const style = this.canvaStore.getState().ftrStyles[ftrId];
-    this.ftrMutate('updateStyle', ftrId, style);
-    this.canvaStore.dispatch('updateSelectedFtrs', [ftrId]);
+    if (this.globalStore.getNodeByFtrId(ftrId)) {
+      this.ftrMutate('setStyle', ftrId, style);
+    } else {
+      this.ftrMutate('updateStyle', ftrId, style);
+      this.canvaStore.dispatch('updateSelectedFtrs', [ftrId]);
+    }
   }
 
   public ftrUnmount(ftrId: string) {

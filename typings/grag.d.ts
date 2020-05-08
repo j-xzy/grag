@@ -74,7 +74,12 @@ declare namespace IGrag {
     length: number;
   }
 
+  interface IInitialState {
+    roots: IIndexable<IStraightFtrNode>; 
+    styles: IIndexable<IStyle>;
+  }
+
   interface IGragInterface {
-    getCanvas: () => { roots: IIndexable<IStraightFtrNode>; styles: IIndexable<IStyle>; };
+    getCanvas: () => IInitialState;
   }
 }

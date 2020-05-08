@@ -1,10 +1,11 @@
 import * as React from 'react';
+import { initialState } from './initialState';
 import { Canvas, Feature, GragProvider } from '../../../src';
 
 export function App() {
   const gragRef: React.MutableRefObject<IGrag.IGragInterface | null> = React.useRef(null);
   return (
-    <GragProvider ref={gragRef}>
+    <GragProvider initialState={initialState} ref={gragRef}>
       <div className='comp-bar'>
         <FtrFunc />
         <FtrClass />
@@ -12,7 +13,7 @@ export function App() {
         <FtrChart />
       </div>
       <div className="tools">
-        <button onClick={() => console.debug('getCanvas', gragRef.current?.getCanvas())}>getCanvas</button>
+        <button onClick={() => console.debug('getCanvas', JSON.stringify(gragRef.current?.getCanvas()))}>getCanvas</button>
       </div>
       <div className='border1'>
         <Canvas id="canvas1" style={{ width: '100%', height: '100%' }} />

@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 import { RootCompId, RootInfo } from '@/components/root';
 import * as util from '@/lib/util';
 
@@ -12,6 +13,18 @@ export class GlobalStore {
   private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {}; // 强刷<Canvas />
   private actionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};  // 强刷<ActionLayer />
   private featureLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {}; // 强刷<FeatureLayer />
+
+  public setRoots(roots: IGrag.IIndexable<IGrag.IStraightFtrNode>) {
+    for (const canvasId in roots) {
+      const root = roots[canvasId];
+      const ftrNode = util.unStraightNode(root, null);
+      this.canvasId2Root[canvasId] = ftrNode;
+      util.traverse(ftrNode)((node) => {
+        this.ftrId2CanvasId[node.ftrId] = canvasId;
+        this.ftrId2Node[node.ftrId] = node;
+      });
+    }
+  }
 
   /**
    * 得到组件的相关信息
@@ -53,12 +66,14 @@ export class GlobalStore {
    * 初始root(ftrLayer)
    */
   public initRoot(param: { canvasId: string; rootId: string; dom: HTMLDivElement; }) {
-    const node = util.buildEmptyFtrNode({
-      ftrId: param.rootId,
-      compId: RootCompId
-    });
-    this.canvasId2Root[param.canvasId] = node;
-    this.ftrId2Node[param.rootId] = node;
+    if (!this.canvasId2Root[param.canvasId]) {
+      const node = util.buildEmptyFtrNode({
+        ftrId: param.rootId,
+        compId: RootCompId
+      });
+      this.canvasId2Root[param.canvasId] = node;
+      this.ftrId2Node[param.rootId] = node;
+    }
     this.domMap[param.rootId] = param.dom;
     this.ftrId2CanvasId[param.rootId] = param.canvasId;
   }
@@ -153,6 +168,7 @@ export class GlobalStore {
    */
   public getFtrStyle(ftrId: string) {
     const dom = this.getDom(ftrId);
+    console.debug(dom, ftrId);
     const { width, height, left, top } = window.getComputedStyle(dom);
     return {
       width: parseInt(width),
@@ -191,9 +207,9 @@ export class GlobalStore {
   public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement; }) {
     this.setDom(params.ftrId, params.dom);
     this.ftrId2CanvasId[params.ftrId] = params.canvasId;
-    const node = util.getNodeByFtrId(this.getRoot(params.canvasId), params.ftrId);
-    if (node) {
-      this.ftrId2Node[params.ftrId] = node;
+    if (!this.ftrId2Node[params.ftrId]) {
+      const node = util.getNodeByFtrId(this.getRoot(params.canvasId), params.ftrId);
+      node && (this.ftrId2Node[params.ftrId] = node);
     }
   }
 
@@ -210,13 +226,15 @@ export class GlobalStore {
    * 得到node
    */
   public getNodeByFtrId(ftrId: string) {
-    const node = this.ftrId2Node[ftrId];
+    let node: IGrag.IFtrNode | null = this.ftrId2Node[ftrId];
     if (node) {
       return node;
     }
     const root = this.canvasId2Root[this.ftrId2CanvasId[ftrId]];
     if (root) {
-      return util.getNodeByFtrId(root, ftrId);
+      node = util.getNodeByFtrId(root, ftrId);
+      node && (this.ftrId2Node[ftrId] = node);
+      return node;
     }
     return null;
   }
