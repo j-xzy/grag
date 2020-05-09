@@ -115,6 +115,7 @@ export class EventBus {
     this.globalStore.initFtr(params);
     const style = this.canvaStore.getState().ftrStyles[ftrId];
     if (this.globalStore.getNodeByFtrId(ftrId)) {
+      // 是通过initialState的domDone
       this.ftrMutate('setStyle', ftrId, style);
     } else {
       this.ftrMutate('updateStyle', ftrId, style);
