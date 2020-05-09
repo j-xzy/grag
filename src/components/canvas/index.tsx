@@ -8,7 +8,7 @@ import { useMutationObserver } from '@/hooks/useMutationObserver';
 import { ActionLayer } from '@/components/actionLayer';
 import { defaultStyle } from './config';
 
-export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
+export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, Omit<ICanvasProps, 'id'> {
   canvasId: string;
 }
 
@@ -83,7 +83,7 @@ function RawCanvas(props: IRawCanvasProps) {
       cursor: s.cursor,
       focusedCanvas: s.focusedCanvas,
     }), (state) => {
-      if (state.focusedCanvas !== props.id) {
+      if (state.focusedCanvas !== canvasId) {
         return;
       }
       if (domRef.current) {

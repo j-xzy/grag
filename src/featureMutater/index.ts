@@ -25,6 +25,9 @@ export class FeatureMutater {
     (this[action] as any).apply(this, params);
   }
 
+  /**
+   * 插入新feature
+   */
   public insertNewFtr(param: IInsertNewFtrParam) {
     const { parentFtrId, compId, ftrId, x, y, width, height, rotate } = param;
     // 更新ftrState
@@ -37,6 +40,9 @@ export class FeatureMutater {
     }
   }
 
+  /**
+   * 移除feature
+   */
   public removeFtr(ftrId: string) {
     const node = this.globalStore.getNodeByFtrId(ftrId);
     if (node) {
@@ -86,6 +92,9 @@ export class FeatureMutater {
     this.canvaStore.dispatch('updateFtrStyles', [{ ftrId, style }]);
   }
 
+  /**
+   * 注册action
+   */
   public subscribe<T extends keyof IFtrSubActMap>(id: string, action: T, callback: (payload: IFtrSubActMap[T]) => void) {
     if (!this.listeners[id]) {
       this.listeners[id] = {};
@@ -96,10 +105,16 @@ export class FeatureMutater {
     this.listeners[id][action].push(callback);
   }
 
+  /**
+   * 接触对应id的所有action监听
+   */
   public unSubscribe(id: string) {
     delete this.listeners[id];
   }
 
+  /**
+   * 检查孩子节点
+   */
   public checkChildren(ftrId: string) {
     const ftrNode = this.globalStore.getNodeByFtrId(ftrId);
     if (!ftrNode) {
@@ -109,10 +124,10 @@ export class FeatureMutater {
     if (!allowChild) {
       return;
     }
-    const children = util.getChildren(ftrNode);
+
     const leaveChilds: IGrag.IFtrNode[] = [];
-    children.forEach((child) => {
-      if (!this.ftrInside(child.ftrId, ftrId)) {
+    util.traverse(ftrNode)((child) => {
+      if (child.ftrId !== ftrNode.ftrId && !this.ftrInside(child.ftrId, ftrId)) {
         leaveChilds.push(child);
       }
     });
@@ -120,9 +135,12 @@ export class FeatureMutater {
     const inChilds: IGrag.IFtrNode[] = [];
     const parent = this.globalStore.getParentNodeByFtrId(ftrId);
     if (parent) {
-      const brothers = util.getChildren(parent);
-      brothers.forEach((brother) => {
-        if (brother.ftrId !== ftrId && this.ftrInside(brother.ftrId, ftrId)) {
+      util.traverse(parent)((brother) => {
+        if (
+          brother.ftrId !== parent.ftrId
+          && brother.ftrId !== ftrId
+          && this.ftrInside(brother.ftrId, ftrId)
+        ) {
           inChilds.push(brother);
         }
       });
@@ -137,13 +155,9 @@ export class FeatureMutater {
     });
   }
 
-  private notify<T extends keyof IFtrSubActMap>(id: string, action: T, payload: IFtrSubActMap[T]) {
-    const list = [...this.listeners[id][action]];
-    list.forEach((cb) => {
-      cb(payload);
-    });
-  }
-
+  /**
+   * 检查父亲节点
+   */
   private checkParent(ftrId: string) {
     const parent = this.getPositionParent(ftrId);
     const lastParent = this.globalStore.getParentNodeByFtrId(ftrId);
@@ -154,25 +168,38 @@ export class FeatureMutater {
     }
   }
 
+  /**
+   * 触发对应action的监听
+   */
+  private notify<T extends keyof IFtrSubActMap>(id: string, action: T, payload: IFtrSubActMap[T]) {
+    const list = [...this.listeners[id][action]];
+    list.forEach((cb) => {
+      cb(payload);
+    });
+  }
+
+  /**
+   * 得到位置上的父亲节点
+   */
   private getPositionParent(ftrId: string) {
     let target = this.globalStore.getParentNodeByFtrId(ftrId);
     if (!target || !this.ftrInside(ftrId, target.ftrId)) {
       target = this.globalStore.getRoot(this.globalStore.getCanvasIdByFtrId(ftrId));
     }
     while (target) {
-      const children: IGrag.IFtrNode[] = util.getChildren(target);
       let inChild = false;
-      for (let i = 0; i < children.length; ++i) {
-        const child = children[i];
-        if (child.ftrId === ftrId) {
-          continue;
+      util.traverse(target)((child) => {
+        if (inChild) {
+          return;
+        }
+        if (child.ftrId === target?.ftrId || child.ftrId === ftrId) {
+          return;
         }
         if (this.ftrInside(ftrId, child.ftrId)) {
           target = child;
           inChild = true;
-          break;
         }
-      }
+      });
       if (!inChild) {
         break;
       }
@@ -180,6 +207,9 @@ export class FeatureMutater {
     return target;
   }
 
+  /**
+   * source是否在target内
+   */
   private ftrInside(sourceftrId: string, targetFtrId: string) {
     const sourceStyle = this.globalStore.getFtrStyle(sourceftrId);
     const targetStyle = this.globalStore.getFtrStyle(targetFtrId);

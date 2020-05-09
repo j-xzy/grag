@@ -1,4 +1,3 @@
-/* eslint-disable no-debugger */
 import { RootCompId, RootInfo } from '@/components/root';
 import * as util from '@/lib/util';
 
@@ -14,6 +13,9 @@ export class GlobalStore {
   private actionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};  // 强刷<ActionLayer />
   private featureLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {}; // 强刷<FeatureLayer />
 
+  /**
+   * 设置roots相关信息
+   */
   public setRoots(roots: IGrag.IIndexable<IGrag.IStraightFtrNode>) {
     for (const canvasId in roots) {
       const root = roots[canvasId];
@@ -168,7 +170,6 @@ export class GlobalStore {
    */
   public getFtrStyle(ftrId: string) {
     const dom = this.getDom(ftrId);
-    console.debug(dom, ftrId);
     const { width, height, left, top } = window.getComputedStyle(dom);
     return {
       width: parseInt(width),
