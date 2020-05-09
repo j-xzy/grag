@@ -5,11 +5,11 @@ import { FeatureLayer } from '@/components/featureLayer';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useMount } from '@/hooks/useMount';
 import { useMutationObserver } from '@/hooks/useMutationObserver';
-import { InteractionLayer } from '@/components/interactionLayer';
-import { defaultStyle, cursorDics } from './config';
+import { ActionLayer } from '@/components/actionLayer';
+import { defaultStyle } from './config';
 
 export interface IRawCanvasProps extends Omit<React.Props<any>, 'children'>, ICanvasProps {
-  id: string;
+  canvasId: string;
 }
 
 interface ICanvasProps {
@@ -24,18 +24,18 @@ interface ICanvasProps {
 }
 
 function RawCanvas(props: IRawCanvasProps) {
-  const { style, id } = props;
+  const { style, canvasId } = props;
   const { evtEmit, subscribeCanvaStore, globalStore } = React.useContext(Context);
   const domRef: React.MutableRefObject<HTMLDivElement | null> = React.useRef(null);
-  const rootId = React.useRef(globalStore.getRoot(id)?.ftrId ?? util.uuid());
+  const rootId = React.useRef(globalStore.getRoot(canvasId)?.ftrId ?? util.uuid());
 
   const observeAttrMuationRef = useMutationObserver(() => {
-    evtEmit('canvasStyleChange', props.id);
+    evtEmit('canvasStyleChange', canvasId);
   }, { attributeFilter: ['style'] });
 
   useMount(() => {
     function handleScroll() {
-      evtEmit('canvasStyleChange', props.id);
+      evtEmit('canvasStyleChange', canvasId);
     }
     window.addEventListener('scroll', handleScroll);
     return () => {
@@ -44,11 +44,11 @@ function RawCanvas(props: IRawCanvasProps) {
   });
 
   const handleMousemove = React.useCallback((e: React.MouseEvent) => {
-    evtEmit('canvasMousemove', props.id, { x: e.clientX, y: e.clientY });
+    evtEmit('canvasMousemove', canvasId, { x: e.clientX, y: e.clientY });
   }, []);
 
   const handleMouseEnter = React.useCallback(() => {
-    evtEmit('canvasMouseEnter', props.id);
+    evtEmit('canvasMouseEnter', canvasId);
   }, []);
 
   const handleMouseLeave = React.useCallback(() => {
@@ -71,30 +71,23 @@ function RawCanvas(props: IRawCanvasProps) {
   }, []);
 
   useMount(() => {
-    evtEmit('canvasMount', props.id, domRef.current!);
+    evtEmit('canvasMount', canvasId, domRef.current!);
     return () => {
-      evtEmit('canvasUnMount', props.id);
+      evtEmit('canvasUnMount', canvasId);
       domRef.current = null;
     };
   });
 
   useMount(() => {
     const unSubscribe = subscribeCanvaStore((s) => ({
-      isMoving: s.isMoving,
-      resizeType: s.resizeType,
-      focusedCanvas: s.focusedCanvas
+      cursor: s.cursor,
+      focusedCanvas: s.focusedCanvas,
     }), (state) => {
       if (state.focusedCanvas !== props.id) {
         return;
       }
-      let cursor = 'default';
-      if (state.isMoving) {
-        cursor = 'move';
-      } else if (state.resizeType) {
-        cursor = cursorDics[state.resizeType];
-      }
       if (domRef.current) {
-        domRef.current.style.cursor = cursor;
+        domRef.current.style.cursor = state.cursor;
       }
     });
     return () => {
@@ -106,8 +99,8 @@ function RawCanvas(props: IRawCanvasProps) {
     <div ref={refCallback} style={{ ...defaultStyle, ...style }}
       onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
       onMouseDown={handleMousedown} onMouseUp={handleMouseup} onMouseMove={handleMousemove}>
-      <FeatureLayer canvasId={id} rootId={rootId.current} />
-      <InteractionLayer canvasId={id} />
+      <FeatureLayer canvasId={canvasId} rootId={rootId.current} />
+      <ActionLayer canvasId={canvasId} />
     </div>
   );
 }
@@ -119,8 +112,9 @@ export function Canvas(props: ICanvasProps) {
   const canvasId = React.useRef(id ?? util.uuid());
 
   useMount(() => {
-    globalStore.subscribeCanvasForceUpdate(canvasId.current, forceUpdate);
+    const unSubscribe = globalStore.subscribeCanvasForceUpdate(canvasId.current, forceUpdate);
+    return unSubscribe;
   });
 
-  return <RawCanvas {...restProps} id={canvasId.current} />;
+  return <RawCanvas {...restProps} canvasId={canvasId.current} />;
 }

@@ -46,7 +46,6 @@
     "react": "^16.13.0",
     "react-dom": "^16.13.0"
   },
-  "author": "whj1995",
   "files": [
     "lib",
     "typings"

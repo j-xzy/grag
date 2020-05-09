@@ -1,4 +1,4 @@
-/// <reference path="../typings/node.d.ts"/>
+/// <reference path="../typings/tree.d.ts"/>
 /// <reference path="../typings/common.d.ts"/>
 /// <reference path="../typings/grag.d.ts"/>
 

@@ -1,4 +1,15 @@
 declare namespace IGrag {
+  interface IFtrNode extends INode<IFtrNode> {
+    compId: string;
+    ftrId: string;
+  }
+
+  interface IStraightFtrNode {
+    compId: string;
+    ftrId: string;
+    children: IStraightFtrNode[];
+  }
+
   interface ICompOption {
     allowChild?: boolean;
     width?: number;
@@ -15,52 +26,60 @@ declare namespace IGrag {
     [compId: string]: ICompInfo;
   }
 
-  interface IDomMap {
+  interface IDoms {
     [ftrid: string]: HTMLElement;
   }
 
-  interface IRootMap {
-    [canvasId: string]: IGrag.IFtrNode;
+  interface IRoots {
+    [canvasId: string]: IFtrNode;
   }
 
-  interface IFtrStyle {
+  interface IStyle extends IRect {
+    rotate: number;
+  }
+
+  interface IRect {
     width: number;
     height: number;
     x: number;
     y: number;
   }
 
-  interface IAdsorption {
-    ht: [number, number];
-    hm: [number, number];
-    hb: [number, number];
-    vl: [number, number];
-    vm: [number, number];
-    vr: [number, number];
-  }
-
-  type IDistLines = Record<ISides, number>;
-  type IDashLines = Record<ISides, [number, number]>;
-
-  type ISides = 'left' | 'right' | 'top' | 'bottom';
-
-  type IAdsorptionType = 'ht' | 'hm' | 'hb' | 'vl' | 'vm' | 'vr';
-
   interface IProviderConfig {
     color?: string;
     id?: string;
   }
 
-  interface IHighLightState {
+  interface IHighLight {
     ftrId: string;
     id: string;
     color: string;
   }
 
-  type IResizeType = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
+  type IResizeType = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
-  interface IRect {
-    lt: IGrag.IXYCoord;
-    rb: IGrag.IXYCoord;
+  interface IResize {
+    type: IResizeType;
+    idx: number;
+  }
+
+  type IGuideLineType = 'dist' | 'dash' | 'align';
+
+  type IDirection = 'vertical' | 'horizontal';
+
+  interface IGuideLine {
+    type: IGuideLineType;
+    pos: IPos;
+    direction: 'vertical' | 'horizontal';
+    length: number;
+  }
+
+  interface IInitialState {
+    roots: IIndexable<IStraightFtrNode>; 
+    styles: IIndexable<IStyle>;
+  }
+
+  interface IGragInterface {
+    getCanvas: () => IInitialState;
   }
 }

@@ -27,6 +27,7 @@ export function FtrSubscribe(props: IMonitorProps) {
       domRef.current.style.top = style.y + 'px';
       domRef.current.style.width = style.width + 'px';
       domRef.current.style.height = style.height + 'px';
+      domRef.current.style.transform = `rotate(${style.rotate}deg)`;
     }
   });
 

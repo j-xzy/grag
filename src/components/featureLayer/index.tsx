@@ -5,7 +5,6 @@ import { FtrSubscribe } from '@/components/featureLayer/ftrSubscribe';
 import { MouseEventCollect } from '@/components/featureLayer/mouseEventCollect';
 import { DomDone } from '@/components/featureLayer/domDone';
 import { Context } from '@/components/provider';
-import { useInitial } from '@/hooks/useInitial';
 import { useForceUpdate } from '@/hooks/useForceUpdate';
 import { useMount } from '@/hooks/useMount';
 import { rootOption } from '@/components/root';
@@ -46,8 +45,9 @@ export function FeatureLayer(props: IProps) {
     });
   }, { childList: true });
 
-  useInitial(() => {
-    globalStore.subscribeFeatureLayerForceUpdate(canvasId, forceUpdate);
+  useMount(() => {
+    const unSubscribeForceUpdate = globalStore.subscribeFeatureLayerForceUpdate(canvasId, forceUpdate);
+    return unSubscribeForceUpdate;
   });
 
   useMount(() => {
@@ -68,7 +68,7 @@ export function FeatureLayer(props: IProps) {
   });
 
   const nodes = globalStore.getDeepChildren(rootId);
-
+  console.debug(nodes);
   return (
     <div ref={domRef} style={style}>
       <Dropable idx={RootIdx} ftrId={rootId} option={rootOption} registerDom={registerChildDom}>

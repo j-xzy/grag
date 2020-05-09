@@ -7,7 +7,7 @@ declare namespace IGrag {
 
   type IFunction = (...params: any[]) => any;
 
-  interface IXYCoord {
+  interface IPos {
     x: number;
     y: number;
   }

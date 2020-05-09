@@ -28,7 +28,7 @@ export function Guides(props: IProps) {
   );
 }
 
-function AdsorbLines(props: { border: IGrag.IRect; lines: Partial<IGrag.IAdsorption>; }) {
+function AdsorbLines(props: { border: IGrag.IBox; lines: Partial<IGrag.IAdsorption>; }) {
   const { border, lines } = props;
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -48,7 +48,7 @@ function AdsorbLines(props: { border: IGrag.IRect; lines: Partial<IGrag.IAdsorpt
   );
 }
 
-function DistLines(props: { border: IGrag.IRect; lines: Partial<IGrag.IDistLines>; }) {
+function DistLines(props: { border: IGrag.IBox; lines: Partial<IGrag.IDistLines>; }) {
   const { border, lines } = props;
   return (
     <>
@@ -113,7 +113,7 @@ function DistLine(props: { style: React.CSSProperties; }) {
   );
 }
 
-function DashLines(props: { border: IGrag.IRect; dashLines: Partial<IGrag.IDashLines>; distLines: Partial<IGrag.IDistLines>; }) {
+function DashLines(props: { border: IGrag.IBox; dashLines: Partial<IGrag.IDashLines>; distLines: Partial<IGrag.IDistLines>; }) {
   const { dashLines, distLines, border } = props;
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -129,3 +129,14 @@ function DashLines(props: { border: IGrag.IRect; dashLines: Partial<IGrag.IDashL
     </>
   );
 }
+
+// position: absolute;
+// display: inline-block;
+// width: 5px;
+// height: 100px;
+// border-top: 1px solid #000;
+// border-bottom: 1px solid #000;
+// background-color: red;
+// box-sizing: border-box;
+// padding: 0px 2px;
+// background-clip: content-box;

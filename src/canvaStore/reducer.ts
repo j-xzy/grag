@@ -3,28 +3,35 @@ import type { ICtx } from './index';
 import type { IState } from './state';
 
 // 鼠标坐标改变
-export function mouseCoordChange({ getState, doAction }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
-  doAction('updateMouseCoord', param);
+export function mousePosChange({ getState, doAction }: ICtx, param: { pos: IGrag.IPos; canvasId: string; }) {
+  doAction('updateMousePos', param);
   doAction('dragging');
   doAction('moving');
-  doAction('recting');
+  doAction('Boxing');
   doAction('resizing');
-  doAction('updateBorder');
-  doAction('updateGuides');
+  doAction('rotating');
+
+  if (getState().selectBox || getState().resize || getState().isMoving || getState().isRotate) {
+    doAction('updateBorder');
+  }
+
+  if (getState().resize || getState().isMoving || getState().dragCompStyle) {
+    doAction('updateGuides');
+  }
   return getState();
 }
 
 // 更新mouseCoord
-export function updateMouseCoord({ getState }: ICtx, param: { coord: IGrag.IXYCoord; canvasId: string; }) {
-  const { coord, canvasId } = param;
+export function updateMousePos({ getState }: ICtx, param: { pos: IGrag.IPos; canvasId: string; }) {
+  const { pos, canvasId } = param;
   const state = { ...getState(), focusedCanvas: canvasId };
-  // 计算 mouseCoord
+  // 计算 mousePos
   const canvasRect = state.canvasRects[canvasId];
-  const mouseCoord = {
-    x: coord.x - canvasRect.x,
-    y: coord.y - canvasRect.y
-  };
-  state.mouseCoord = mouseCoord;
+  const mousePos = util.roundObj({
+    x: pos.x - canvasRect.x,
+    y: pos.y - canvasRect.y
+  });
+  state.mousePos = mousePos;
   return state;
 }
 
@@ -34,12 +41,14 @@ export function dragging({ getState }: ICtx) {
   // 计算拖拽的compState
   if (state.dragCompStyle && state.hoverFtr) {
     const { width, height } = state.dragCompStyle;
-    state.dragCompStyle = {
-      width, height,
-      x: state.mouseCoord.x - Math.floor(width / 2),
-      y: state.mouseCoord.y - Math.floor(height / 2),
-    };
-    state.border = util.calRectByStyle(state.dragCompStyle);
+    state.dragCompStyle = util.roundObj({
+      width: width,
+      height: height,
+      x: state.mousePos.x - Math.floor(width / 2),
+      y: state.mousePos.y - Math.floor(height / 2),
+      rotate: 0
+    });
+    state.border = state.dragCompStyle;
   }
   return state;
 }
@@ -49,53 +58,56 @@ export function moving({ getState }: ICtx) {
   const state = getState();
   // 计算移动后的ftr
   if (state.isMoving && state.selectedFtrs.length) {
-    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
-    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
+    const deltX = state.mousePos.x - state.mousedownPos.x;
+    const deltY = state.mousePos.y - state.mousedownPos.y;
     state.selectedFtrs.forEach((id) => {
-      const { x, y, width, height } = state.beforeChangeFtrStyles[id];
-      state.ftrStyles[id] = {
+      const { x, y, width, height, rotate } = state.beforeChangeFtrStyles[id];
+      state.ftrStyles[id] = util.roundObj({
         x: x + deltX,
         y: y + deltY,
-        width, height
-      };
+        width: width, 
+        height: height,
+        rotate
+      });
     });
   }
   return state;
 }
 
 // 框选
-export function recting({ getState, globalStore }: ICtx) {
+export function Boxing({ getState, globalStore }: ICtx) {
   const state = getState();
   // 框选
-  if (!state.resizeType && !state.isMoving && state.isMousedown && !state.mouseInFtr && state.focusedCanvas) {
+  if (!state.resize && !state.isMoving && !state.isRotate && state.isMousedown && !state.mouseInFtr && state.focusedCanvas) {
     state.isMoving = false;
     const rootId = globalStore.getRoot(state.focusedCanvas).ftrId;
     const nodes = globalStore.getDeepChildren(rootId);
     const selectedFtrs = util.calSelectedFtrs(
-      state.mouseCoord, state.mousedownCoord,
-      nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrStyle(ftrId) }))
+      state.mousePos, state.mousedownPos,
+      nodes.map(({ ftrId }) => ({ ftrId, ...globalStore.getFtrBoundRect(ftrId) }))
     );
     state.selectedFtrs = selectedFtrs;
 
     let rectx = 0;
     let recty = 0;
-    const isRight = state.mouseCoord.x > state.mousedownCoord.x;
-    const isBottom = state.mouseCoord.y > state.mousedownCoord.y;
+    const isRight = state.mousePos.x > state.mousedownPos.x;
+    const isBottom = state.mousePos.y > state.mousedownPos.y;
     if (isRight) {
-      rectx = state.mousedownCoord.x;
+      rectx = state.mousedownPos.x;
     } else {
-      rectx = state.mouseCoord.x;
+      rectx = state.mousePos.x;
     }
     if (isBottom) {
-      recty = state.mousedownCoord.y;
+      recty = state.mousedownPos.y;
     } else {
-      recty = state.mouseCoord.y;
+      recty = state.mousePos.y;
     }
-    state.rect = {
+    state.selectBox = util.roundObj({
       x: rectx, y: recty,
-      width: Math.abs(state.mouseCoord.x - state.mousedownCoord.x),
-      height: Math.abs(state.mouseCoord.y - state.mousedownCoord.y),
-    };
+      width: Math.abs(state.mousePos.x - state.mousedownPos.x),
+      height: Math.abs(state.mousePos.y - state.mousedownPos.y),
+      rotate: 0
+    });
   }
   return state;
 }
@@ -104,17 +116,57 @@ export function recting({ getState, globalStore }: ICtx) {
 export function resizing({ getState }: ICtx) {
   const state = getState();
   // 计算resize后的ftr
-  if (state.resizeType && state.selectedFtrs.length) {
-    const deltX = state.mouseCoord.x - state.mousedownCoord.x;
-    const deltY = state.mouseCoord.y - state.mousedownCoord.y;
+  if (state.resize && state.selectedFtrs.length) {
     state.selectedFtrs.forEach((id) => {
-      const style = util.calResizeStyle(
-        state.resizeType!, state.beforeChangeFtrStyles[id],
-        { deltX, deltY }
-      );
+      const style = util.roundObj(util.calResizeStyle(
+        state.resize!.idx, state.beforeChangeFtrStyles[id],
+        state.mousePos, state.mousedownPos
+      ));
       if (style.width > 1 && style.height > 1) {
         state.ftrStyles[id] = style;
       }
+    });
+  }
+  return state;
+}
+
+// 旋转
+export function rotating({ getState, globalStore }: ICtx) {
+  const state = getState();
+  if (state.isRotate && state.isMousedown && state.selectedFtrs.length) {
+    state.selectedFtrs.forEach((id) => {
+      const center = util.calRectCenter(globalStore.getFtrBoundRect(id));
+      const a = {
+        x: state.mousePos.x - center.x,
+        y: state.mousePos.y - center.y
+      };
+      const b = {
+        x: state.mousedownPos.x - center.x,
+        y: state.mousedownPos.y - center.y
+      };
+      let deg = util.rad2Deg(util.calAngleByVectors(a, b));
+      // 外积
+      const z = b.x * a.y - a.x * b.y;
+      if (z < 0) {
+        deg = 360 - deg;
+      }
+      deg =  (deg + state.beforeChangeFtrStyles[id].rotate) % 360;
+      if (deg > 355 || deg < 5) {
+        deg = 0;
+      }
+      if (deg > 85 && deg < 95) {
+        deg = 90;
+      }
+      if (deg > 175 && deg < 185) {
+        deg = 180;
+      }
+      if (deg > 265 && deg < 275) {
+        deg = 270;
+      }
+      state.ftrStyles[id] = util.roundObj({
+        ...state.ftrStyles[id],
+        rotate: deg
+      });
     });
   }
   return state;
@@ -124,165 +176,205 @@ export function resizing({ getState }: ICtx) {
 export function updateBorder({ getState }: ICtx) {
   const state = getState();
   // 计算边框
-  if (state.rect || state.resizeType || state.isMoving) {
-    state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+  if (state.selectedFtrs.length === 1) {
+    state.border = state.ftrStyles[state.selectedFtrs[0]];
+  } else if (state.selectedFtrs.length > 1) {
+    state.border = {
+      ...util.calMaxRect(state.selectedFtrs.map((id) => util.rotateRect(state.ftrStyles[id], state.ftrStyles[id].rotate))),
+      rotate: 0
+    };
   }
   return state;
 }
 
 // 更新guides
 export function updateGuides({ getState, globalStore }: ICtx) {
-  const adsorbDist = 5;
   const state = getState();
-  if ((state.resizeType || state.isMoving || state.dragCompStyle) && state.border) {
-    const closestStyles: Partial<Record<IGrag.ISides, IGrag.IFtrStyle>> = {};
-    state.adsorbLines = {};
-    state.distLines = {};
-    state.dashLines = {};
-    const type2Key: Record<IGrag.IAdsorptionType, 'x' | 'y'> = {
-      ht: 'x', hm: 'x', hb: 'x',
-      vl: 'y', vm: 'y', vr: 'y'
-    };
-    const type2Dist: Record<IGrag.IAdsorptionType, Array<IGrag.ISides>> = {
-      ht: ['left', 'right'], hm: ['left', 'right'], hb: ['left', 'right'],
-      vl: ['top', 'bottom'], vm: ['top', 'bottom'], vr: ['top', 'bottom']
-    };
+  globalStore;
+  // if (!state.selectedFtrs.length || !state.border) {
+  //   return state;
+  // }
 
-    let parent: IGrag.IFtrNode | null = null;
-    if (state.dragCompStyle) {
-      // 正在drag时的parent为hoverftr
-      parent = globalStore.getNodeByFtrId(state.hoverFtr!);
-    } else {
-      const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
-      parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
-    }
-    if (parent) {
-      const childs = [parent, ...util.getChildren(parent)];
-      childs.forEach(({ ftrId }) => {
-        if (!state.selectedFtrs.includes(ftrId)) {
-          const style = globalStore.getFtrStyle(ftrId);
-          const target = {
-            y: [style.y, style.y + style.height / 2, style.y + style.height],
-            x: [style.x, style.x + style.width / 2, style.x + style.width]
-          };
-          const border = {
-            y: {
-              ht: state.border!.lt.y,
-              hm: (state.border!.lt.y + state.border!.rb.y) / 2,
-              hb: state.border!.rb.y,
-            },
-            x: {
-              vl: state.border!.lt.x,
-              vm: (state.border!.lt.x + state.border!.rb.x) / 2,
-              vr: state.border!.rb.x
-            }
-          };
-          const match = { y: true, x: true };
-          Object.keys(target).forEach((k) => {
-            target[k].forEach((s) => {
-              Object.keys(border[k]).forEach((type: IGrag.IAdsorptionType) => {
-                // resize时不考虑hm、vm
-                if (!(state.resizeType && (type === 'hm' || type === 'vm'))) {
-                  const v: number = (border as any)[k][type];
-                  const delt = Math.abs(s - v);
-                  if ((state.dragCompStyle && delt === 0) || (!state.dragCompStyle && delt < adsorbDist)) {
-                    if (match[k] && !state.dragCompStyle) {
-                      if (state.resizeType) {
-                        state.selectedFtrs.forEach((id) => {
-                          state.ftrStyles[id] = util.calResizeStyle(
-                            state.resizeType!, state.ftrStyles[id],
-                            {
-                              deltX: k === 'x' ? s - v : 0,
-                              deltY: k === 'y' ? s - v : 0
-                            }
-                          );
-                        });
-                      } else {
-                        state.selectedFtrs.forEach((id) => {
-                          state.ftrStyles[id][k] += s - v;
-                        });
-                      }
-                      state.border = util.calRect(state.selectedFtrs.map((id) => state.ftrStyles[id]));
-                      match[k] = false;
-                    }
-                    const xy = type2Key[type];
-                    const widthHeight = xy === 'x' ? 'width' : 'height';
+  // // 计算最大矩形
+  // const rect = util.rotateRect(state.border, state.border.rotate);
 
-                    // 对齐线
-                    state.adsorbLines[type] = [
-                      Math.min(style[xy], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
-                      Math.max(style[xy] + (xy === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
-                    ];
+  // // 找到父亲节点
+  // let parent: IGrag.IFtrNode | null = null;
+  // if (state.dragCompStyle) {
+  //   // 正在drag时的parent为hoverftr
+  //   parent = globalStore.getNodeByFtrId(state.hoverFtr!);
+  // } else {
+  //   const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
+  //   parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
+  // }
+  // if (!parent) {
+  //   return state;
+  // }
 
-                    // 最近的ftr
-                    type2Dist[type].forEach((side) => {
-                      if (side === 'left' || side === 'top') {
-                        const p = style[xy] + style[widthHeight];
-                        const distDelt = state.border!.lt[xy] - p;
-                        if (distDelt >= adsorbDist) {
-                          if (!closestStyles[side] || (closestStyles[side]![xy] + closestStyles[side]![widthHeight] < p)) {
-                            closestStyles[side] = style;
-                          }
-                        }
-                      }
-                      if (side === 'right' || side === 'bottom') {
-                        const distDelt = style[xy] - state.border!.rb[xy];
-                        if (distDelt >= adsorbDist) {
-                          if (!closestStyles[side] || (style[xy] < closestStyles[side]![xy])) {
-                            closestStyles[side] = style;
-                          }
-                        }
-                      }
-                    });
+  // // 得到包括父节点在内的所有兄弟节点id
+  // const brotherIds = [parent.ftrId, ...util.getChildren(parent).map(({ftrId})=> ftrId)];
 
-                  }
-                }
-              });
-            });
-          });
-        }
-      });
-      // border计算完成后重新计算adsorbLines
-      Object.keys(state.adsorbLines).forEach((type) => {
-        const key = type2Key[type];
-        state.adsorbLines[type] = [
-          Math.min(state.border!.lt[key], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
-          Math.max(state.border!.rb[key], state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
-        ];
-      });
+  // // 遍历所有兄弟节点(包括父节点)
+  // for (let idx = 0; idx < brotherIds.length; ++idx) {
+  //   const brotherRect = globalStore.getFtrBoundRect(brotherIds[idx]);
+  // }
 
-      // 根据最近的ftrstyle计算distLines
-      Object.keys(closestStyles).forEach((side) => {
-        const xy = (side === 'left' || side === 'right') ? 'x' : 'y';
-        const widthHeight = xy === 'x' ? 'width' : 'height';
-        if (side === 'left' || side === 'top') {
-          state.distLines[side] = state.border!.lt[xy] - closestStyles[side]![widthHeight] - closestStyles[side]![xy];
-        }
-        if (side === 'right' || side === 'bottom') {
-          state.distLines[side] = closestStyles[side]![xy] - state.border!.rb[xy];
-        }
-      });
-
-      // 根据最近的ftrstyle计算dashlines
-      Object.keys(closestStyles).forEach((side) => {
-        const xy = (side === 'left' || side === 'right') ? 'y' : 'x';
-        const widthHeight = xy === 'x' ? 'width' : 'height';
-        const mid = (state.border!.lt[xy] + state.border!.rb[xy]) / 2;
-        if (mid > closestStyles[side]![xy] + closestStyles[side]![widthHeight]) {
-          state.dashLines[side] = [closestStyles[side]![xy] + closestStyles[side]![widthHeight], state.border!.rb[xy]];
-        } else if (mid < closestStyles[side]![xy]) {
-          state.dashLines[side] = [state.border!.lt[xy], closestStyles[side]![xy]];
-        } else {
-          delete state.dashLines[side];
-        }
-      });
-    }
-  }
   return state;
 }
 
+// 更新guides
+// export function updateGuidesBck({ getState, globalStore }: ICtx) {
+//   const adsorbDist = 5;
+//   const state = getState();
+//   if ((state.resize || state.isMoving || state.dragCompStyle) && state.border) {
+//     const closestStyles: Partial<Record<IGrag.ISides, IGrag.IStyle>> = {};
+//     state.adsorbLines = {};
+//     state.distLines = {};
+//     state.dashLines = {};
+//     const type2Key: Record<IGrag.IAdsorptionType, 'x' | 'y'> = {
+//       ht: 'x', hm: 'x', hb: 'x',
+//       vl: 'y', vm: 'y', vr: 'y'
+//     };
+//     const type2Dist: Record<IGrag.IAdsorptionType, Array<IGrag.ISides>> = {
+//       ht: ['left', 'right'], hm: ['left', 'right'], hb: ['left', 'right'],
+//       vl: ['top', 'bottom'], vm: ['top', 'bottom'], vr: ['top', 'bottom']
+//     };
+
+//     let parent: IGrag.IFtrNode | null = null;
+//     if (state.dragCompStyle) {
+//       // 正在drag时的parent为hoverftr
+//       parent = globalStore.getNodeByFtrId(state.hoverFtr!);
+//     } else {
+//       const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
+//       parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
+//     }
+//     if (parent) {
+//       const childs = [parent, ...util.getChildren(parent)];
+//       childs.forEach(({ ftrId }) => {
+//         if (!state.selectedFtrs.includes(ftrId)) {
+//           const style = globalStore.getFtrStyle(ftrId);
+//           const target = {
+//             y: [style.y, style.y + style.height / 2, style.y + style.height],
+//             x: [style.x, style.x + style.width / 2, style.x + style.width]
+//           };
+//           const border = {
+//             y: {
+//               ht: state.border!.lt.y,
+//               hm: (state.border!.lt.y + state.border!.rb.y) / 2,
+//               hb: state.border!.rb.y,
+//             },
+//             x: {
+//               vl: state.border!.lt.x,
+//               vm: (state.border!.lt.x + state.border!.rb.x) / 2,
+//               vr: state.border!.rb.x
+//             }
+//           };
+//           const match = { y: true, x: true };
+//           Object.keys(target).forEach((k) => {
+//             target[k].forEach((s) => {
+//               Object.keys(border[k]).forEach((type: IGrag.IAdsorptionType) => {
+//                 // resize时不考虑hm、vm
+//                 if (!(state.resize && (type === 'hm' || type === 'vm'))) {
+//                   const v: number = (border as any)[k][type];
+//                   const delt = Math.abs(s - v);
+//                   if ((state.dragCompStyle && delt === 0) || (!state.dragCompStyle && delt < adsorbDist)) {
+//                     if (match[k] && !state.dragCompStyle) {
+//                       if (state.resize) {
+//                         state.selectedFtrs.forEach((id) => {
+//                           state.ftrStyles[id] = util.calResizeStyle(
+//                             state.resize!, state.ftrStyles[id],
+//                             {
+//                               deltX: k === 'x' ? s - v : 0,
+//                               deltY: k === 'y' ? s - v : 0
+//                             }
+//                           );
+//                         });
+//                       } else {
+//                         state.selectedFtrs.forEach((id) => {
+//                           state.ftrStyles[id][k] += s - v;
+//                         });
+//                       }
+//                       state.border = util.calMaxBox(state.selectedFtrs.map((id) => state.ftrStyles[id]));
+//                       match[k] = false;
+//                     }
+//                     const xy = type2Key[type];
+//                     const widthHeight = xy === 'x' ? 'width' : 'height';
+
+//                     // 对齐线
+//                     state.adsorbLines[type] = [
+//                       Math.min(style[xy], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+//                       Math.max(style[xy] + (xy === 'x' ? style.width : style.height), state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+//                     ];
+
+//                     // 最近的ftr
+//                     type2Dist[type].forEach((side) => {
+//                       if (side === 'left' || side === 'top') {
+//                         const p = style[xy] + style[widthHeight];
+//                         const distDelt = state.border!.lt[xy] - p;
+//                         if (distDelt >= adsorbDist) {
+//                           if (!closestStyles[side] || (closestStyles[side]![xy] + closestStyles[side]![widthHeight] < p)) {
+//                             closestStyles[side] = style;
+//                           }
+//                         }
+//                       }
+//                       if (side === 'right' || side === 'bottom') {
+//                         const distDelt = style[xy] - state.border!.rb[xy];
+//                         if (distDelt >= adsorbDist) {
+//                           if (!closestStyles[side] || (style[xy] < closestStyles[side]![xy])) {
+//                             closestStyles[side] = style;
+//                           }
+//                         }
+//                       }
+//                     });
+
+//                   }
+//                 }
+//               });
+//             });
+//           });
+//         }
+//       });
+//       // border计算完成后重新计算adsorbLines
+//       Object.keys(state.adsorbLines).forEach((type) => {
+//         const key = type2Key[type];
+//         state.adsorbLines[type] = [
+//           Math.min(state.border!.lt[key], state.adsorbLines[type] ? state.adsorbLines[type]![0] : Infinity),
+//           Math.max(state.border!.rb[key], state.adsorbLines[type] ? state.adsorbLines[type]![1] : -Infinity)
+//         ];
+//       });
+
+//       // 根据最近的ftrstyle计算distLines
+//       Object.keys(closestStyles).forEach((side) => {
+//         const xy = (side === 'left' || side === 'right') ? 'x' : 'y';
+//         const widthHeight = xy === 'x' ? 'width' : 'height';
+//         if (side === 'left' || side === 'top') {
+//           state.distLines[side] = state.border!.lt[xy] - closestStyles[side]![widthHeight] - closestStyles[side]![xy];
+//         }
+//         if (side === 'right' || side === 'bottom') {
+//           state.distLines[side] = closestStyles[side]![xy] - state.border!.rb[xy];
+//         }
+//       });
+
+//       // 根据最近的ftrstyle计算dashlines
+//       Object.keys(closestStyles).forEach((side) => {
+//         const xy = (side === 'left' || side === 'right') ? 'y' : 'x';
+//         const widthHeight = xy === 'x' ? 'width' : 'height';
+//         const mid = (state.border!.lt[xy] + state.border!.rb[xy]) / 2;
+//         if (mid > closestStyles[side]![xy] + closestStyles[side]![widthHeight]) {
+//           state.dashLines[side] = [closestStyles[side]![xy] + closestStyles[side]![widthHeight], state.border!.rb[xy]];
+//         } else if (mid < closestStyles[side]![xy]) {
+//           state.dashLines[side] = [state.border!.lt[xy], closestStyles[side]![xy]];
+//         } else {
+//           delete state.dashLines[side];
+//         }
+//       });
+//     }
+//   }
+//   return state;
+// }
+
 // 批量更新ftrStyle
-export function updateFtrStyles({ getState }: ICtx, param: { ftrId: string; style: IGrag.IFtrStyle; }[]) {
+export function updateFtrStyles({ getState }: ICtx, param: { ftrId: string; style: IGrag.IStyle; }[]) {
   const ftrStyles = { ...getState().ftrStyles };
   param.forEach((p) => {
     ftrStyles[p.ftrId] = p.style;
@@ -299,7 +391,7 @@ export function readyMoving({ getState }: ICtx) {
   return {
     ...state,
     isMoving: true,
-    rect: null,
+    box: null,
     beforeChangeFtrStyles: { ...state.ftrStyles }
   };
 }
@@ -325,14 +417,15 @@ export function clearAction({ getState }: ICtx) {
   return {
     ...getState(),
     isMoving: false,
-    rect: null,
+    isRotate: false,
+    selectBox: null,
     isMousedown: false,
-    resizeType: null,
+    resize: null,
     adsorbLines: {},
     distLines: {},
     dashLines: {},
     dragCompStyle: null,
-    hoverFtr: null,
+    hoverFtr: null
   };
 }
 
@@ -341,7 +434,7 @@ export function setMousedown({ getState }: ICtx) {
   return {
     ...getState(),
     isMousedown: true,
-    mousedownCoord: getState().mouseCoord
+    mousedownPos: getState().mousePos
   };
 }
 
@@ -436,7 +529,7 @@ export function updateDragCompSize({ getState }: ICtx, param: IGrag.ISize) {
     dragCompStyle = {
       width: Math.floor(param.width),
       height: Math.floor(param.height),
-      x: 0, y: 0
+      x: 0, y: 0, rotate: 0
     };
   }
   return {
@@ -446,11 +539,20 @@ export function updateDragCompSize({ getState }: ICtx, param: IGrag.ISize) {
 }
 
 // 准备resize
-export function readyResize({ getState }: ICtx, resizeType: IGrag.IResizeType) {
+export function readyResize({ getState }: ICtx, resize: IGrag.IResize) {
   return {
     ...getState(),
     beforeChangeFtrStyles: { ...getState().ftrStyles },
-    resizeType,
+    resize,
+  };
+}
+
+// 准备rotate
+export function readyRotate({ getState }: ICtx) {
+  return {
+    ...getState(),
+    beforeChangeFtrStyles: { ...getState().ftrStyles },
+    isRotate: true
   };
 }
 
@@ -463,11 +565,19 @@ export function updateHoverFtr({ getState }: ICtx, ftrId: string) {
 }
 
 // 更新选中的ftr
-export function updateSelectedFtrs({ getState, globalStore }: ICtx, ftrIds: string[]) {
+export function updateSelectedFtrs({ getState, doAction }: ICtx, ftrIds: string[]) {
+  doAction('updateState', {
+    selectedFtrs: ftrIds
+  });
+  doAction('updateBorder');
+  return getState();
+}
+
+// 更新cursor
+export function updateCursor({ getState }: ICtx, cursor: string) {
   return {
     ...getState(),
-    selectedFtrs: ftrIds,
-    border: ftrIds.length ? util.calRect(ftrIds.map((id) => globalStore.getFtrStyle(id))) : null
+    cursor
   };
 }
 

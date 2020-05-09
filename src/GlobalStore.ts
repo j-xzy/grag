@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 import { RootCompId, RootInfo } from '@/components/root';
 import * as util from '@/lib/util';
 
@@ -5,13 +6,25 @@ export class GlobalStore {
   private compInfos: IGrag.ICompInfos = {
     [RootCompId]: RootInfo
   }; // compId到react组件映射
-  private domMap: IGrag.IDomMap = {}; // ftrId到dom的映射
+  private domMap: IGrag.IDoms = {}; // ftrId到dom的映射
   private ftrId2CanvasId: IGrag.IIndexable<string> = {}; // ftrId到canvasId的映射
   private ftrId2Node: IGrag.IIndexable<IGrag.IFtrNode> = {}; // ftrId到node的映射
-  private canvasId2Root: IGrag.IRootMap = {}; // canvasId到root的映射
-  private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
-  private interactionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
-  private renderLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};
+  private canvasId2Root: IGrag.IRoots = {}; // canvasId到root的映射
+  private canvasForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {}; // 强刷<Canvas />
+  private actionLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {};  // 强刷<ActionLayer />
+  private featureLayerForceUpdateMap: IGrag.IIndexable<IGrag.IFunction> = {}; // 强刷<FeatureLayer />
+
+  public setRoots(roots: IGrag.IIndexable<IGrag.IStraightFtrNode>) {
+    for (const canvasId in roots) {
+      const root = roots[canvasId];
+      const ftrNode = util.unStraightNode(root, null);
+      this.canvasId2Root[canvasId] = ftrNode;
+      util.traverse(ftrNode)((node) => {
+        this.ftrId2CanvasId[node.ftrId] = canvasId;
+        this.ftrId2Node[node.ftrId] = node;
+      });
+    }
+  }
 
   /**
    * 得到组件的相关信息
@@ -36,7 +49,7 @@ export class GlobalStore {
   }
 
   /**
-   * 设置don
+   * 设置dom
    */
   public setDom(id: string, dom: HTMLElement) {
     this.domMap[id] = dom;
@@ -53,12 +66,14 @@ export class GlobalStore {
    * 初始root(ftrLayer)
    */
   public initRoot(param: { canvasId: string; rootId: string; dom: HTMLDivElement; }) {
-    const node = util.buildEmptyFtrNode({
-      ftrId: param.rootId,
-      compId: RootCompId
-    });
-    this.canvasId2Root[param.canvasId] = node;
-    this.ftrId2Node[param.rootId] = node;
+    if (!this.canvasId2Root[param.canvasId]) {
+      const node = util.buildEmptyFtrNode({
+        ftrId: param.rootId,
+        compId: RootCompId
+      });
+      this.canvasId2Root[param.canvasId] = node;
+      this.ftrId2Node[param.rootId] = node;
+    }
     this.domMap[param.rootId] = param.dom;
     this.ftrId2CanvasId[param.rootId] = param.canvasId;
   }
@@ -84,10 +99,20 @@ export class GlobalStore {
   }
 
   /**
+   * 得到Roots
+   */
+  public getRoots() {
+    return this.canvasId2Root;
+  }
+
+  /**
    * 注册刷新canvas 
    */
   public subscribeCanvasForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
     this.canvasForceUpdateMap[canvasId] = forceUpdate;
+    return () => {
+      delete this.canvasForceUpdateMap[canvasId];
+    };
   }
 
   /**
@@ -101,28 +126,34 @@ export class GlobalStore {
    * 注册刷新ftrlayer
    */
   public subscribeFeatureLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
-    this.renderLayerForceUpdateMap[canvasId] = forceUpdate;
+    this.featureLayerForceUpdateMap[canvasId] = forceUpdate;
+    return () => {
+      delete this.featureLayerForceUpdateMap[canvasId];
+    };
   }
 
   /**
    * 刷新ftrlayer
    */
   public refreshFeatureLayer(canvasId: string) {
-    this.renderLayerForceUpdateMap[canvasId].call(null);
+    this.featureLayerForceUpdateMap[canvasId].call(null);
   }
 
   /**
-   * 注册刷新InteractionLayer
+   * 注册刷新ActionLayer
    */
-  public subscribeInteractionLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
-    this.interactionLayerForceUpdateMap[canvasId] = forceUpdate;
+  public subscribeActionLayerForceUpdate(canvasId: string, forceUpdate: IGrag.IFunction) {
+    this.actionLayerForceUpdateMap[canvasId] = forceUpdate;
+    return () => {
+      delete this.actionLayerForceUpdateMap[canvasId];
+    };
   }
 
   /**
-   * 刷新InteractionLayer
+   * 刷新ActionLayer
    */
-  public refreshInteractionLayer(canvasId: string) {
-    this.interactionLayerForceUpdateMap[canvasId].call(null);
+  public refreshActionLayer(canvasId: string) {
+    this.actionLayerForceUpdateMap[canvasId].call(null);
   }
 
   /**
@@ -136,9 +167,25 @@ export class GlobalStore {
    * 根据ftrid得到style
    */
   public getFtrStyle(ftrId: string) {
+    const dom = this.getDom(ftrId);
+    console.debug(dom, ftrId);
+    const { width, height, left, top } = window.getComputedStyle(dom);
+    return {
+      width: parseInt(width),
+      height: parseInt(height),
+      x: parseInt(left),
+      y: parseInt(top),
+      rotate: util.parseRotate(dom.style.transform)
+    };
+  }
+
+  /**
+   * 根据ftrid得到boundingRect
+   */
+  public getFtrBoundRect(ftrId: string) {
     const canvasId = this.ftrId2CanvasId[ftrId];
-    const canvasRect = this.getDom(canvasId)?.getBoundingClientRect();
-    const ftrRect = this.getDom(ftrId)?.getBoundingClientRect();
+    const canvasRect = this.getDom(canvasId).getBoundingClientRect();
+    const ftrRect = this.getDom(ftrId).getBoundingClientRect();
     return {
       width: ftrRect.width,
       height: ftrRect.height,
@@ -160,9 +207,9 @@ export class GlobalStore {
   public initFtr(params: { ftrId: string; canvasId: string; dom: HTMLElement; }) {
     this.setDom(params.ftrId, params.dom);
     this.ftrId2CanvasId[params.ftrId] = params.canvasId;
-    const node = util.getNodeByFtrId(this.getRoot(params.canvasId), params.ftrId);
-    if (node) {
-      this.ftrId2Node[params.ftrId] = node;
+    if (!this.ftrId2Node[params.ftrId]) {
+      const node = util.getNodeByFtrId(this.getRoot(params.canvasId), params.ftrId);
+      node && (this.ftrId2Node[params.ftrId] = node);
     }
   }
 
@@ -179,13 +226,15 @@ export class GlobalStore {
    * 得到node
    */
   public getNodeByFtrId(ftrId: string) {
-    const node = this.ftrId2Node[ftrId];
+    let node: IGrag.IFtrNode | null = this.ftrId2Node[ftrId];
     if (node) {
       return node;
     }
     const root = this.canvasId2Root[this.ftrId2CanvasId[ftrId]];
     if (root) {
-      return util.getNodeByFtrId(root, ftrId);
+      node = util.getNodeByFtrId(root, ftrId);
+      node && (this.ftrId2Node[ftrId] = node);
+      return node;
     }
     return null;
   }
@@ -209,5 +258,17 @@ export class GlobalStore {
       return [];
     }
     return util.getDeepChildren(node);
+  }
+
+  /**
+   * 得到无循环的roots
+   */
+  public getStraightRoots() {
+    const roots: IGrag.IIndexable<IGrag.IStraightFtrNode> = {};
+    for (const cnavasId in this.canvasId2Root) {
+      const root = this.canvasId2Root[cnavasId];
+      roots[cnavasId] = util.straightNode(root);
+    }
+    return roots;
   }
 }

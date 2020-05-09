@@ -3,9 +3,9 @@ import { IFtrMutate } from '@/featureMutater';
 import * as util from '@/lib/util';
 import { ICanvasStore } from './canvaStore';
 
-export type IEvtEmit = EventCollect['emit'];
+export type IEvtEmit = EventBus['emit'];
 
-export class EventCollect {
+export class EventBus {
   constructor(
     private ftrMutate: IFtrMutate,
     private globalStore: GlobalStore,
@@ -14,23 +14,23 @@ export class EventCollect {
     this.emit = this.emit.bind(this);
   }
 
-  public emit<T extends Exclude<keyof EventCollect, 'emit'>>(evtName: T, ...params: Parameters<EventCollect[T]>) {
+  public emit<T extends Exclude<keyof EventBus, 'emit'>>(evtName: T, ...params: Parameters<EventBus[T]>) {
     (this[evtName] as any).apply(this, params);
   }
 
-  public canvasMousemove(canvasId: string, coord: IGrag.IXYCoord) {
+  public canvasMousemove(canvasId: string, pos: IGrag.IPos) {
     const getState = this.canvaStore.getState;
     if (
-      !getState().resizeType && !getState().isMoving && !getState().rect && getState().isMousedown
-      && getState().mouseInFtr && getState().selectedFtrs.length
+      !getState().resize && !getState().isMoving && !getState().selectBox && !getState().isRotate
+      && getState().isMousedown && getState().mouseInFtr && getState().selectedFtrs.length
     ) {
       this.canvaStore.dispatch('readyMoving');
     }
 
-    this.canvaStore.dispatch('mouseCoordChange', { canvasId, coord });
+    this.canvaStore.dispatch('mousePosChange', { canvasId, pos });
 
-    // resize、move
-    if ((getState().resizeType || getState().isMoving) && getState().selectedFtrs.length) {
+    // resize、move、rotate
+    if ((getState().resize || getState().isMoving || getState().isRotate) && getState().selectedFtrs.length) {
       this.syncSelectedFtrStyle();
     }
   }
@@ -77,7 +77,7 @@ export class EventCollect {
     this.canvaStore.dispatch('updateFtrStyles', [{
       ftrId,
       style: {
-        x: 0, y: 0,
+        x: 0, y: 0, rotate: 0,
         width: rect.width,
         height: rect.height
       }
@@ -102,6 +102,9 @@ export class EventCollect {
         ...param,
         ...dragCompStyle
       });
+      this.globalStore.refreshFeatureLayer(
+        this.globalStore.getCanvasIdByFtrId(param.parentFtrId)
+      );
       this.canvaStore.dispatch('updateMouseInFtr', ftrId);
     }
     this.canvaStore.dispatch('clearDragState');
@@ -111,8 +114,12 @@ export class EventCollect {
     const { ftrId } = params;
     this.globalStore.initFtr(params);
     const style = this.canvaStore.getState().ftrStyles[ftrId];
-    this.ftrMutate('updateStyle', ftrId, style);
-    this.canvaStore.dispatch('updateSelectedFtrs', [ftrId]);
+    if (this.globalStore.getNodeByFtrId(ftrId)) {
+      this.ftrMutate('setStyle', ftrId, style);
+    } else {
+      this.ftrMutate('updateStyle', ftrId, style);
+      this.canvaStore.dispatch('updateSelectedFtrs', [ftrId]);
+    }
   }
 
   public ftrUnmount(ftrId: string) {
@@ -124,10 +131,10 @@ export class EventCollect {
     this.globalStore.setCompInfo(compId, compInfo);
   }
 
-  public ftrHover(ftrId: string, clientOffset: IGrag.IXYCoord) {
+  public ftrHover(ftrId: string, clientOffset: IGrag.IPos) {
     this.canvaStore.dispatch('updateHoverFtr', ftrId);
-    this.canvaStore.dispatch('mouseCoordChange', {
-      coord: clientOffset,
+    this.canvaStore.dispatch('mousePosChange', {
+      pos: clientOffset,
       canvasId: this.globalStore.getCanvasIdByFtrId(ftrId)
     });
   }
@@ -149,11 +156,11 @@ export class EventCollect {
   }
 
   public ftrMouseover(ftrId: string) {
-    const { mouseInFtr, selectedFtrs, isMoving, rect, resizeType } = this.canvaStore.getState();
+    const { mouseInFtr, selectedFtrs, isMoving, isRotate, selectBox: box, resize } = this.canvaStore.getState();
     if (mouseInFtr === ftrId || selectedFtrs.includes(ftrId)) {
       return;
     }
-    if (isMoving || rect || resizeType) {
+    if (isMoving || box || resize || isRotate) {
       return;
     }
     this.canvaStore.dispatch('updateMouseInFtr', ftrId);
@@ -174,12 +181,23 @@ export class EventCollect {
     this.canvaStore.dispatch('clearDragState');
   }
 
-  public resizeMousedown(type: IGrag.IResizeType) {
+  public resizeMousedown(resize: IGrag.IResize) {
     this.canvaStore.dispatch('setMousedown');
-    this.canvaStore.dispatch('readyResize', type);
+    this.canvaStore.dispatch('readyResize', resize);
+    this.canvaStore.dispatch('updateCursor', `${resize.type}-resize`);
   }
 
   public resizeMouseup() {
+    this.mouseup();
+  }
+
+  public rotateMousedown() {
+    this.canvaStore.dispatch('setMousedown');
+    this.canvaStore.dispatch('readyRotate');
+    this.canvaStore.dispatch('updateCursor', 'pointer');
+  }
+
+  public rotateMouseup() {
     this.mouseup();
   }
 
@@ -191,13 +209,14 @@ export class EventCollect {
   }
 
   private mouseup() {
-    const { isMoving, resizeType, focusedCanvas, selectedFtrs } = this.canvaStore.getState();
-    if ((isMoving || resizeType) && focusedCanvas) {
+    const { isMoving, resize, focusedCanvas, selectedFtrs, isRotate } = this.canvaStore.getState();
+    if ((isMoving || resize || isRotate) && focusedCanvas) {
       this.globalStore.refreshFeatureLayer(focusedCanvas);
       selectedFtrs.forEach((id) => {
         this.ftrMutate('checkChildren', id);
       });
     }
     this.canvaStore.dispatch('clearAction');
+    this.canvaStore.dispatch('updateCursor', 'default');
   }
 }

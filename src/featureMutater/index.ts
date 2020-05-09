@@ -2,14 +2,14 @@ import * as util from '@/lib/util';
 import { GlobalStore } from '@/GlobalStore';
 import { ICanvasStore } from '@/canvaStore';
 
-interface IInsertNewFtrParam extends IGrag.IFtrStyle {
+interface IInsertNewFtrParam extends IGrag.IStyle {
   parentFtrId: string;
   compId: string;
   ftrId: string;
 }
 
 export interface IFtrSubActMap {
-  updateStyle: IGrag.IFtrStyle;
+  updateStyle: IGrag.IStyle;
 }
 
 export type IFtrMutate = FeatureMutater['mutate'];
@@ -26,44 +26,44 @@ export class FeatureMutater {
   }
 
   public insertNewFtr(param: IInsertNewFtrParam) {
-    const { parentFtrId, compId, ftrId, x, y, width, height } = param;
+    const { parentFtrId, compId, ftrId, x, y, width, height, rotate } = param;
     // 更新ftrState
-    this.canvaStore.dispatch('updateFtrStyles', [{ ftrId, style: { x, y, width, height } }]);
+    this.canvaStore.dispatch('updateFtrStyles', [{ ftrId, style: { x, y, width, height, rotate } }]);
     // 插入node到tree
-    const canvasId = this.globalStore.getCanvasIdByFtrId(parentFtrId);
     const parent = this.globalStore.getNodeByFtrId(parentFtrId);
     if (parent) {
       const child = util.buildEmptyFtrNode({ compId, ftrId });
       util.appendChild(parent, child);
     }
-    this.globalStore.refreshFeatureLayer(canvasId);
   }
 
   public removeFtr(ftrId: string) {
-    const canvasId = this.globalStore.getCanvasIdByFtrId(ftrId);
     const node = this.globalStore.getNodeByFtrId(ftrId);
     if (node) {
       util.removeNode(node);
-      this.globalStore.refreshFeatureLayer(canvasId);
     }
   }
 
-  public updateStyle(ftrId: string, style: IGrag.IFtrStyle) {
+  /**
+   * 会同时更新child、重新确认parent
+   */
+  public updateStyle(ftrId: string, style: IGrag.IStyle) {
     const lastStyle = this.globalStore.getFtrStyle(ftrId);
     const deltX = style.x - lastStyle.x;
     const deltY = style.y - lastStyle.y;
-    const styles: Array<{ ftrId: string; style: IGrag.IFtrStyle; }> = [];
+    const deltWidth = style.width - lastStyle.width;
+    const deltHeight = style.height - lastStyle.height;
+    const styles: Array<{ ftrId: string; style: IGrag.IStyle; }> = [];
 
-    // update child
-    if (deltX !== 0 || deltY !== 0) {
+    // 只是位置移动
+    if (deltWidth === 0 && deltHeight === 0 && (deltX !== 0 || deltY !== 0)) {
       const childIds = this.globalStore.getDeepChildren(ftrId).map((p) => p.ftrId);
       childIds.forEach((id) => {
         const ftrStyle = this.globalStore.getFtrStyle(id);
-        const nextStyle = {
+        const nextStyle: IGrag.IStyle = {
+          ...ftrStyle,
           x: ftrStyle.x + deltX,
           y: ftrStyle.y + deltY,
-          width: id === ftrId ? style.width : ftrStyle.width,
-          height: id === ftrId ? style.height : ftrStyle.height
         };
         this.notify(id, 'updateStyle', nextStyle);
         styles.push({ ftrId: id, style: nextStyle });
@@ -75,7 +75,15 @@ export class FeatureMutater {
     styles.push({ ftrId, style });
     this.canvaStore.dispatch('updateFtrStyles', styles);
 
-    this.moveInPositionParent(ftrId);
+    this.checkParent(ftrId);
+  }
+
+  /**
+   * 只更新style
+   */
+  public setStyle(ftrId: string, style: IGrag.IStyle) {
+    this.notify(ftrId, 'updateStyle', style);
+    this.canvaStore.dispatch('updateFtrStyles', [{ ftrId, style }]);
   }
 
   public subscribe<T extends keyof IFtrSubActMap>(id: string, action: T, callback: (payload: IFtrSubActMap[T]) => void) {
@@ -125,7 +133,7 @@ export class FeatureMutater {
     });
 
     leaveChilds.forEach((child) => {
-      this.moveInPositionParent(child.ftrId);
+      this.checkParent(child.ftrId);
     });
   }
 
@@ -136,7 +144,7 @@ export class FeatureMutater {
     });
   }
 
-  private moveInPositionParent(ftrId: string) {
+  private checkParent(ftrId: string) {
     const parent = this.getPositionParent(ftrId);
     const lastParent = this.globalStore.getParentNodeByFtrId(ftrId);
     const ftrNode = this.globalStore.getNodeByFtrId(ftrId)!;
