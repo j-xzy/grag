@@ -1,6 +1,6 @@
 export const initialState = {
   'roots': {
-    'canvas1': {
+    'canvas2': {
       'ftrId': 'id1354898292',
       'compId': 'root',
       'children': [

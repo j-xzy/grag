@@ -1,11 +1,12 @@
 import * as React from 'react';
+import { Provider } from 'dnd';
 import { createStore, createUseMappedState, applyMiddleware } from 'typeRedux';
 import { createInitState, reducers, IUseMappedState, ICanvasStore } from '@/canvaStore';
 import { createGlobalMiddleware } from '@/canvaStore/middlewares/createGlobalMiddleware';
 import { EventBus, IEvtEmit } from '@/EventBus';
 import { GlobalStore } from '@/GlobalStore';
 import { FeatureMutater } from '@/featureMutater';
-import { Provider } from 'dnd';
+import { useInitial } from '@/hooks/useInitial';
 import { createFtrSubscribe } from '@/featureMutater/useFtrSubscribe';
 import { mergeDefaultConfig } from './config';
 
@@ -56,10 +57,12 @@ export const GragProvider = React.forwardRef<IGrag.IGragInterface, IProps>((prop
     ref.current = refCurrent;
   }
 
-  if (props.initialState) {
-    canvaStore.current.dispatch('updateState', { ftrStyles: props.initialState.styles });
-    globalStore.current.setRoots(props.initialState.roots);
-  }
+  useInitial(() => {
+    if (props.initialState) {
+      canvaStore.current.dispatch('updateState', { ftrStyles: props.initialState.styles });
+      globalStore.current.setRoots(props.initialState.roots);
+    }
+  });
 
   return (
     <Context.Provider value={{
