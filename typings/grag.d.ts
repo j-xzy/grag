@@ -82,11 +82,4 @@ declare namespace IGrag {
   interface IGragInterface {
     getCanvas: () => IInitialState;
   }
-
-  interface IClosestFtrIds {
-    top: string;
-    right: string;
-    bottom: string;
-    left: string;
-  }
 }

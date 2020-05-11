@@ -16,7 +16,6 @@ export function mousePosChange({ getState, doAction }: ICtx, param: { pos: IGrag
   }
 
   if (getState().resize || getState().isMoving) {
-    doAction('asynClosestFtrs', getState().selectedFtrs);
     doAction('updateGuides');
   }
   return getState();
@@ -66,7 +65,7 @@ export function moving({ getState }: ICtx) {
       state.ftrStyles[id] = util.roundObj({
         x: x + deltX,
         y: y + deltY,
-        width: width, 
+        width: width,
         height: height,
         rotate
       });
@@ -151,7 +150,7 @@ export function rotating({ getState, globalStore }: ICtx) {
       if (z < 0) {
         deg = 360 - deg;
       }
-      deg =  (deg + state.beforeChangeFtrStyles[id].rotate) % 360;
+      deg = (deg + state.beforeChangeFtrStyles[id].rotate) % 360;
       if (deg > 355 || deg < 5) {
         deg = 0;
       }
@@ -188,11 +187,6 @@ export function updateBorder({ getState }: ICtx) {
   return state;
 }
 
-// 同步closestFtrIds
-export function asynClosestFtrs({getState}: ICtx, ftrIds: string[]) {
-  return getState();
-}
-
 // 更新guides
 export function updateGuides({ getState, globalStore }: ICtx) {
   const state = getState();
@@ -200,28 +194,89 @@ export function updateGuides({ getState, globalStore }: ICtx) {
     return state;
   }
 
-  // 计算最大矩形
+  // 计算旋转后的最大矩形
   const rect = util.rotateRect(state.border, state.border.rotate);
 
   // 找到父亲节点
-  let parent: IGrag.IFtrNode | null = null;
-  if (state.dragCompStyle) {
-    // 正在drag时的parent为hoverftr
-    parent = globalStore.getNodeByFtrId(state.hoverFtr!);
-  } else {
-    const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
-    parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
-  }
+  const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
+  const parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
+
   if (!parent) {
     return state;
   }
 
-  // 得到包括父节点在内的所有兄弟节点id
-  const brotherIds = [parent.ftrId, ...util.getChildren(parent).map(({ftrId})=> ftrId)];
+  //交叉的ftr
+  const crossFtrs: Array<{ ftrId: string; dist: number; }> = [];
+  util.traverse(parent)(({ ftrId }) => {
+    if (state.selectedFtrs.includes(ftrId)) {
+      return;
+    }
+    const brotherRect = globalStore.getFtrBoundRect(ftrId);
+    const v1 = rect.x - brotherRect.x - brotherRect.width;
+    const v2 = rect.x + rect.width - brotherRect.x;
+    if (v1 * v2 <= 0) {
+      // 重合
+      return;
+    }
+    if (brotherRect.y > (rect.y + rect.height) || (brotherRect.y + brotherRect.height) < rect.y) {
+      // 无交集
+      return;
+    }
+    const crossFtr = Math.abs(v1) > Math.abs(v2) ? { ftrId, dist: v2 } : { ftrId, dist: v1 };
+    crossFtrs.push(crossFtr);
+  });
 
-  // 遍历所有兄弟节点(包括父节点)
-  for (let idx = 0; idx < brotherIds.length; ++idx) {
-    const brotherRect = globalStore.getFtrBoundRect(brotherIds[idx]);
+  if (crossFtrs.length > 1) {
+    // 从大到小、从左到右排序（正位于ftr左，负位于ftr右）
+    crossFtrs.sort((a, b) => b.dist - a.dist);
+
+    // 距选中ftr最近的ftr
+    const closestFtrs: Array<{ ftrId: string; dist: number; }> = [];
+
+    if (crossFtrs[0].dist < 0) {
+      closestFtrs.push({ ...crossFtrs[0] });
+    }
+    if (crossFtrs[crossFtrs.length - 1].dist > 0) {
+      closestFtrs.push({ ...crossFtrs[crossFtrs.length - 1] });
+    }
+
+    const spanFtrs: Array<{ ftrIds: string[]; dist: number; }> = [];
+    for (let idx = 1; idx < crossFtrs.length; ++idx) {
+      const a = crossFtrs[idx - 1];
+      const b = crossFtrs[idx];
+      const aStyle = state.ftrStyles[a.ftrId];
+      const bStyle = state.ftrStyles[b.ftrId];
+      if (a.dist * b.dist <= 0) {
+        // 左右
+        closestFtrs.push({ dist: a.dist, ftrId: a.ftrId });
+        closestFtrs.push({ dist: b.dist, ftrId: b.ftrId });
+        continue;
+      }
+      if (aStyle.y > (bStyle.y + bStyle.height) || (aStyle.y + aStyle.height) < bStyle.y) {
+        // 无交集
+        continue;
+      }
+      let dist = a.dist - b.dist - state.ftrStyles[b.ftrId].width;
+      if (a.dist < 0) {
+        dist = a.dist - b.dist - state.ftrStyles[a.ftrId].width;
+      }
+      if (dist > 0) {
+        spanFtrs.push({ dist, ftrIds: [a.ftrId, b.ftrId] });
+      }
+    }
+
+    // 最近距离
+    let dist = closestFtrs[0].dist;
+    if (closestFtrs[1] && closestFtrs[1].dist < dist) {
+      dist = closestFtrs[1].dist;
+    }
+
+    spanFtrs.forEach((item) => {
+      if (item.dist === dist) {
+        //
+      }
+    });
+
   }
 
   return state;

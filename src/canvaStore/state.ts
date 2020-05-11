@@ -7,7 +7,6 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     canvasRects: {} as IGrag.IIndexable<DOMRect>, // canvasId到其对应的domrect映射
     mousePos: { x: 0, y: 0 } as IGrag.IPos, // 鼠标位置
     mousedownPos: { x: 0, y: 0 } as IGrag.IPos, // 最近一次mousedown鼠标位置
-    closestFtrIds: {} as IGrag.IIndexable<IGrag.IClosestFtrIds>, // 最近的、边框射线重合的ftr
     ftrStyles: {} as IGrag.IIndexable<IGrag.IStyle>, //ftrId到style的映射
     beforeChangeFtrStyles: {} as IGrag.IIndexable<IGrag.IStyle>, //开始移动之前的ftrStateMap
     dragCompStyle: null as IGrag.IStyle | null, // 当前拖拽组件的state
