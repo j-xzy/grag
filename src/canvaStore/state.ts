@@ -21,6 +21,7 @@ export function createInitState(config: Required<IGrag.IProviderConfig>) {
     isMousedown: false, // 鼠标是否down
     resize: null as IGrag.IResize | null, //resize时类型
     guideLines: [] as IGrag.IGuideLine[], // 辅助线
+    guideBlocks: [] as IGrag.IRect[], // 辅助区块
     cursor: 'default' // 鼠标cursor
   };
 }

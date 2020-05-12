@@ -315,3 +315,31 @@ export function unStraightNode(straightNode: IGrag.IStraightFtrNode, parent: IGr
   }, null as IGrag.IFtrNode | null);
   return root;
 }
+
+/**
+ * 计算两个矩形间距块（a、b不相交）
+ */
+export function calGuideBlock(a: IGrag.IRect, b: IGrag.IRect) {
+  let horizontal = true;
+  if (a.y > (b.y + b.height) || (a.y + a.height) < b.y) {
+    horizontal = false;
+  }
+  const rect: IGrag.IRect = {
+    x: 0, y: 0,
+    width: 0, height: 0
+  };
+
+  if (horizontal) {
+    rect.x = Math.min(a.x + a.width, b.x + b.width);
+    rect.y = Math.min(a.y, b.y);
+    rect.width = Math.max(a.x, b.x) - rect.x;
+    rect.height = Math.max(a.y + a.height, b.y + b.height) - rect.y;
+  } else {
+    rect.x = Math.min(a.x, b.x);
+    rect.y = Math.min(a.y + a.height, b.y + b.height);
+    rect.width = Math.max(a.x + a.width, b.x + b.width) - rect.x;
+    rect.height = Math.max(a.y, b.y) - rect.y;
+  }
+
+  return rect;
+}
