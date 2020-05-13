@@ -187,12 +187,12 @@ export class GlobalStore {
     const canvasId = this.ftrId2CanvasId[ftrId];
     const canvasRect = this.getDom(canvasId).getBoundingClientRect();
     const ftrRect = this.getDom(ftrId).getBoundingClientRect();
-    return {
+    return util.roundObj({
       width: ftrRect.width,
       height: ftrRect.height,
       x: ftrRect.x - canvasRect.x,
       y: ftrRect.y - canvasRect.y
-    };
+    });
   }
 
   /**

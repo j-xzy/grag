@@ -135,11 +135,15 @@ export function rotateRect(rect: IGrag.IRect, deg: number) {
       maxX = Math.max(maxX, v.x + center.x);
       maxY = Math.max(maxY, v.y + center.y);
     });
-  return {
+  return roundObj({
     x: minX, y: minY,
     width: maxX - minX,
     height: maxY - minY
-  };
+  });
+}
+
+export function style2MaxRect(style: IGrag.IStyle) {
+  return rotateRect(style, style.rotate);
 }
 
 /**

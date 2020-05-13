@@ -16,7 +16,7 @@ export function mousePosChange({ getState, doAction }: ICtx, param: { pos: IGrag
   }
 
   if (getState().resize || getState().isMoving) {
-    doAction('updateGuides');
+    doAction('updateGuideBlocks');
   }
   return getState();
 }
@@ -187,8 +187,8 @@ export function updateBorder({ getState }: ICtx) {
   return state;
 }
 
-// 更新guides
-export function updateGuides({ getState, globalStore }: ICtx) {
+// 更新GuideBlocks
+export function updateGuideBlocks({ getState, globalStore }: ICtx) {
   const state = getState();
   state.guideBlocks = [];
   state.guideLines = [];
@@ -208,29 +208,51 @@ export function updateGuides({ getState, globalStore }: ICtx) {
     return state;
   }
 
-  //交叉的ftr
-  const crossFtrs: Array<{ ftrId: string; dist: number; }> = [];
-  util.traverse(parent)(({ ftrId }) => {
-    if (state.selectedFtrs.includes(ftrId)) {
-      return;
-    }
-    const brotherRect = globalStore.getFtrBoundRect(ftrId);
-    const v1 = rect.x - brotherRect.x - brotherRect.width;
-    const v2 = rect.x + rect.width - brotherRect.x;
-    if (v1 * v2 <= 0) {
-      // 重合
-      return;
-    }
-    if (brotherRect.y > (rect.y + rect.height) || (brotherRect.y + brotherRect.height) < rect.y) {
-      // 无交集
-      return;
-    }
-    const crossFtr = Math.abs(v1) > Math.abs(v2) ? { ftrId, dist: v2 } : { ftrId, dist: v1 };
-    crossFtrs.push(crossFtr);
-  });
+  state.guideBlocks.push(...calGuideBlocks({
+    x: 'y', y: 'x',
+    width: 'height',
+    height: 'width'
+  }));
 
-  // #region 计算GuideBlocks
-  if (crossFtrs.length > 1) {
+  state.guideBlocks.push(...calGuideBlocks({
+    x: 'x', y: 'y',
+    width: 'width',
+    height: 'height'
+  }));
+
+  function calGuideBlocks(keyMapping: IGrag.IIndexable<keyof IGrag.IRect>) {
+    const guideBlocks: IGrag.IRect[] = [];
+    if (!parent) {
+      return guideBlocks;
+    }
+    //交叉的ftr
+    const crossFtrs: Array<{ ftrId: string; dist: number; }> = [];
+    const children = util.getChildren(parent);
+
+    children.forEach(({ ftrId }) => {
+      if (state.selectedFtrs.includes(ftrId)) {
+        return;
+      }
+
+      const brotherRect = globalStore.getFtrBoundRect(ftrId);
+      const v1 = rect[keyMapping.x] - brotherRect[keyMapping.x] - brotherRect[keyMapping.width];
+      const v2 = rect[keyMapping.x] + rect[keyMapping.width] - brotherRect[keyMapping.x];
+      if (v1 * v2 <= 0) {
+      // 重合
+        return;
+      }
+      if (brotherRect[keyMapping.y] > (rect[keyMapping.y] + rect[keyMapping.height]) || (brotherRect[keyMapping.y] + brotherRect[keyMapping.height]) < rect[keyMapping.y]) {
+      // 无交集
+        return;
+      }
+      const crossFtr = Math.abs(v1) > Math.abs(v2) ? { ftrId, dist: v2 } : { ftrId, dist: v1 };
+      crossFtrs.push(crossFtr);
+    });
+
+    if (crossFtrs.length < 1) {
+      return guideBlocks;
+    }
+
     // 从大到小、从左到右排序（正位于ftr左，负位于ftr右）
     crossFtrs.sort((a, b) => b.dist - a.dist);
 
@@ -238,14 +260,14 @@ export function updateGuides({ getState, globalStore }: ICtx) {
     const closestFtrs: Array<{ ftrId: string; dist: number; }> = [];
 
     if (crossFtrs[0].dist < 0) {
-      // 第一个就小于0，代表选中ftr位于最左
+    // 第一个就小于0，代表选中ftr位于最左
       const k =  Math.abs(crossFtrs[0].dist);
-      closestFtrs.push({ ...crossFtrs[0], dist: k });
+      closestFtrs[1] = { ...crossFtrs[0], dist: k };
     }
     if (crossFtrs[crossFtrs.length - 1].dist > 0) {
-      // 最后一个大于0，代表选中ftr位于最右
+    // 最后一个大于0，代表选中ftr位于最右
       const k = Math.abs(crossFtrs[crossFtrs.length - 1].dist);
-      closestFtrs.push({ ...crossFtrs[crossFtrs.length - 1], dist: k});
+      closestFtrs[0] = { ...crossFtrs[crossFtrs.length - 1], dist: k};
     }
 
     // ftrIds: 两个距离（dist）最近且交集的ftr
@@ -253,107 +275,77 @@ export function updateGuides({ getState, globalStore }: ICtx) {
     for (let idx = 1; idx < crossFtrs.length; ++idx) {
       const a = crossFtrs[idx - 1];
       const b = crossFtrs[idx];
-      const aStyle = state.ftrStyles[a.ftrId];
-      const bStyle = state.ftrStyles[b.ftrId];
+      const aStyle = util.style2MaxRect(state.ftrStyles[a.ftrId]);
+      const bStyle = util.style2MaxRect(state.ftrStyles[b.ftrId]);
       if (a.dist * b.dist <= 0) {
-        // a位于选中ftr左，b右
-        closestFtrs.push({ dist: Math.abs(a.dist), ftrId: a.ftrId });
-        closestFtrs.push({ dist: Math.abs(b.dist), ftrId: b.ftrId });
+      // a位于选中ftr左，b右
+        closestFtrs[0] = { dist: Math.abs(a.dist), ftrId: a.ftrId };
+        closestFtrs[1] = { dist: Math.abs(b.dist), ftrId: b.ftrId };
         continue;
       }
-      if (aStyle.y > (bStyle.y + bStyle.height) || (aStyle.y + aStyle.height) < bStyle.y) {
-        // 无交集
+      if (aStyle[keyMapping.y] > (bStyle[keyMapping.y] + bStyle[keyMapping.height]) || (aStyle[keyMapping.y] + aStyle[keyMapping.height]) < bStyle[keyMapping.y]) {
+      // 无交集
         continue;
       }
-      let dist = a.dist - b.dist - state.ftrStyles[b.ftrId].width;
+      let dist = a.dist - b.dist - util.style2MaxRect(state.ftrStyles[b.ftrId])[keyMapping.width];
       if (a.dist < 0) {
-        dist = a.dist - b.dist - state.ftrStyles[a.ftrId].width;
+        dist = a.dist - b.dist - util.style2MaxRect(state.ftrStyles[a.ftrId])[keyMapping.width];
       }
       if (dist > 0) {
         spanFtrs.push({ dist, ftrIds: [a.ftrId, b.ftrId] });
       }
     }
-
-    if (closestFtrs.length) {
-      const dists = closestFtrs.map(({dist})=> dist);
-
-      if (dists[0] === dists[1]) {
-        const guideBlocks: IGrag.IRect[] = [];
-        spanFtrs.forEach(({ftrIds, dist}) => {
-          if (dists[0] === dist) {
-            guideBlocks.push(util.calGuideBlock(
-              state.ftrStyles[ftrIds[0]],
-              state.ftrStyles[ftrIds[1]]
-            ));
-          }
-        });
-        // 左右
-        closestFtrs.forEach(({ftrId}) => {
-          guideBlocks.push(util.calGuideBlock(
-            rect,
-            state.ftrStyles[ftrId]
-          ));
-        });
-        state.guideBlocks = guideBlocks;
-      } else if (dists[1]) {
-        const guideBlocks: IGrag.IRect[] = [];
-        const guideBlockss: IGrag.IRect[][] = [[],[]];
-        spanFtrs.forEach(({ftrIds, dist}) => {
-          if (dists[0] === dist) {
-            guideBlockss[0].push(util.calGuideBlock(
-              state.ftrStyles[ftrIds[0]],
-              state.ftrStyles[ftrIds[1]]
-            ));
-          } 
-          if (dists[1] === dist) {
-            guideBlockss[1].push(util.calGuideBlock(
-              state.ftrStyles[ftrIds[0]],
-              state.ftrStyles[ftrIds[1]]
-            ));
-          }
-        });
-        if (guideBlockss[0].length && guideBlockss[1].length) {
-          const minIdx = closestFtrs[0].dist < closestFtrs[1].dist ? 0 : 1;
-          guideBlocks.push(...guideBlockss[minIdx]);
-          guideBlocks.push(util.calGuideBlock(
-            rect,
-            state.ftrStyles[closestFtrs[minIdx].ftrId]
-          ));
-        } else if (guideBlockss[0].length) {
-          guideBlocks.push(...guideBlockss[0]);
-          guideBlocks.push(util.calGuideBlock(
-            rect,
-            state.ftrStyles[closestFtrs[0].ftrId]
-          ));
-        } else if (guideBlockss[1].length) {
-          guideBlocks.push(...guideBlockss[1]);
-          guideBlocks.push(util.calGuideBlock(
-            rect,
-            state.ftrStyles[closestFtrs[1].ftrId]
-          ));
-        }
-        state.guideBlocks = guideBlocks;
-      } else if (dists[0]) {
-        const guideBlocks: IGrag.IRect[] = [];
-        spanFtrs.forEach(({ftrIds, dist}) => {
-          if (dists[0] === dist) {
-            guideBlocks.push(util.calGuideBlock(
-              state.ftrStyles[ftrIds[0]],
-              state.ftrStyles[ftrIds[1]]
-            ));
-          } 
-        });
-        if (guideBlocks.length) {
-          guideBlocks.push(util.calGuideBlock(
-            rect,
-            state.ftrStyles[closestFtrs[0].ftrId]
-          ));
-        }
-        state.guideBlocks = guideBlocks;
-      }
+  
+    const dists = [closestFtrs[0]?.dist ?? Infinity, closestFtrs[1]?.dist ?? Infinity];
+    if (dists.every((n) => n === Infinity)) {
+      return guideBlocks;
     }
+
+    const blockss: IGrag.IRect[][] = [[],[]];
+    spanFtrs.forEach(({ftrIds, dist}) => {
+      if (dists[0] === dist) {
+        blockss[0].push(util.calGuideBlock(
+          util.style2MaxRect(state.ftrStyles[ftrIds[0]]),
+          util.style2MaxRect(state.ftrStyles[ftrIds[1]])
+        ));
+      } else if (dists[1] === dist) {
+        blockss[1].push(util.calGuideBlock(
+          util.style2MaxRect(state.ftrStyles[ftrIds[0]]),
+          util.style2MaxRect(state.ftrStyles[ftrIds[1]])
+        ));
+      }
+    });
+
+    const blockIdx: number[] = [];
+    if (dists[0] === dists[1]) {
+      // 左右距离相等
+      blockIdx.push(0, 1);
+      closestFtrs.forEach(({ftrId}) => {
+        guideBlocks.push(util.calGuideBlock(
+          rect,
+          util.style2MaxRect(state.ftrStyles[ftrId])
+        ));
+      });
+    } else if (blockss[0].length && (dists[0] < dists[1] || !blockss[1].length)) {
+      blockIdx.push(0);
+      guideBlocks.push(util.calGuideBlock(
+        rect,
+        util.style2MaxRect(state.ftrStyles[closestFtrs[0].ftrId])
+      ));
+    } else if (blockss[1].length && (dists[1] < dists[0] || !blockss[0].length)) {
+      blockIdx.push(1);
+      guideBlocks.push(util.calGuideBlock(
+        rect,
+        util.style2MaxRect(state.ftrStyles[closestFtrs[1].ftrId])
+      ));
+    }
+  
+    blockIdx.forEach((idx) => {
+      guideBlocks.push(...blockss[idx]);
+    });
+
+    return guideBlocks;
   }
-  // #endregion
 
   return state;
 }
@@ -557,20 +549,26 @@ export function clearAction({ getState }: ICtx) {
     selectBox: null,
     isMousedown: false,
     resize: null,
-    adsorbLines: {},
-    distLines: {},
-    dashLines: {},
     dragCompStyle: null,
-    hoverFtr: null
+    hoverFtr: null,
+    guideBlocks: [],
+    guideLines: []
   };
 }
 
 // 置为鼠标down
-export function setMousedown({ getState }: ICtx) {
+export function setMousedown({ getState }: ICtx, param: {canvasId: string; pos: IGrag.IPos;}) {
+  const { pos, canvasId } = param;
+  const state = { ...getState(), focusedCanvas: canvasId };
+  // 计算 mousePos
+  const canvasRect = state.canvasRects[canvasId];
   return {
     ...getState(),
     isMousedown: true,
-    mousedownPos: getState().mousePos
+    mousedownPos: util.roundObj({
+      x: pos.x - canvasRect.x,
+      y: pos.y - canvasRect.y
+    })
   };
 }
 

@@ -55,9 +55,9 @@ function RawCanvas(props: IRawCanvasProps) {
     evtEmit('canvasMouseLeave');
   }, []);
 
-  const handleMousedown = React.useCallback(() => {
-    evtEmit('canvasMousedown');
-  }, []);
+  const handleMousedown = React.useCallback((e: React.MouseEvent) => {
+    evtEmit('canvasMousedown', { pos: { x: e.clientX, y: e.clientY }, canvasId });
+  }, [canvasId]);
 
   const handleMouseup = React.useCallback(() => {
     evtEmit('canvasMouseup');

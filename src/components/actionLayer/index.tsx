@@ -21,10 +21,10 @@ export function ActionLayer(props: { canvasId: string; }) {
   return (
     <div style={style}>
       <HighLightLayer canvasId={props.canvasId} />
-      <ResizeLayer canvasId={props.canvasId} />
       <BoxLayer canvasId={props.canvasId} />
-      <RotateLayer canvasId={props.canvasId} />
       <GuideLayer canvasId={props.canvasId} />
+      <RotateLayer canvasId={props.canvasId} />
+      <ResizeLayer canvasId={props.canvasId} />
     </div>
   );
 }
