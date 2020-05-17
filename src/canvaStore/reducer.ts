@@ -321,7 +321,6 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
 
     let attachDist = state.attachDist;
     let tupleFtr: Array<[string, string]> = [];
-
     // 左右之差小于attachDist 且 能被平分
     if (Math.abs(dists[0] - dists[1]) < attachDist && (dists[0] + dists[1]) % 2 === 0) {
       const avg =  (dists[0] + dists[1]) / 2;
@@ -359,18 +358,24 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     });
 
     if (minDist !== Infinity) {
+      const diff = minDist * factor;
       // 贴附
       state.selectedFtrs.forEach((id) => {
         const k = keyMapping.x;
         state.ftrStyles[id] = {
           ...state.ftrStyles[id],
-          [k]: state.ftrStyles[id][k] + (minDist * factor)
+          [k]: state.ftrStyles[id][k] + diff
         };
       });
 
       if (factor === 1) {
         closestBlockFtrs.add(closestFtrs[0].ftrId);
       } else {
+        closestBlockFtrs.add(closestFtrs[1].ftrId);
+      }
+
+      if (closestFtrs[0] && closestFtrs[1] && (closestFtrs[0].dist + diff) === (closestFtrs[1].dist - diff)) {
+        closestBlockFtrs.add(closestFtrs[0].ftrId); 
         closestBlockFtrs.add(closestFtrs[1].ftrId);
       }
     }
