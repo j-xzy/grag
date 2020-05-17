@@ -323,8 +323,10 @@ export function unStraightNode(straightNode: IGrag.IStraightFtrNode, parent: IGr
 /**
  * 计算两个矩形间距块（a、b不相交）
  */
-export function calGuideBlock(a: IGrag.IRect, b: IGrag.IRect) {
+export function calGuideBlock(aa: IGrag.IStyle, bb: IGrag.IStyle) {
   let horizontal = true;
+  const a = rotateRect(aa, aa.rotate);
+  const b = rotateRect(bb, bb.rotate);
   if (a.y > (b.y + b.height) || (a.y + a.height) < b.y) {
     horizontal = false;
   }

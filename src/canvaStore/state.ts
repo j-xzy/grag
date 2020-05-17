@@ -3,6 +3,7 @@ export type IState = ReturnType<typeof createInitState>;
 export function createInitState(config: Required<IGrag.IProviderConfig>) {
   return {
     config,
+    attachDist: 6, // 吸附距离
     focusedCanvas: null as string | null, // 当前焦聚的canvasId
     canvasRects: {} as IGrag.IIndexable<DOMRect>, // canvasId到其对应的domrect映射
     mousePos: { x: 0, y: 0 } as IGrag.IPos, // 鼠标位置
