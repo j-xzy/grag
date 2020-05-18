@@ -56,6 +56,33 @@ function GuideLine(props: { line: IGrag.IGuideLine; }) {
   } else {
     style.height = line.length;
   }
+
+  if (line.type === 'dist') {
+    let dist = style.width;
+    const distStyle: React.CSSProperties = {
+      position: 'absolute',
+      display: 'inline-block',
+      color: '#fff',
+      backgroundColor: '#007bff',
+      fontSize: 12,
+      padding: '0px 6px',
+      borderRadius: 10,
+      left: style.left as number + (style.width as number) / 2 - (12 + (7 * dist!.toString().length)) / 2,
+      top: style.top as number - 22
+    };
+    if (line.direction === 'vertical') {
+      dist = style.height;
+      distStyle.left = style.left as number - 14 - (7 * dist!.toString().length);
+      distStyle.top = style.top as number + (style.height as number) / 2 - 9;
+    }
+    return (
+      <>
+        <div style={style} />
+        <div style={distStyle}>{dist}</div>
+      </>
+    );
+  }
+
   return <div style={style} />;
 }
 
