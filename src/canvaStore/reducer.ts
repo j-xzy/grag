@@ -347,6 +347,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     const diffObj: IGrag.IIndexable<Array<[string, string]>> = {};
     let minDist = Infinity;
     let minIdx = 0;
+    let closestIdxs: Set<number> = new Set();
     spanFtrs.forEach((span) => {
       closestFtrs.forEach((item, idx) => {
         if (idx === 1 && closestFtrs[0] && closestFtrs[1]
@@ -361,10 +362,14 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           return;
         }
         if (Math.abs(d) < minDist) {
+          closestIdxs = new Set([idx]);
           minDist = d;
           minIdx = idx;
         }
-        Math.abs(d) < minDist && (minDist = d);
+        if (Math.abs(d) === minDist) {
+          closestIdxs.add(idx);
+        }
+
         !diffObj[d] && (diffObj[d] = []);
         diffObj[d].push(span.ftrIds);
       });
@@ -374,6 +379,10 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     if (!Number.isFinite(minDist)) {
       return;
     }
+
+    closestIdxs.forEach((i) => {
+      closestBlockFtrs.add(closestFtrs[i].ftrId);
+    });
 
     // 加入间距块
     blockFtrTuples.push(...diffObj[minDist]);
