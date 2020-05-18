@@ -321,31 +321,41 @@ export function unStraightNode(straightNode: IGrag.IStraightFtrNode, parent: IGr
 }
 
 /**
- * 计算两个矩形间距块（a、b不相交）
+ * 计算两个矩形间距块与线（a、b不相交）
  */
-export function calGuideBlock(aa: IGrag.IStyle, bb: IGrag.IStyle) {
+export function calGuideBlockLine(aa: IGrag.IStyle, bb: IGrag.IStyle) {
   let horizontal = true;
   const a = rotateRect(aa, aa.rotate);
   const b = rotateRect(bb, bb.rotate);
   if (a.y > (b.y + b.height) || (a.y + a.height) < b.y) {
     horizontal = false;
   }
-  const rect: IGrag.IRect = {
+  const block: IGrag.IRect = {
     x: 0, y: 0,
     width: 0, height: 0
   };
 
   if (horizontal) {
-    rect.x = Math.min(a.x + a.width, b.x + b.width);
-    rect.y = Math.min(a.y, b.y);
-    rect.width = Math.max(a.x, b.x) - rect.x;
-    rect.height = Math.max(a.y + a.height, b.y + b.height) - rect.y;
+    block.x = Math.min(a.x + a.width, b.x + b.width);
+    block.y = Math.min(a.y, b.y);
+    block.width = Math.max(a.x, b.x) - block.x;
+    block.height = Math.max(a.y + a.height, b.y + b.height) - block.y;
   } else {
-    rect.x = Math.min(a.x, b.x);
-    rect.y = Math.min(a.y + a.height, b.y + b.height);
-    rect.width = Math.max(a.x + a.width, b.x + b.width) - rect.x;
-    rect.height = Math.max(a.y, b.y) - rect.y;
+    block.x = Math.min(a.x, b.x);
+    block.y = Math.min(a.y + a.height, b.y + b.height);
+    block.width = Math.max(a.x + a.width, b.x + b.width) - block.x;
+    block.height = Math.max(a.y, b.y) - block.y;
   }
 
-  return rect;
+  const dist: IGrag.IGuideLine = {
+    type: 'dist',
+    direction: horizontal ? 'horizontal' : 'vertical',
+    pos: { 
+      x: horizontal ? block.x : block.x + block.width / 2 ,
+      y: horizontal ? block.y + block.height / 2 : block.y
+    },
+    length: horizontal ? block.width : block.height
+  };
+
+  return { block, line: [dist] };
 }

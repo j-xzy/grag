@@ -17,7 +17,9 @@ const styleMap: Record<IGrag.IGuideLineType | 'block', React.CSSProperties> = {
     backgroundColor: '#ff0000'
   },
   dash: {},
-  dist: {},
+  dist: {
+    backgroundColor: '#007bff',
+  },
   block: {
     backgroundColor: 'rgba(255, 0, 62, 0.5)'
   },

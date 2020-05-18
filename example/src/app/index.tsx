@@ -1,11 +1,11 @@
 import * as React from 'react';
-// import { initialState } from './initialState';
+import { initialState } from './initialState';
 import { Canvas, Feature, GragProvider } from '../../../src';
 
 export function App() {
   const gragRef: React.MutableRefObject<IGrag.IGragInterface | null> = React.useRef(null);
   return (
-    <GragProvider ref={gragRef}>
+    <GragProvider initialState={initialState} ref={gragRef}>
       <div className='comp-bar'>
         <FtrFunc />
         <FtrClass />

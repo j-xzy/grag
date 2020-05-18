@@ -209,7 +209,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   }
 
   const blockFtrTuples: Array<[string, string]> = [];
-  const closestBlockFtrs: Set<string>  = new Set();
+  const closestBlockFtrs: Set<string> = new Set();
   updateBlocks({
     x: 'x', y: 'y',
     width: 'width',
@@ -225,13 +225,17 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   doAction('updateBorder');
 
   blockFtrTuples.forEach(([a, b]) => {
-    state.guideBlocks.push(util.calGuideBlock(state.ftrStyles[a], state.ftrStyles[b]));
+    const { block, line } = util.calGuideBlockLine(state.ftrStyles[a], state.ftrStyles[b]);
+    state.guideBlocks.push(block);
+    state.guideLines.push(...line);
   });
 
   closestBlockFtrs.forEach((id) => {
-    state.guideBlocks.push(util.calGuideBlock(state.ftrStyles[id], state.border!));
+    const { block, line } = util.calGuideBlockLine(state.ftrStyles[id], state.border!);
+    state.guideBlocks.push(block);
+    state.guideLines.push(...line);
   });
-  
+
   function updateBlocks(keyMapping: IGrag.IIndexable<keyof IGrag.IRect>) {
     if (!parent) {
       return;
@@ -282,9 +286,9 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     }
 
     // ftrIds: 两个距离（dist）最近且交集的ftr
-    const spanFtrs: Array<{ ftrIds: string[]; dist: number; }> = [];
-    
-    for (let n = 0; n < crossFtrs.length - 1; ++n ) {
+    const spanFtrs: Array<{ ftrIds: [string, string]; dist: number; }> = [];
+
+    for (let n = 0; n < crossFtrs.length - 1; ++n) {
       for (let m = n + 1; m < crossFtrs.length; ++m) {
         const a = crossFtrs[n];
         const b = crossFtrs[m];
@@ -297,7 +301,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           continue;
         }
         if (
-          aStyle[keyMapping.y] > (bStyle[keyMapping.y] + bStyle[keyMapping.height]) 
+          aStyle[keyMapping.y] > (bStyle[keyMapping.y] + bStyle[keyMapping.height])
           || (aStyle[keyMapping.y] + aStyle[keyMapping.height]) < bStyle[keyMapping.y]
         ) {
           // 无交集
@@ -320,67 +324,89 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     }
 
     let attachDist = state.attachDist;
-    let tupleFtr: Array<[string, string]> = [];
     // 左右之差小于attachDist 且 能被平分
     if (Math.abs(dists[0] - dists[1]) < attachDist && (dists[0] + dists[1]) % 2 === 0) {
-      const avg =  (dists[0] + dists[1]) / 2;
+      const avg = (dists[0] + dists[1]) / 2;
       // 贴附
       state.selectedFtrs.forEach((id) => {
         const k = keyMapping.x;
         state.ftrStyles[id] = {
           ...state.ftrStyles[id],
-          [k]: state.ftrStyles[id][k] -  dists[0] + avg
+          [k]: state.ftrStyles[id][k] - dists[0] + avg
         };
       });
 
       attachDist = 0;
       closestFtrs[0].dist = avg;
       closestFtrs[1].dist = avg;
-      closestBlockFtrs.add(closestFtrs[0].ftrId); 
+      closestBlockFtrs.add(closestFtrs[0].ftrId);
       closestBlockFtrs.add(closestFtrs[1].ftrId);
     }
 
-    let factor = 1;
+    // key为距离差
+    const diffObj: IGrag.IIndexable<Array<[string, string]>> = {};
     let minDist = Infinity;
+    let minIdx = 0;
     spanFtrs.forEach((span) => {
       closestFtrs.forEach((item, idx) => {
-        const d = span.dist - item.dist;
-        if (d === minDist) {
-          if (!(idx === 1 && closestFtrs[0] && closestFtrs[1] && closestFtrs[0].dist === closestFtrs[1].dist)) {
-            tupleFtr.push([ span.ftrIds[0],  span.ftrIds[1]]);
-          }
-        } else if (Math.abs(d) <= attachDist && Math.abs(d) < minDist) {
-          minDist = d;
-          tupleFtr = [[span.ftrIds[0], span.ftrIds[1]]];
-          factor = idx === 0 ? 1 : -1;
+        if (idx === 1 && closestFtrs[0] && closestFtrs[1]
+           && closestFtrs[0].dist === closestFtrs[1].dist
+        ) {
+          // 左右相同跳过避免重复
+          return;
         }
+
+        const d = span.dist - item.dist;
+        if (Math.abs(d) > attachDist) {
+          return;
+        }
+        if (Math.abs(d) < minDist) {
+          minDist = d;
+          minIdx = idx;
+        }
+        Math.abs(d) < minDist && (minDist = d);
+        !diffObj[d] && (diffObj[d] = []);
+        diffObj[d].push(span.ftrIds);
       });
     });
 
-    if (minDist !== Infinity) {
-      const diff = minDist * factor;
-      // 贴附
-      state.selectedFtrs.forEach((id) => {
-        const k = keyMapping.x;
-        state.ftrStyles[id] = {
-          ...state.ftrStyles[id],
-          [k]: state.ftrStyles[id][k] + diff
-        };
-      });
+    // 未找到距离差相等
+    if (!Number.isFinite(minDist)) {
+      return;
+    }
 
-      if (factor === 1) {
-        closestBlockFtrs.add(closestFtrs[0].ftrId);
-      } else {
-        closestBlockFtrs.add(closestFtrs[1].ftrId);
-      }
+    // 加入间距块
+    blockFtrTuples.push(...diffObj[minDist]);
 
-      if (closestFtrs[0] && closestFtrs[1] && (closestFtrs[0].dist + diff) === (closestFtrs[1].dist - diff)) {
-        closestBlockFtrs.add(closestFtrs[0].ftrId); 
-        closestBlockFtrs.add(closestFtrs[1].ftrId);
+    // 贴附偏移距离
+    const diff = minDist * (minIdx === 0 ? 1 : -1);
+
+    // 贴附
+    state.selectedFtrs.forEach((id) => {
+      const k = keyMapping.x;
+      state.ftrStyles[id] = {
+        ...state.ftrStyles[id],
+        [k]: state.ftrStyles[id][k] + diff
+      };
+    });
+
+    // 贴附后 且 存在
+    if (minDist !== 0 && diffObj[0 - minDist]) {
+      // 左右距离相等就不追加block
+      if (!(closestFtrs[0] && closestFtrs[1] 
+        && (closestFtrs[minIdx].dist + diff === closestFtrs[minIdx ^ 1].dist - diff))
+      ) {
+        blockFtrTuples.push(...diffObj[0 - minDist]);
+        closestBlockFtrs.add(closestFtrs[minIdx ^ 1].ftrId);
       }
     }
 
-    blockFtrTuples.push(...tupleFtr);
+    closestBlockFtrs.add(closestFtrs[minIdx].ftrId);
+    // 左右相等
+    if (closestFtrs[0] && closestFtrs[1] && (closestFtrs[0].dist + diff === closestFtrs[1].dist - diff)) {
+      closestBlockFtrs.add(closestFtrs[0].ftrId);
+      closestBlockFtrs.add(closestFtrs[1].ftrId);
+    }
   }
 
   return state;
