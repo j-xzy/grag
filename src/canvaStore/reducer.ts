@@ -203,8 +203,12 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   // 找到父亲节点
   const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
   const parent = nodes.length === 1 ? util.getParentNode(nodes[0]) : util.lowestCommonAncestor(nodes);
-
   if (!parent) {
+    return state;
+  }
+
+  const children = util.getChildren(parent);
+  if (children.length <= 1) {
     return state;
   }
 
@@ -240,12 +244,8 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   }
 
   function updateBlocks(keyMapping: IGrag.IIndexable<keyof IGrag.IRect>) {
-    if (!parent) {
-      return;
-    }
     //交叉的ftr
     const crossFtrs: Array<{ ftrId: string; dist: number; }> = [];
-    const children = util.getChildren(parent);
 
     children.forEach(({ ftrId }) => {
       if (state.selectedFtrs.includes(ftrId)) {

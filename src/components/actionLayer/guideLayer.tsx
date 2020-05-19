@@ -99,7 +99,7 @@ export function GuideBlock(props: { block: IGrag.IRect; }) {
     ...baseStyle,
     left: block.x, top: block.y,
     width: block.width, height: block.height,
-    backgroundColor: 'rgba(255, 0, 62, 0.5)'
+    backgroundColor: 'rgba(255, 0, 62, 0.3)'
   };
   return <div style={style} />;
 }
