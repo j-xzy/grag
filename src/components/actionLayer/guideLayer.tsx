@@ -39,23 +39,25 @@ export function GuideLayer(props: IGuideLayerProps) {
   );
 }
 
-
-
 function DistLine(props: { line: IGrag.IGuideLine; }) {
   const { line } = props;
   const style: React.CSSProperties = {
-    ...baseStyle, backgroundColor: '#007bff',
+    ...baseStyle,
     left: line.pos.x, top: line.pos.y,
     width: 1, height: 1,
+    position: 'absolute',
+    boxSizing: 'border-box',
+    zIndex: 10,
+    borderStyle: 'solid',
+    borderColor: '#007bff transparent',
+    outline: 'none'
   };
-
-  if (line.direction === 'horizontal') {
-    style.width = line.length;
-  } else {
-    style.height = line.length;
-  }
-
-  let dist = style.width;
+  const innerStyle: React.CSSProperties = {
+    backgroundColor: '#007bff',
+    outline: 'none',
+    width: 1,
+    height: 1,
+  };
   const distStyle: React.CSSProperties = {
     position: 'absolute',
     display: 'inline-block',
@@ -64,18 +66,29 @@ function DistLine(props: { line: IGrag.IGuideLine; }) {
     fontSize: 12,
     padding: '0px 6px',
     borderRadius: 10,
-    left: style.left as number + (style.width as number) / 2 - (12 + (7 * dist!.toString().length)) / 2,
+    left: style.left as number + line.length / 2 - (12 + (7 * line.length!.toString().length)) / 2,
     top: style.top as number - 22
   };
-  if (line.direction === 'vertical') {
-    dist = style.height;
-    distStyle.left = style.left as number - 14 - (7 * dist!.toString().length);
-    distStyle.top = style.top as number + (style.height as number) / 2 - 9;
+  let offsetMargin = '-3px 0px 0px 0px';
+
+  if (line.direction === 'horizontal') {
+    innerStyle.width = '100%';
+    style.width = line.length;
+    style.borderColor = 'transparent #007bff';
+  } else {
+    offsetMargin = '0px 0px 0px -3px';
+    innerStyle.height = '100%';
+    style.height = line.length;
+    distStyle.left = style.left as number - 14 - (7 * line.length!.toString().length);
+    distStyle.top = style.top as number + line.length / 2 - 9;
   }
+
   return (
     <>
-      <div style={style} />
-      <div style={distStyle}>{dist}</div>
+      <div style={{ ...style, margin: offsetMargin }}>
+        <div style={innerStyle} />
+      </div>
+      <div style={distStyle}>{line.length}</div>
     </>
   );
 }

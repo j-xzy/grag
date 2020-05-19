@@ -210,31 +210,34 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
 
   const blockFtrTuples: Array<[string, string]> = [];
   const closestBlockFtrs: Set<string> = new Set();
-  updateBlocks({
-    x: 'x', y: 'y',
-    width: 'width',
-    height: 'height'
-  });
+  if (!(state.resize && state.border.rotate !== 0)) {
+    // 不考虑resize且有旋转
+    updateBlocks({
+      x: 'x', y: 'y',
+      width: 'width',
+      height: 'height'
+    });
 
-  updateBlocks({
-    x: 'y', y: 'x',
-    width: 'height',
-    height: 'width'
-  });
+    updateBlocks({
+      x: 'y', y: 'x',
+      width: 'height',
+      height: 'width'
+    });
 
-  doAction('updateBorder');
+    doAction('updateBorder');
 
-  blockFtrTuples.forEach(([a, b]) => {
-    const { block, line } = util.calGuideBlockLine(state.ftrStyles[a], state.ftrStyles[b]);
-    state.guideBlocks.push(block);
-    state.guideLines.push(...line);
-  });
-
-  closestBlockFtrs.forEach((id) => {
-    const { block, line } = util.calGuideBlockLine(state.ftrStyles[id], state.border!);
-    state.guideBlocks.push(block);
-    state.guideLines.push(...line);
-  });
+    blockFtrTuples.forEach(([a, b]) => {
+      const { block, line } = util.calGuideBlockLine(state.ftrStyles[a], state.ftrStyles[b]);
+      state.guideBlocks.push(block);
+      state.guideLines.push(...line);
+    });
+  
+    closestBlockFtrs.forEach((id) => {
+      const { block, line } = util.calGuideBlockLine(state.ftrStyles[id], state.border!);
+      state.guideBlocks.push(block);
+      state.guideLines.push(...line);
+    });
+  }
 
   function updateBlocks(keyMapping: IGrag.IIndexable<keyof IGrag.IRect>) {
     if (!parent) {
@@ -351,7 +354,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     spanFtrs.forEach((span) => {
       closestFtrs.forEach((item, idx) => {
         if (idx === 1 && closestFtrs[0] && closestFtrs[1]
-           && closestFtrs[0].dist === closestFtrs[1].dist
+          && closestFtrs[0].dist === closestFtrs[1].dist
         ) {
           // 左右相同跳过避免重复
           return;
@@ -391,18 +394,45 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     const diff = minDist * (minIdx === 0 ? 1 : -1);
 
     // 贴附
-    state.selectedFtrs.forEach((id) => {
-      const k = keyMapping.x;
-      state.ftrStyles[id] = {
-        ...state.ftrStyles[id],
-        [k]: state.ftrStyles[id][k] + diff
-      };
-    });
+    const xy = keyMapping.x;
+    const wh = keyMapping.width;
+    if (state.resize) {
+      if (['e', 's'].includes(state.resize.type)
+        || (['sw', 'se'].includes(state.resize.type) && xy === 'y')
+        || (['ne', 'se'].includes(state.resize.type) && xy === 'x')
+      ) {
+        state.selectedFtrs.forEach((id) => {
+          state.ftrStyles[id] = {
+            ...state.ftrStyles[id],
+            [wh]: state.ftrStyles[id][wh] + diff,
+            [xy]: state.ftrStyles[id][xy]
+          };
+        });
+      } else if (['n', 'w'].includes(state.resize.type)
+        || (['nw', 'ne'].includes(state.resize.type) && xy === 'y')
+        || (['nw', 'sw'].includes(state.resize.type) && xy === 'x')
+      ) {
+        state.selectedFtrs.forEach((id) => {
+          state.ftrStyles[id] = {
+            ...state.ftrStyles[id],
+            [wh]: state.ftrStyles[id][wh] - diff,
+            [xy]: state.ftrStyles[id][xy] + diff
+          };
+        });
+      }
+    } else {
+      state.selectedFtrs.forEach((id) => {
+        state.ftrStyles[id] = {
+          ...state.ftrStyles[id],
+          [xy]: state.ftrStyles[id][xy] + diff
+        };
+      });
+    }
 
     // 贴附后 且 存在
     if (minDist !== 0 && diffObj[0 - minDist]) {
       // 左右距离相等就不追加block
-      if (!(closestFtrs[0] && closestFtrs[1] 
+      if (!(closestFtrs[0] && closestFtrs[1]
         && (closestFtrs[minIdx].dist + diff === closestFtrs[minIdx ^ 1].dist - diff))
       ) {
         blockFtrTuples.push(...diffObj[0 - minDist]);
