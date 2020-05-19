@@ -12,17 +12,10 @@ const baseStyle: React.CSSProperties = {
   boxSizing: 'border-box'
 };
 
-const styleMap: Record<IGrag.IGuideLineType | 'block', React.CSSProperties> = {
-  align: {
-    backgroundColor: '#ff0000'
-  },
-  dash: {},
-  dist: {
-    backgroundColor: '#007bff',
-  },
-  block: {
-    backgroundColor: 'rgba(255, 0, 62, 0.5)'
-  },
+const guideLineMap = {
+  dist: DistLine,
+  dash: DistLine,
+  align: DistLine
 };
 
 export function GuideLayer(props: IGuideLayerProps) {
@@ -38,15 +31,20 @@ export function GuideLayer(props: IGuideLayerProps) {
   return (
     <div style={style}>
       {guideBlocks.map((block, idx) => <GuideBlock key={idx} block={block} />)}
-      {guideLines.map((line, idx) => <GuideLine key={idx} line={line} />)}
+      {guideLines.map((line, idx) => {
+        const Comp = guideLineMap[line.type];
+        return <Comp key={idx} line={line} />;
+      })}
     </div>
   );
 }
 
-function GuideLine(props: { line: IGrag.IGuideLine; }) {
+
+
+function DistLine(props: { line: IGrag.IGuideLine; }) {
   const { line } = props;
   const style: React.CSSProperties = {
-    ...baseStyle, ...styleMap[line.type],
+    ...baseStyle, backgroundColor: '#007bff',
     left: line.pos.x, top: line.pos.y,
     width: 1, height: 1,
   };
@@ -57,41 +55,38 @@ function GuideLine(props: { line: IGrag.IGuideLine; }) {
     style.height = line.length;
   }
 
-  if (line.type === 'dist') {
-    let dist = style.width;
-    const distStyle: React.CSSProperties = {
-      position: 'absolute',
-      display: 'inline-block',
-      color: '#fff',
-      backgroundColor: '#007bff',
-      fontSize: 12,
-      padding: '0px 6px',
-      borderRadius: 10,
-      left: style.left as number + (style.width as number) / 2 - (12 + (7 * dist!.toString().length)) / 2,
-      top: style.top as number - 22
-    };
-    if (line.direction === 'vertical') {
-      dist = style.height;
-      distStyle.left = style.left as number - 14 - (7 * dist!.toString().length);
-      distStyle.top = style.top as number + (style.height as number) / 2 - 9;
-    }
-    return (
-      <>
-        <div style={style} />
-        <div style={distStyle}>{dist}</div>
-      </>
-    );
+  let dist = style.width;
+  const distStyle: React.CSSProperties = {
+    position: 'absolute',
+    display: 'inline-block',
+    color: '#fff',
+    backgroundColor: '#007bff',
+    fontSize: 12,
+    padding: '0px 6px',
+    borderRadius: 10,
+    left: style.left as number + (style.width as number) / 2 - (12 + (7 * dist!.toString().length)) / 2,
+    top: style.top as number - 22
+  };
+  if (line.direction === 'vertical') {
+    dist = style.height;
+    distStyle.left = style.left as number - 14 - (7 * dist!.toString().length);
+    distStyle.top = style.top as number + (style.height as number) / 2 - 9;
   }
-
-  return <div style={style} />;
+  return (
+    <>
+      <div style={style} />
+      <div style={distStyle}>{dist}</div>
+    </>
+  );
 }
 
 export function GuideBlock(props: { block: IGrag.IRect; }) {
   const { block } = props;
   const style: React.CSSProperties = {
-    ...baseStyle, ...styleMap.block,
+    ...baseStyle,
     left: block.x, top: block.y,
-    width: block.width, height: block.height
+    width: block.width, height: block.height,
+    backgroundColor: 'rgba(255, 0, 62, 0.5)'
   };
   return <div style={style} />;
 }
