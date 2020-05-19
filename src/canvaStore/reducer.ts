@@ -235,7 +235,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
       state.guideBlocks.push(block);
       state.guideLines.push(...line);
     });
-  
+
     closestBlockFtrs.forEach((id) => {
       const { block, line } = util.calGuideBlockLine(state.ftrStyles[id], state.border!);
       state.guideBlocks.push(block);
@@ -243,6 +243,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     });
   }
 
+  // 更新guideBlock
   function updateBlocks(keyMapping: IGrag.IIndexable<keyof IGrag.IRect>) {
     //交叉的ftr
     const crossFtrs: Array<{ ftrId: string; dist: number; }> = [];
@@ -347,7 +348,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     }
 
     // key为距离差
-    const diffObj: IGrag.IIndexable<Array<[string, string]>> = {};
+    const diffObj: IGrag.IIndexable<Array<{ ftrIds: [string, string]; idx: number; }>> = {};
     let minDist = Infinity;
     let minIdx = 0;
     let closestIdxs: Set<number> = new Set();
@@ -374,7 +375,10 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
         }
 
         !diffObj[d] && (diffObj[d] = []);
-        diffObj[d].push(span.ftrIds);
+        diffObj[d].push({
+          ftrIds: span.ftrIds,
+          idx
+        });
       });
     });
 
@@ -383,15 +387,57 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
       return;
     }
 
+    if (state.resize) {
+      // 过滤非同侧
+      if (keyMapping.x === 'y') {
+        if (['sw', 's', 'se'].includes(state.resize.type)) {
+          diffObj[minDist] = diffObj[minDist].filter(({ idx }) => idx !== 0);
+          closestIdxs.delete(0);
+        }
+        if (['nw', 'n', 'ne'].includes(state.resize.type)) {
+          diffObj[minDist] = diffObj[minDist].filter(({ idx }) => idx !== 1);
+          closestIdxs.delete(1);
+        }
+      } else {
+        if (['ne', 'e', 'se'].includes(state.resize.type)) {
+          diffObj[minDist] = diffObj[minDist].filter(({ idx }) => idx !== 0);
+          closestIdxs.delete(0);
+        }
+        if (['nw', 'w', 'sw'].includes(state.resize.type)) {
+          diffObj[minDist] = diffObj[minDist].filter(({ idx }) => idx !== 1);
+          closestIdxs.delete(1);
+        }
+      }
+    }
+
+    blockFtrTuples.push(...diffObj[minDist].map(({ ftrIds }) => ftrIds));
     closestIdxs.forEach((i) => {
       closestBlockFtrs.add(closestFtrs[i].ftrId);
     });
 
-    // 加入间距块
-    blockFtrTuples.push(...diffObj[minDist]);
+    if (!state.resize) {
+      closestBlockFtrs.add(closestFtrs[minIdx].ftrId);
+    }
 
     // 贴附偏移距离
     const diff = minDist * (minIdx === 0 ? 1 : -1);
+
+    // 贴附后 且 存在
+    if (minDist !== 0 && diffObj[0 - minDist]) {
+      // 左右距离相等就不追加block
+      if (!(closestFtrs[0] && closestFtrs[1]
+        && (closestFtrs[minIdx].dist + diff === closestFtrs[minIdx ^ 1].dist - diff))
+      ) {
+        blockFtrTuples.push(...diffObj[0 - minDist].map(({ ftrIds }) => ftrIds));
+        closestBlockFtrs.add(closestFtrs[minIdx ^ 1].ftrId);
+      }
+    }
+
+    // 左右相等
+    if (closestFtrs[0] && closestFtrs[1] && (closestFtrs[0].dist + diff === closestFtrs[1].dist - diff)) {
+      closestBlockFtrs.add(closestFtrs[0].ftrId);
+      closestBlockFtrs.add(closestFtrs[1].ftrId);
+    }
 
     // 贴附
     const xy = keyMapping.x;
@@ -427,24 +473,6 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           [xy]: state.ftrStyles[id][xy] + diff
         };
       });
-    }
-
-    // 贴附后 且 存在
-    if (minDist !== 0 && diffObj[0 - minDist]) {
-      // 左右距离相等就不追加block
-      if (!(closestFtrs[0] && closestFtrs[1]
-        && (closestFtrs[minIdx].dist + diff === closestFtrs[minIdx ^ 1].dist - diff))
-      ) {
-        blockFtrTuples.push(...diffObj[0 - minDist]);
-        closestBlockFtrs.add(closestFtrs[minIdx ^ 1].ftrId);
-      }
-    }
-
-    closestBlockFtrs.add(closestFtrs[minIdx].ftrId);
-    // 左右相等
-    if (closestFtrs[0] && closestFtrs[1] && (closestFtrs[0].dist + diff === closestFtrs[1].dist - diff)) {
-      closestBlockFtrs.add(closestFtrs[0].ftrId);
-      closestBlockFtrs.add(closestFtrs[1].ftrId);
     }
   }
 
