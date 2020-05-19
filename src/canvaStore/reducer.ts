@@ -212,6 +212,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     return state;
   }
 
+  // 更新block
   const blockFtrTuples: Array<[string, string]> = [];
   const closestBlockFtrs: Set<string> = new Set();
   if (!(state.resize && state.border.rotate !== 0)) {
@@ -243,8 +244,20 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     });
   }
 
+  // 更新等宽distline
+  if (state.resize) {
+    // 
+  }
+
   // 更新guideBlock
   function updateBlocks(keyMapping: IGrag.IIndexable<keyof IGrag.IRect>) {
+    if (state.resize && keyMapping.x === 'y' && ['w', 'e'].includes(state.resize.type)) {
+      return;
+    }
+    if (state.resize && keyMapping.x === 'x' && ['n', 's'].includes(state.resize.type)) {
+      return;
+    }
+
     //交叉的ftr
     const crossFtrs: Array<{ ftrId: string; dist: number; }> = [];
 
