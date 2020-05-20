@@ -82,7 +82,6 @@ function DistLine(props: { line: IGrag.IGuideLine; }) {
     distStyle.left = style.left as number - 14 - (7 * line.length!.toString().length);
     distStyle.top = style.top as number + line.length / 2 - 9;
   }
-
   return (
     <>
       <div style={{ ...style, margin: offsetMargin }}>

@@ -72,6 +72,8 @@ declare namespace IGrag {
     pos: IPos;
     direction: 'vertical' | 'horizontal';
     length: number;
+    offset?: number;
+    showText?: boolean;
   }
 
   interface IInitialState {

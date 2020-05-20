@@ -198,7 +198,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   }
 
   // 计算旋转后的最大矩形
-  const rect = util.style2MaxRect(state.border);
+  let rect = util.style2MaxRect(state.border);
 
   // 找到父亲节点
   const nodes = state.selectedFtrs.map((id) => globalStore.getNodeByFtrId(id)!);
@@ -207,15 +207,15 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     return state;
   }
 
-  const children = util.getChildren(parent);
+  const children = util.getChildren(parent).filter(({ftrId}) => !state.selectedFtrs.includes(ftrId));
   if (children.length <= 1) {
     return state;
   }
 
-  // 更新block
   const blockFtrTuples: Array<[string, string]> = [];
   const closestBlockFtrs: Set<string> = new Set();
-  if (!(state.resize && state.border.rotate !== 0)) {
+  //#region block
+  if (!state.resize || state.border.rotate === 0) {
     // 不考虑resize且有旋转
     updateBlocks({
       x: 'x', y: 'y',
@@ -229,25 +229,74 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
       height: 'width'
     });
 
+    // 更新border、rect
     doAction('updateBorder');
-
-    blockFtrTuples.forEach(([a, b]) => {
-      const { block, line } = util.calGuideBlockLine(state.ftrStyles[a], state.ftrStyles[b]);
-      state.guideBlocks.push(block);
-      state.guideLines.push(...line);
-    });
-
-    closestBlockFtrs.forEach((id) => {
-      const { block, line } = util.calGuideBlockLine(state.ftrStyles[id], state.border!);
-      state.guideBlocks.push(block);
-      state.guideLines.push(...line);
-    });
+    rect = util.style2MaxRect(state.border);
   }
+  //#endregion
 
-  // 更新等宽distline
+  //#region 等宽distline
   if (state.resize) {
-    // 
+    const dimensions: Array<'width' | 'height'> = [];
+    if (state.border.rotate !== 0 || ['nw', 'ne', 'sw', 'se'].includes(state.resize.type)) {
+      dimensions.push('width', 'height');
+    } else if (['n', 's'].includes(state.resize.type)) {
+      dimensions.push('height');
+    } else if (['w', 'e'].includes(state.resize.type)) {
+      dimensions.push('width');
+    }
+
+    const mateFtrs: Record<'width' | 'height', string[]> = { width: [], height: [] };
+    const minGap = { width: Infinity, height: Infinity };
+    children.forEach(({ ftrId }) => {
+      const target = util.style2MaxRect(state.ftrStyles[ftrId]);
+      dimensions.forEach((dim) => {
+        const gap = target[dim] - rect[dim];
+        // 差小于贴附距离 且 绝对差最小
+        if (Math.abs(gap) < state.attachDist && Math.abs(minGap[dim]) > Math.abs(gap)) {
+          minGap[dim] = gap;
+          mateFtrs[dim] = [ftrId];
+        } else if (minGap[dim] === gap) {
+          mateFtrs[dim].push(ftrId);
+        }
+      });
+    });
+
+    // 吸附
+    state.selectedFtrs.forEach((id) => {
+      dimensions.forEach((dim) => {
+        if (Number.isFinite(minGap[dim])) {
+          state.ftrStyles[id][dim] += minGap[dim];
+          const xy = dim === 'height' ? 'y' : 'x';
+          if (['w', 'n', 'nw'].includes(state.resize!.type)) {
+            state.ftrStyles[id][xy] -= minGap[dim];
+          } else if (state.resize!.type === 'ne' && xy ==='y') {
+            state.ftrStyles[id][xy] -= minGap[dim];
+          } else if (state.resize!.type === 'sw' && xy ==='x') {
+            state.ftrStyles[id][xy] -= minGap[dim];
+          }
+        }
+      });
+    });
+
+    // 更新border、rect
+    doAction('updateBorder');
+    rect = util.style2MaxRect(state.border);
   }
+  //#endregion
+
+  // 最后更新guide
+  blockFtrTuples.forEach(([a, b]) => {
+    const { block, line } = util.calGuideBlockLine(state.ftrStyles[a], state.ftrStyles[b]);
+    state.guideBlocks.push(block);
+    state.guideLines.push(...line);
+  });
+
+  closestBlockFtrs.forEach((id) => {
+    const { block, line } = util.calGuideBlockLine(state.ftrStyles[id], state.border!);
+    state.guideBlocks.push(block);
+    state.guideLines.push(...line);
+  });
 
   // 更新guideBlock
   function updateBlocks(keyMapping: IGrag.IIndexable<keyof IGrag.IRect>) {
@@ -262,10 +311,6 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     const crossFtrs: Array<{ ftrId: string; dist: number; }> = [];
 
     children.forEach(({ ftrId }) => {
-      if (state.selectedFtrs.includes(ftrId)) {
-        return;
-      }
-
       const brotherRect = globalStore.getFtrBoundRect(ftrId);
       const v1 = rect[keyMapping.x] - brotherRect[keyMapping.x] - brotherRect[keyMapping.width];
       const v2 = rect[keyMapping.x] + rect[keyMapping.width] - brotherRect[keyMapping.x];
