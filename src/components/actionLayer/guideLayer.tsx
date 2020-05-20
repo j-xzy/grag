@@ -56,7 +56,7 @@ function DistLine(props: { line: IGrag.IGuideLine; }) {
     backgroundColor: '#007bff',
     outline: 'none',
     width: 1,
-    height: 1,
+    height: 1
   };
   const distStyle: React.CSSProperties = {
     position: 'absolute',
@@ -69,30 +69,32 @@ function DistLine(props: { line: IGrag.IGuideLine; }) {
     left: style.left as number + line.length / 2 - (12 + (7 * line.length!.toString().length)) / 2,
     top: style.top as number - 22
   };
-  let offsetMargin = '-3px 0px 0px 0px';
+  const offset = line.offset ?? 0;
+  let offsetMargin = `${offset}px 0px 0px 0px`;
 
   if (line.direction === 'horizontal') {
     innerStyle.width = '100%';
     style.width = line.length;
     style.borderColor = 'transparent #007bff';
   } else {
-    offsetMargin = '0px 0px 0px -3px';
+    offsetMargin = `0px 0px 0px ${offset}px`;
     innerStyle.height = '100%';
     style.height = line.length;
     distStyle.left = style.left as number - 14 - (7 * line.length!.toString().length);
     distStyle.top = style.top as number + line.length / 2 - 9;
   }
+  console.debug('uide');
   return (
     <>
       <div style={{ ...style, margin: offsetMargin }}>
         <div style={innerStyle} />
       </div>
-      <div style={distStyle}>{line.length}</div>
+      {line.showText !== false && <div style={distStyle}>{line.length}</div>}
     </>
   );
 }
 
-export function GuideBlock(props: { block: IGrag.IRect; }) {
+function GuideBlock(props: { block: IGrag.IRect; }) {
   const { block } = props;
   const style: React.CSSProperties = {
     ...baseStyle,

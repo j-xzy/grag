@@ -354,6 +354,7 @@ export function calGuideBlockLine(aa: IGrag.IStyle, bb: IGrag.IStyle) {
       x: horizontal ? block.x : block.x + block.width / 2 ,
       y: horizontal ? block.y + block.height / 2 : block.y
     },
+    offset: -3,
     length: horizontal ? block.width : block.height
   };
 

@@ -207,8 +207,8 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     return state;
   }
 
-  const children = util.getChildren(parent).filter(({ftrId}) => !state.selectedFtrs.includes(ftrId));
-  if (children.length <= 1) {
+  const children = util.getChildren(parent).filter(({ ftrId }) => !state.selectedFtrs.includes(ftrId));
+  if (children.length === 0) {
     return state;
   }
 
@@ -235,6 +235,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   }
   //#endregion
 
+  const mateFtrs: Record<'width' | 'height', string[]> = { width: [], height: [] };
   //#region 等宽distline
   if (state.resize) {
     const dimensions: Array<'width' | 'height'> = [];
@@ -246,7 +247,6 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
       dimensions.push('width');
     }
 
-    const mateFtrs: Record<'width' | 'height', string[]> = { width: [], height: [] };
     const minGap = { width: Infinity, height: Infinity };
     children.forEach(({ ftrId }) => {
       const target = util.style2MaxRect(state.ftrStyles[ftrId]);
@@ -270,9 +270,9 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           const xy = dim === 'height' ? 'y' : 'x';
           if (['w', 'n', 'nw'].includes(state.resize!.type)) {
             state.ftrStyles[id][xy] -= minGap[dim];
-          } else if (state.resize!.type === 'ne' && xy ==='y') {
+          } else if (state.resize!.type === 'ne' && xy === 'y') {
             state.ftrStyles[id][xy] -= minGap[dim];
-          } else if (state.resize!.type === 'sw' && xy ==='x') {
+          } else if (state.resize!.type === 'sw' && xy === 'x') {
             state.ftrStyles[id][xy] -= minGap[dim];
           }
         }
@@ -296,6 +296,31 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     const { block, line } = util.calGuideBlockLine(state.ftrStyles[id], state.border!);
     state.guideBlocks.push(block);
     state.guideLines.push(...line);
+  });
+
+  Object.keys(mateFtrs).forEach((wh) => {
+    mateFtrs[wh].forEach((id) => {
+      state.guideLines.push({
+        type: 'dist',
+        direction: wh === 'width' ? 'horizontal' : 'vertical',
+        length: state.ftrStyles[id][wh],
+        pos: {
+          x: state.ftrStyles[id].x,
+          y: state.ftrStyles[id].y
+        },
+        showText: false,
+        offset: -6
+      });
+    });
+    if (mateFtrs[wh].length > 0) {
+      state.guideLines.push({
+        type: 'dist',
+        direction: wh === 'width' ? 'horizontal' : 'vertical',
+        length: rect[wh],
+        pos: { x: rect.x, y: rect.y },
+        offset: -6
+      });
+    }
   });
 
   // 更新guideBlock
