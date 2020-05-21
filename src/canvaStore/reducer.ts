@@ -212,8 +212,8 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     return state;
   }
 
-  const blockFtrTuples: Array<[string, string]> = [];
-  const closestBlockFtrs: Set<string> = new Set();
+  const blockFtrTuples: Array<[IGrag.IRect, IGrag.IRect]> = [];
+  const closestRects: IGrag.IRect[] = [];
   //#region block
   if (!state.resize || state.border.rotate === 0) {
     // 不考虑resize且有旋转
@@ -285,15 +285,19 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   }
   //#endregion
 
+  //#region 对齐线
+
+  //#endregion
+
   // 最后更新guide
   blockFtrTuples.forEach(([a, b]) => {
-    const { block, line } = util.calGuideBlockLine(state.ftrStyles[a], state.ftrStyles[b]);
+    const { block, line } = util.calGuideBlockLine(a, b);
     state.guideBlocks.push(block);
     state.guideLines.push(...line);
   });
 
-  closestBlockFtrs.forEach((id) => {
-    const { block, line } = util.calGuideBlockLine(state.ftrStyles[id], state.border!);
+  closestRects.forEach((r) => {
+    const { block, line } = util.calGuideBlockLine(r, state.border!);
     state.guideBlocks.push(block);
     state.guideLines.push(...line);
   });
@@ -358,33 +362,53 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     // 从大到小、从左到右排序（正位于ftr左，负位于ftr右）
     crossFtrs.sort((a, b) => b.dist - a.dist);
 
-    // 距选中ftr最近的ftr
-    const closestFtrs: Array<{ ftrId: string; dist: number; }> = [];
-
-    if (crossFtrs[0].dist < 0) {
-      // 第一个就小于0，代表选中ftr位于最左
-      const k = Math.abs(crossFtrs[0].dist);
-      closestFtrs[1] = { ...crossFtrs[0], dist: k };
+    // 合并相等dist
+    const crossRects: Array<{dist: number; rect: IGrag.IRect;}> = [];
+    let slowIdx = 0;
+    let fastIdx = 1;
+    while (slowIdx < crossFtrs.length) {
+      crossRects.push({
+        dist: crossFtrs[slowIdx].dist,
+        rect: util.style2MaxRect(state.ftrStyles[crossFtrs[slowIdx].ftrId])
+      });
+      while(fastIdx < crossFtrs.length && crossFtrs[fastIdx].dist === crossFtrs[slowIdx].dist) {
+        crossRects[crossRects.length - 1].rect = util.calMaxRect([
+          crossRects[crossRects.length - 1].rect,
+          util.style2MaxRect(state.ftrStyles[crossFtrs[fastIdx].ftrId])
+        ]);
+        ++fastIdx;
+      }
+      slowIdx = fastIdx;
+      ++fastIdx;
     }
-    if (crossFtrs[crossFtrs.length - 1].dist > 0) {
+
+    // 距选中ftr最近的ftr
+    const closestFtrs: Array<{ rect: IGrag.IRect; dist: number; }> = [];
+
+    if (crossRects[0].dist < 0) {
+      // 第一个就小于0，代表选中ftr位于最左
+      const k = Math.abs(crossRects[0].dist);
+      closestFtrs[1] = { ...crossRects[0], dist: k };
+    }
+    if (crossRects[crossRects.length - 1].dist > 0) {
       // 最后一个大于0，代表选中ftr位于最右
-      const k = Math.abs(crossFtrs[crossFtrs.length - 1].dist);
-      closestFtrs[0] = { ...crossFtrs[crossFtrs.length - 1], dist: k };
+      const k = Math.abs(crossRects[crossRects.length - 1].dist);
+      closestFtrs[0] = { ...crossRects[crossRects.length - 1], dist: k };
     }
 
     // ftrIds: 两个距离（dist）最近且交集的ftr
-    const spanFtrs: Array<{ ftrIds: [string, string]; dist: number; }> = [];
+    const spanRects: Array<{ rects: [IGrag.IRect, IGrag.IRect]; dist: number; }> = [];
 
-    for (let n = 0; n < crossFtrs.length - 1; ++n) {
-      for (let m = n + 1; m < crossFtrs.length; ++m) {
-        const a = crossFtrs[n];
-        const b = crossFtrs[m];
-        const aStyle = util.style2MaxRect(state.ftrStyles[a.ftrId]);
-        const bStyle = util.style2MaxRect(state.ftrStyles[b.ftrId]);
+    for (let n = 0; n < crossRects.length - 1; ++n) {
+      for (let m = n + 1; m < crossRects.length; ++m) {
+        const a = crossRects[n];
+        const b = crossRects[m];
+        const aStyle = a.rect;
+        const bStyle = b.rect;
         if (m - n === 1 && a.dist * b.dist <= 0) {
           // a位于选中ftr左，b右
-          closestFtrs[0] = { dist: Math.abs(a.dist), ftrId: a.ftrId };
-          closestFtrs[1] = { dist: Math.abs(b.dist), ftrId: b.ftrId };
+          closestFtrs[0] = { dist: Math.abs(a.dist), rect: aStyle };
+          closestFtrs[1] = { dist: Math.abs(b.dist), rect: bStyle };
           continue;
         }
         if (
@@ -394,12 +418,12 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           // 无交集
           continue;
         }
-        let dist = a.dist - b.dist - util.style2MaxRect(state.ftrStyles[b.ftrId])[keyMapping.width];
+        let dist = a.dist - b.dist - bStyle[keyMapping.width];
         if (a.dist < 0) {
-          dist = a.dist - b.dist - util.style2MaxRect(state.ftrStyles[a.ftrId])[keyMapping.width];
+          dist = a.dist - b.dist - aStyle[keyMapping.width];
         }
         if (dist > 0) {
-          spanFtrs.push({ dist, ftrIds: [a.ftrId, b.ftrId] });
+          spanRects.push({ dist, rects: [aStyle, bStyle] });
           break;
         }
       }
@@ -411,6 +435,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     }
 
     let attachDist = state.attachDist;
+    let closestIdxs: Set<number> = new Set();
     // 左右之差小于attachDist 且 能被平分
     if (Math.abs(dists[0] - dists[1]) < attachDist && (dists[0] + dists[1]) % 2 === 0) {
       const avg = (dists[0] + dists[1]) / 2;
@@ -426,16 +451,16 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
       attachDist = 0;
       closestFtrs[0].dist = avg;
       closestFtrs[1].dist = avg;
-      closestBlockFtrs.add(closestFtrs[0].ftrId);
-      closestBlockFtrs.add(closestFtrs[1].ftrId);
+      closestIdxs.add(0);
+      closestIdxs.add(1);
     }
 
     // key为距离差
-    const diffObj: IGrag.IIndexable<Array<{ ftrIds: [string, string]; idx: number; }>> = {};
+    const diffObj: IGrag.IIndexable<Array<{ rects: [IGrag.IRect, IGrag.IRect]; idx: number; }>> = {};
     let minDist = Infinity;
     let minIdx = 0;
-    let closestIdxs: Set<number> = new Set();
-    spanFtrs.forEach((span) => {
+
+    spanRects.forEach((span) => {
       closestFtrs.forEach((item, idx) => {
         if (idx === 1 && closestFtrs[0] && closestFtrs[1]
           && closestFtrs[0].dist === closestFtrs[1].dist
@@ -459,7 +484,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
 
         !diffObj[d] && (diffObj[d] = []);
         diffObj[d].push({
-          ftrIds: span.ftrIds,
+          rects: span.rects,
           idx
         });
       });
@@ -467,6 +492,10 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
 
     // 未找到距离差相等
     if (!Number.isFinite(minDist)) {
+      // 推入closestRects
+      closestIdxs.forEach((i) => {
+        closestRects.push(closestFtrs[i].rect);
+      });
       return;
     }
 
@@ -493,13 +522,10 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
       }
     }
 
-    blockFtrTuples.push(...diffObj[minDist].map(({ ftrIds }) => ftrIds));
-    closestIdxs.forEach((i) => {
-      closestBlockFtrs.add(closestFtrs[i].ftrId);
-    });
-
+    blockFtrTuples.push(...diffObj[minDist].map(({ rects }) => rects));
+    
     if (!state.resize) {
-      closestBlockFtrs.add(closestFtrs[minIdx].ftrId);
+      closestIdxs.add(minIdx);
     }
 
     // 贴附偏移距离
@@ -511,16 +537,21 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
       if (!(closestFtrs[0] && closestFtrs[1]
         && (closestFtrs[minIdx].dist + diff === closestFtrs[minIdx ^ 1].dist - diff))
       ) {
-        blockFtrTuples.push(...diffObj[0 - minDist].map(({ ftrIds }) => ftrIds));
-        closestBlockFtrs.add(closestFtrs[minIdx ^ 1].ftrId);
+        blockFtrTuples.push(...diffObj[0 - minDist].map(({ rects }) => rects));
+        closestIdxs.add(minIdx ^ 1);
       }
     }
 
     // 左右相等
     if (closestFtrs[0] && closestFtrs[1] && (closestFtrs[0].dist + diff === closestFtrs[1].dist - diff)) {
-      closestBlockFtrs.add(closestFtrs[0].ftrId);
-      closestBlockFtrs.add(closestFtrs[1].ftrId);
+      closestIdxs.add(0);
+      closestIdxs.add(1);      
     }
+
+    // 推入closestRects
+    closestIdxs.forEach((i) => {
+      closestRects.push(closestFtrs[i].rect);
+    });
 
     // 贴附
     const xy = keyMapping.x;
