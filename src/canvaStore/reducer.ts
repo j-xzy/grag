@@ -286,7 +286,9 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   //#endregion
 
   //#region 对齐线
-
+  children.forEach(() => {
+    //
+  });
   //#endregion
 
   // 最后更新guide
@@ -304,13 +306,14 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
 
   Object.keys(mateFtrs).forEach((wh) => {
     mateFtrs[wh].forEach((id) => {
+      const rect = util.style2MaxRect(state.ftrStyles[id]);
       state.guideLines.push({
         type: 'dist',
         direction: wh === 'width' ? 'horizontal' : 'vertical',
-        length: state.ftrStyles[id][wh],
+        length: rect[wh],
         pos: {
-          x: state.ftrStyles[id].x,
-          y: state.ftrStyles[id].y
+          x: rect.x,
+          y: rect.y
         },
         showText: false,
         offset: -6
@@ -409,14 +412,14 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           // a位于选中ftr左，b右
           closestFtrs[0] = { dist: Math.abs(a.dist), rect: aStyle };
           closestFtrs[1] = { dist: Math.abs(b.dist), rect: bStyle };
-          continue;
+          break;
         }
         if (
           aStyle[keyMapping.y] > (bStyle[keyMapping.y] + bStyle[keyMapping.height])
           || (aStyle[keyMapping.y] + aStyle[keyMapping.height]) < bStyle[keyMapping.y]
         ) {
           // 无交集
-          continue;
+          break;
         }
         let dist = a.dist - b.dist - bStyle[keyMapping.width];
         if (a.dist < 0) {

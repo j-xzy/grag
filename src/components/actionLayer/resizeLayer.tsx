@@ -66,7 +66,6 @@ function Border(props: { box: IGrag.IStyle; }) {
 
 function Handler(props: IHandlerProps) {
   const { x, y, rotate, origin, type, idx, evtEmit, canvasId } = props;
-  console.debug(`${type}-resize`);
   const style: React.CSSProperties = {
     position: 'absolute',
     boxSizing: 'border-box',
