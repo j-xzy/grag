@@ -208,11 +208,26 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   }
 
   const children = util.getChildren(parent).filter(({ ftrId }) => !state.selectedFtrs.includes(ftrId));
-  if (children.length === 0) {
-    return state;
-  }
 
-  const blockFtrTuples: Array<[IGrag.IRect, IGrag.IRect]> = [];
+  const alignPairs: [number[][], number[][]] = [[],[]];
+  //#region 对齐线
+  updateAlign({
+    x: 'x', y: 'y',
+    width: 'width',
+    height: 'height'
+  });
+
+  updateAlign({
+    x: 'y', y: 'x',
+    width: 'height',
+    height: 'width'
+  });
+
+  // 更新border、rect
+  doAction('updateBorder');
+  rect = util.style2MaxRect(state.border!);
+  //#endregion
+
   const closestRects: IGrag.IRect[] = [];
   //#region block
   if (!state.resize || state.border.rotate === 0) {
@@ -285,21 +300,9 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   }
   //#endregion
 
-  //#region 对齐线
-  children.forEach(() => {
-    //
-  });
-  //#endregion
-
-  // 最后更新guide
-  blockFtrTuples.forEach(([a, b]) => {
-    const { block, line } = util.calGuideBlockLine(a, b);
-    state.guideBlocks.push(block);
-    state.guideLines.push(...line);
-  });
-
+  // 最后更新依赖selectedFtr的guide
   closestRects.forEach((r) => {
-    const { block, line } = util.calGuideBlockLine(r, state.border!);
+    const { block, line } = util.calGuideBlockLine(r, rect);
     state.guideBlocks.push(block);
     state.guideLines.push(...line);
   });
@@ -330,30 +333,53 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     }
   });
 
-  // 更新guideBlock
-  function updateBlocks(keyMapping: IGrag.IIndexable<keyof IGrag.IRect>) {
-    if (state.resize && keyMapping.x === 'y' && ['w', 'e'].includes(state.resize.type)) {
-      return;
-    }
-    if (state.resize && keyMapping.x === 'x' && ['n', 's'].includes(state.resize.type)) {
-      return;
-    }
+  alignPairs.forEach((align, alIdx) => {
+    align.forEach(([l, r], idx) => {
+      let x = 0; let y = 0; let length = 0;
+      if (alIdx === 0) {
+        y = util.rectAlignLines(rect)[0][idx];
+        x = Math.min(l, rect.x);
+        length = Math.max(rect.x + rect.width, r) - x;
+      } else {
+        x = util.rectAlignLines(rect)[1][idx];
+        y = Math.min(l, rect.y);
+        length = Math.max(rect.y + rect.height, r) - y;
+      }
+      if (Number.isFinite(l) || Number.isFinite(r)) {
+        state.guideLines.push({
+          type: 'align',
+          pos: { x, y },
+          direction: alIdx === 0 ? 'horizontal' : 'vertical',
+          length,
+        });
+      }
+    });
+  });
 
+  // 更新guideBlock
+  function updateBlocks(kM: IGrag.IIndexable<keyof IGrag.IRect>) {
+    if (state.resize && kM.x === 'y' && ['w', 'e'].includes(state.resize.type)) {
+      return;
+    }
+    if (state.resize && kM.x === 'x' && ['n', 's'].includes(state.resize.type)) {
+      return;
+    }
+    const blockFtrTuples: Array<[IGrag.IRect, IGrag.IRect]> = [];
     //交叉的ftr
     const crossFtrs: Array<{ ftrId: string; dist: number; }> = [];
 
     children.forEach(({ ftrId }) => {
       const brotherRect = globalStore.getFtrBoundRect(ftrId);
-      const v1 = rect[keyMapping.x] - brotherRect[keyMapping.x] - brotherRect[keyMapping.width];
-      const v2 = rect[keyMapping.x] + rect[keyMapping.width] - brotherRect[keyMapping.x];
-      if (v1 * v2 <= 0) {
-        // 重合
+      if (util.isCoincide([rect, brotherRect], kM.x === 'x' ? 'horizontal' : 'vertical')) {
+        // 水平方向上有交集
         return;
       }
-      if (brotherRect[keyMapping.y] > (rect[keyMapping.y] + rect[keyMapping.height]) || (brotherRect[keyMapping.y] + brotherRect[keyMapping.height]) < rect[keyMapping.y]) {
-        // 无交集
+      if (!util.isCoincide([rect, brotherRect], kM.x === 'x' ? 'vertical' : 'horizontal')) {
+        // 垂直方向上无交集
         return;
       }
+      const v1 = rect[kM.x] - brotherRect[kM.x] - brotherRect[kM.width];
+      const v2 = rect[kM.x] + rect[kM.width] - brotherRect[kM.x];
       const crossFtr = Math.abs(v1) > Math.abs(v2) ? { ftrId, dist: v2 } : { ftrId, dist: v1 };
       crossFtrs.push(crossFtr);
     });
@@ -366,7 +392,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     crossFtrs.sort((a, b) => b.dist - a.dist);
 
     // 合并相等dist
-    const crossRects: Array<{dist: number; rect: IGrag.IRect;}> = [];
+    const crossRects: Array<{ dist: number; rect: IGrag.IRect; }> = [];
     let slowIdx = 0;
     let fastIdx = 1;
     while (slowIdx < crossFtrs.length) {
@@ -374,7 +400,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
         dist: crossFtrs[slowIdx].dist,
         rect: util.style2MaxRect(state.ftrStyles[crossFtrs[slowIdx].ftrId])
       });
-      while(fastIdx < crossFtrs.length && crossFtrs[fastIdx].dist === crossFtrs[slowIdx].dist) {
+      while (fastIdx < crossFtrs.length && crossFtrs[fastIdx].dist === crossFtrs[slowIdx].dist) {
         crossRects[crossRects.length - 1].rect = util.calMaxRect([
           crossRects[crossRects.length - 1].rect,
           util.style2MaxRect(state.ftrStyles[crossFtrs[fastIdx].ftrId])
@@ -414,16 +440,17 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           closestFtrs[1] = { dist: Math.abs(b.dist), rect: bStyle };
           break;
         }
-        if (
-          aStyle[keyMapping.y] > (bStyle[keyMapping.y] + bStyle[keyMapping.height])
-          || (aStyle[keyMapping.y] + aStyle[keyMapping.height]) < bStyle[keyMapping.y]
-        ) {
-          // 无交集
+        if (a.dist * b.dist <= 0 && m - n !== 1) {
+          // 越过了
           break;
         }
-        let dist = a.dist - b.dist - bStyle[keyMapping.width];
+        if (!util.isCoincide([aStyle, bStyle], kM.x === 'x' ? 'vertical' : 'horizontal')) {
+          // 垂直方向上无交集
+          continue;
+        }
+        let dist = a.dist - b.dist - bStyle[kM.width];
         if (a.dist < 0) {
-          dist = a.dist - b.dist - aStyle[keyMapping.width];
+          dist = a.dist - b.dist - aStyle[kM.width];
         }
         if (dist > 0) {
           spanRects.push({ dist, rects: [aStyle, bStyle] });
@@ -444,7 +471,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
       const avg = (dists[0] + dists[1]) / 2;
       // 贴附
       state.selectedFtrs.forEach((id) => {
-        const k = keyMapping.x;
+        const k = kM.x;
         state.ftrStyles[id] = {
           ...state.ftrStyles[id],
           [k]: state.ftrStyles[id][k] - dists[0] + avg
@@ -504,7 +531,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
 
     if (state.resize) {
       // 过滤非同侧
-      if (keyMapping.x === 'y') {
+      if (kM.x === 'y') {
         if (['sw', 's', 'se'].includes(state.resize.type)) {
           diffObj[minDist] = diffObj[minDist].filter(({ idx }) => idx !== 0);
           closestIdxs.delete(0);
@@ -526,7 +553,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     }
 
     blockFtrTuples.push(...diffObj[minDist].map(({ rects }) => rects));
-    
+
     if (!state.resize) {
       closestIdxs.add(minIdx);
     }
@@ -548,7 +575,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     // 左右相等
     if (closestFtrs[0] && closestFtrs[1] && (closestFtrs[0].dist + diff === closestFtrs[1].dist - diff)) {
       closestIdxs.add(0);
-      closestIdxs.add(1);      
+      closestIdxs.add(1);
     }
 
     // 推入closestRects
@@ -557,8 +584,8 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     });
 
     // 贴附
-    const xy = keyMapping.x;
-    const wh = keyMapping.width;
+    const xy = kM.x;
+    const wh = kM.width;
     if (state.resize) {
       if (['e', 's'].includes(state.resize.type)
         || (['sw', 'se'].includes(state.resize.type) && xy === 'y')
@@ -591,6 +618,104 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
         };
       });
     }
+
+    blockFtrTuples.forEach(([a, b]) => {
+      const { block, line } = util.calGuideBlockLine(a, b);
+      state.guideBlocks.push(block);
+      state.guideLines.push(...line);
+    });
+
+  }
+
+  // 更新alignLine
+  function updateAlign(kM: IGrag.IIndexable<keyof IGrag.IRect>) {
+    if (state.resize && kM.x === 'x' && ['w', 'e'].includes(state.resize.type)) {
+      return;
+    }
+    if (state.resize && kM.x === 'y' && ['n', 's'].includes(state.resize.type)) {
+      return;
+    }
+    const dists: IGrag.IIndexable<number[][]> = {};
+    let minDist = Infinity;
+    [parent!, ...children].forEach(({ ftrId }) => {
+      const brotherRect = globalStore.getFtrBoundRect(ftrId);
+      if (
+        util.isCoincide([rect, brotherRect], kM.x === 'x' ? 'horizontal' : 'vertical', false)
+        && ftrId !== parent!.ftrId
+      ) {
+        // 水平方向重叠
+        return;
+      }
+      // 0:左, 1:右, -1: 包含
+      const sideIdx = (brotherRect[kM.x] + brotherRect[kM.width]) <= rect[kM.x] ? 0
+        : (rect[kM.x] + rect[kM.width] <= brotherRect[kM.x]) ? 1 : -1;
+      const pos = sideIdx === 0 ? brotherRect[kM.x] : brotherRect[kM.x] + brotherRect[kM.width];
+      const aligns = util.rectAlignLines(rect)[kM.x === 'x' ? 0 : 1];
+      const brotherAligns = util.rectAlignLines(brotherRect)[kM.x === 'x' ? 0 : 1];
+      aligns.forEach((source, idx) => {
+        brotherAligns.forEach((target) => {
+          const dist = target - source;
+          if (Math.abs(dist) > state.attachDist) {
+            return;
+          }
+          if (Math.abs(dist) < Math.abs(minDist)) {
+            minDist = dist;
+          }
+          !dists[dist] && (
+            dists[dist] = [
+              [Infinity, -Infinity],
+              [Infinity, -Infinity],
+              [Infinity, -Infinity]
+            ]
+          );
+          if (sideIdx === -1) {
+            dists[dist][idx] = [
+              Math.min(dists[dist][idx][0], brotherRect.x),
+              Math.max(dists[dist][idx][1], brotherRect.x + brotherRect.width),
+            ];
+          } else {
+            const minMax = sideIdx === 0 ? Math.min : Math.max;
+            dists[dist][idx][sideIdx] = minMax(dists[dist][idx][sideIdx], pos);
+          }
+        });
+      });
+    });
+    
+    if (!Number.isFinite(minDist)) {
+      return;
+    }
+
+    // 吸附
+    const xy = kM.x === 'x' ? 'y' : 'x';
+    const wh = kM.x === 'x' ? 'height' : 'width';
+    if (state.resize) {
+      if (['s'].includes(state.resize.type)) {
+        state.selectedFtrs.forEach((id) => {
+          state.ftrStyles[id] = {
+            ...state.ftrStyles[id],
+            height: state.ftrStyles[id].height + minDist
+          };
+        });
+      }
+      if (['n'].includes(state.resize.type)) {
+        state.selectedFtrs.forEach((id) => {
+          state.ftrStyles[id] = {
+            ...state.ftrStyles[id],
+            height: state.ftrStyles[id].height + minDist
+          };
+        });
+      }
+      
+    } else {
+      state.selectedFtrs.forEach((id) => {
+        state.ftrStyles[id] = {
+          ...state.ftrStyles[id],
+          [xy]: state.ftrStyles[id][xy] + minDist
+        };
+      });
+    }
+
+    alignPairs[kM.x === 'x' ? 0 : 1] = dists[minDist];
   }
 
   return state;

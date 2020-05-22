@@ -350,8 +350,8 @@ export function calGuideBlockLine(aa: IGrag.IStyle | IGrag.IRect, bb: IGrag.ISty
   const dist: IGrag.IGuideLine = {
     type: 'dist',
     direction: horizontal ? 'horizontal' : 'vertical',
-    pos: { 
-      x: horizontal ? block.x : block.x + block.width / 2 ,
+    pos: {
+      x: horizontal ? block.x : block.x + block.width / 2,
       y: horizontal ? block.y + block.height / 2 : block.y
     },
     offset: -3,
@@ -359,4 +359,29 @@ export function calGuideBlockLine(aa: IGrag.IStyle | IGrag.IRect, bb: IGrag.ISty
   };
 
   return { block, line: [dist] };
+}
+
+/**
+ * 判断两个矩形是否有重合（在垂直或水平方向上）
+ */
+export function isCoincide(rects: [IGrag.IRect, IGrag.IRect], direction: IGrag.IDirection, zero = true) {
+  const xy = direction === 'horizontal' ? 'x' : 'y';
+  const wh = direction === 'horizontal' ? 'width' : 'height';
+  const v1 = rects[0][xy] - rects[1][xy] - rects[1][wh];
+  const v2 = rects[0][xy] + rects[0][wh] - rects[1][xy];
+  if (zero) {
+    return v1 * v2 <= 0;
+  }
+  return v1 * v2 < 0;
+}
+
+/**
+ * 矩形对齐线
+ * [[ht,hm,hb], [vl,vm,vr]]
+ */
+export function rectAlignLines(rect: IGrag.IRect): [[number, number, number], [number, number, number]] {
+  return [
+    [rect.y, rect.y + Math.ceil(rect.height / 2), rect.y + rect.height],
+    [rect.x, rect.x + Math.ceil(rect.width / 2), rect.x + rect.width]
+  ];
 }

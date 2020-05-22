@@ -15,7 +15,7 @@ const baseStyle: React.CSSProperties = {
 const guideLineMap = {
   dist: DistLine,
   dash: DistLine,
-  align: DistLine
+  align: AlignLine
 };
 
 export function GuideLayer(props: IGuideLayerProps) {
@@ -92,6 +92,25 @@ function DistLine(props: { line: IGrag.IGuideLine; }) {
       {line.showText !== false && <div style={distStyle}>{line.length}</div>}
     </>
   );
+}
+
+function AlignLine(props: { line: IGrag.IGuideLine; }) {
+  const { line } = props;
+  const style: React.CSSProperties = {
+    ...baseStyle,
+    left: line.pos.x, top: line.pos.y,
+    width: 1, height: 1,
+    backgroundColor: '#ff0000'
+  };
+  const offset = line.offset ?? 0;
+  let offsetMargin = `${offset}px 0px 0px 0px`;
+  if (line.direction === 'horizontal') {
+    style.width = line.length;
+  } else {
+    offsetMargin = `0px 0px 0px ${offset}px`;
+    style.height = line.length;
+  }
+  return <div style={{...style, margin: offsetMargin}} />;
 }
 
 function GuideBlock(props: { block: IGrag.IRect; }) {
