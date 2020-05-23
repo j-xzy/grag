@@ -209,7 +209,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
 
   const children = util.getChildren(parent).filter(({ ftrId }) => !state.selectedFtrs.includes(ftrId));
 
-  const alignPairs: [number[][], number[][]] = [[],[]];
+  const alignPairs: [number[][], number[][]] = [[], []];
   //#region 对齐线
   updateAlign({
     x: 'x', y: 'y',
@@ -624,7 +624,6 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
       state.guideBlocks.push(block);
       state.guideLines.push(...line);
     });
-
   }
 
   // 更新alignLine
@@ -635,13 +634,15 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     if (state.resize && kM.x === 'y' && ['n', 's'].includes(state.resize.type)) {
       return;
     }
+
     const dists: IGrag.IIndexable<number[][]> = {};
     let minDist = Infinity;
-    [parent!, ...children].forEach(({ ftrId }) => {
+    const ch = [...children];
+    state.ftrStyles[parent!.ftrId].rotate === 0 && (ch.push(parent!));
+    ch.forEach(({ ftrId }) => {
       const brotherRect = globalStore.getFtrBoundRect(ftrId);
       if (
-        util.isCoincide([rect, brotherRect], kM.x === 'x' ? 'horizontal' : 'vertical', false)
-        && ftrId !== parent!.ftrId
+        ftrId !== parent!.ftrId && util.isCoincide([rect, brotherRect], kM.x === 'x' ? 'horizontal' : 'vertical', false)
       ) {
         // 水平方向重叠
         return;
@@ -658,6 +659,24 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           if (Math.abs(dist) > state.attachDist) {
             return;
           }
+          if (state.resize) {
+            // 过滤不同侧
+            if (kM.x === 'x' && [['sw', 's', 'se'], [], ['nw', 'n', 'ne']][idx].includes(state.resize.type)) {
+              return;
+            }
+            // 过滤不同侧
+            if (kM.x === 'y' && [['ne', 'e', 'se'], [], ['nw', 'w', 'sw']][idx].includes(state.resize.type)) {
+              return;
+            }
+            // resize时，保证同一方向
+            if (kM.x === 'x' && ![['nw', 'n', 'ne'], [], ['sw', 's', 'se']][idx].includes(state.resize.type)) {
+              return;
+            }
+            // resize时，保证同一方向
+            if (kM.x === 'y' && ![['nw', 'w', 'sw'], [], ['ne', 'e', 'se']][idx].includes(state.resize.type)) {
+              return;
+            }
+          }
           if (Math.abs(dist) < Math.abs(minDist)) {
             minDist = dist;
           }
@@ -670,8 +689,8 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           );
           if (sideIdx === -1) {
             dists[dist][idx] = [
-              Math.min(dists[dist][idx][0], brotherRect.x),
-              Math.max(dists[dist][idx][1], brotherRect.x + brotherRect.width),
+              Math.min(dists[dist][idx][0], brotherRect[kM.x]),
+              Math.max(dists[dist][idx][1], brotherRect[kM.x] + brotherRect[kM.width]),
             ];
           } else {
             const minMax = sideIdx === 0 ? Math.min : Math.max;
@@ -680,7 +699,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
         });
       });
     });
-    
+
     if (!Number.isFinite(minDist)) {
       return;
     }
@@ -689,23 +708,31 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     const xy = kM.x === 'x' ? 'y' : 'x';
     const wh = kM.x === 'x' ? 'height' : 'width';
     if (state.resize) {
-      if (['s'].includes(state.resize.type)) {
+      if (
+        ['s', 'e', 'se'].includes(state.resize.type)
+        || (state.resize.type === 'ne' && xy === 'x')
+        || (state.resize.type === 'sw' && xy === 'y')
+      ) {
         state.selectedFtrs.forEach((id) => {
           state.ftrStyles[id] = {
             ...state.ftrStyles[id],
-            height: state.ftrStyles[id].height + minDist
+            [wh]: state.ftrStyles[id][wh] + minDist
           };
         });
       }
-      if (['n'].includes(state.resize.type)) {
+      if (
+        ['n', 'w', 'nw'].includes(state.resize.type)
+        || (state.resize.type === 'ne' && xy === 'y')
+        || (state.resize.type === 'sw' && xy === 'x')
+      ) {
         state.selectedFtrs.forEach((id) => {
           state.ftrStyles[id] = {
             ...state.ftrStyles[id],
-            height: state.ftrStyles[id].height + minDist
+            [xy]: state.ftrStyles[id][xy] + minDist,
+            [wh]: state.ftrStyles[id][wh] - minDist
           };
         });
       }
-      
     } else {
       state.selectedFtrs.forEach((id) => {
         state.ftrStyles[id] = {
@@ -714,7 +741,6 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
         };
       });
     }
-
     alignPairs[kM.x === 'x' ? 0 : 1] = dists[minDist];
   }
 

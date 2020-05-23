@@ -55,7 +55,7 @@ export function rotateVector(vectror: IVector, rotate: number, unit: 'deg' | 'ra
 }
 
 /**
- * 点在面内 
+ * 点在面内(包括边线)
  */
 export function pointInRegion(point: IPoint, region: IPoint[]) {
   if (region.length < 3) {
@@ -80,9 +80,13 @@ export function pointInRegion(point: IPoint, region: IPoint[]) {
     }
     // 交点x
     const x = (point.y - pt1.y) * (pt2.x - pt1.x) / (pt2.y - pt1.y) + pt1.x;
-    if (point.x <= x) {
+    if (point.x < x) {
       // 从目标点向右发出射线并相交
       ++nCross;
+    }
+    // 点在线上
+    if (point.x === x) {
+      return true;
     }
   }
   // 奇数在面内
