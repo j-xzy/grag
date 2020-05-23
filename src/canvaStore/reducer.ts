@@ -210,7 +210,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   const children = util.getChildren(parent).filter(({ ftrId }) => !state.selectedFtrs.includes(ftrId));
 
   const alignPairs: [number[][], number[][]] = [[], []];
-  //#region 对齐线
+  //#region 1.对齐线
   updateAlign({
     x: 'x', y: 'y',
     width: 'width',
@@ -229,7 +229,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   //#endregion
 
   const closestRects: IGrag.IRect[] = [];
-  //#region block
+  //#region 2.block
   if (!state.resize || state.border.rotate === 0) {
     // 不考虑resize且有旋转
     updateBlocks({
@@ -251,7 +251,7 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
   //#endregion
 
   const mateFtrs: Record<'width' | 'height', string[]> = { width: [], height: [] };
-  //#region 等宽distline
+  //#region 3.等宽distline
   if (state.resize) {
     const dimensions: Array<'width' | 'height'> = [];
     if (state.border.rotate !== 0 || ['nw', 'ne', 'sw', 'se'].includes(state.resize.type)) {
@@ -634,25 +634,22 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
     if (state.resize && kM.x === 'y' && ['n', 's'].includes(state.resize.type)) {
       return;
     }
-
+    
+    const aligns = util.rectAlignLines(rect)[kM.x === 'x' ? 0 : 1];
     const dists: IGrag.IIndexable<number[][]> = {};
+    const alignClosestFtrs: string[] = [];
     let minDist = Infinity;
     const ch = [...children];
     state.ftrStyles[parent!.ftrId].rotate === 0 && (ch.push(parent!));
+
     ch.forEach(({ ftrId }) => {
       const brotherRect = globalStore.getFtrBoundRect(ftrId);
-      if (
-        ftrId !== parent!.ftrId && util.isCoincide([rect, brotherRect], kM.x === 'x' ? 'horizontal' : 'vertical', false)
-      ) {
-        // 水平方向重叠
-        return;
-      }
       // 0:左, 1:右, -1: 包含
       const sideIdx = (brotherRect[kM.x] + brotherRect[kM.width]) <= rect[kM.x] ? 0
         : (rect[kM.x] + rect[kM.width] <= brotherRect[kM.x]) ? 1 : -1;
       const pos = sideIdx === 0 ? brotherRect[kM.x] : brotherRect[kM.x] + brotherRect[kM.width];
-      const aligns = util.rectAlignLines(rect)[kM.x === 'x' ? 0 : 1];
       const brotherAligns = util.rectAlignLines(brotherRect)[kM.x === 'x' ? 0 : 1];
+      let isAlign = false;
       aligns.forEach((source, idx) => {
         brotherAligns.forEach((target) => {
           const dist = target - source;
@@ -677,9 +674,11 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
               return;
             }
           }
-          if (Math.abs(dist) < Math.abs(minDist)) {
-            minDist = dist;
+          if (Math.abs(dist) > Math.abs(minDist)) {
+            return;
           }
+          isAlign = true;
+          minDist = dist;
           !dists[dist] && (
             dists[dist] = [
               [Infinity, -Infinity],
@@ -698,6 +697,15 @@ export function updateGuides({ getState, globalStore, doAction }: ICtx) {
           }
         });
       });
+
+      if (isAlign || sideIdx === -1) {
+        return;
+      }
+      
+      if(!alignClosestFtrs[sideIdx]) {
+        alignClosestFtrs[sideIdx] = ftrId;
+        return;
+      }
     });
 
     if (!Number.isFinite(minDist)) {

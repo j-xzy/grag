@@ -325,8 +325,8 @@ export function unStraightNode(straightNode: IGrag.IStraightFtrNode, parent: IGr
  */
 export function calGuideBlockLine(aa: IGrag.IStyle | IGrag.IRect, bb: IGrag.IStyle | IGrag.IRect) {
   let horizontal = true;
-  const a = rotateRect(aa, (aa as any).rotate ?? 0);
-  const b = rotateRect(bb, (bb as any).rotate ?? 0);
+  const a = rotateRect(aa, (aa as IGrag.IStyle).rotate ?? 0);
+  const b = rotateRect(bb, (bb as IGrag.IStyle).rotate ?? 0);
   if (a.y > (b.y + b.height) || (a.y + a.height) < b.y) {
     horizontal = false;
   }
@@ -385,3 +385,13 @@ export function rectAlignLines(rect: IGrag.IRect): [[number, number, number], [n
     [rect.x, rect.x + Math.ceil(rect.width / 2), rect.x + rect.width]
   ];
 }
+
+// /**
+//  * 两个style的间距
+//  * [horizontal, vertical]
+//  */
+// export function calSpaces(style1: IGrag.IStyle | IGrag.IRect, style2: IGrag.IStyle | IGrag.IRect) {
+//   const s1 = rotateRect(style1, (style1 as IGrag.IStyle).rotate ?? 0);
+//   const s2 = rotateRect(style2, (style2 as IGrag.IStyle).rotate ?? 0);
+  
+// }
