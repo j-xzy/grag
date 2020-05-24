@@ -72,10 +72,12 @@ declare namespace IGrag {
     pos: IPos;
     direction: 'vertical' | 'horizontal';
     length: number;
+    offset?: number;
+    showText?: boolean;
   }
 
   interface IInitialState {
-    roots: IIndexable<IStraightFtrNode>; 
+    roots: IIndexable<IStraightFtrNode>;
     styles: IIndexable<IStyle>;
   }
 

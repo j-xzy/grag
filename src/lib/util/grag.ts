@@ -135,11 +135,15 @@ export function rotateRect(rect: IGrag.IRect, deg: number) {
       maxX = Math.max(maxX, v.x + center.x);
       maxY = Math.max(maxY, v.y + center.y);
     });
-  return {
+  return roundObj({
     x: minX, y: minY,
     width: maxX - minX,
     height: maxY - minY
-  };
+  });
+}
+
+export function style2MaxRect(style: IGrag.IStyle) {
+  return rotateRect(style, style.rotate);
 }
 
 /**
@@ -314,4 +318,89 @@ export function unStraightNode(straightNode: IGrag.IStraightFtrNode, parent: IGr
     return node;
   }, null as IGrag.IFtrNode | null);
   return root;
+}
+
+/**
+ * 计算两个矩形间距块与线（a、b不相交）
+ */
+export function calGuideBlockLine(aa: IGrag.IStyle | IGrag.IRect, bb: IGrag.IStyle | IGrag.IRect) {
+  let horizontal = true;
+  const a = rotateRect(aa, (aa as IGrag.IStyle).rotate ?? 0);
+  const b = rotateRect(bb, (bb as IGrag.IStyle).rotate ?? 0);
+  if (a.y > (b.y + b.height) || (a.y + a.height) < b.y) {
+    horizontal = false;
+  }
+  const block: IGrag.IRect = {
+    x: 0, y: 0,
+    width: 0, height: 0
+  };
+
+  if (horizontal) {
+    block.x = Math.min(a.x + a.width, b.x + b.width);
+    block.y = Math.min(a.y, b.y);
+    block.width = Math.max(a.x, b.x) - block.x;
+    block.height = Math.max(a.y + a.height, b.y + b.height) - block.y;
+  } else {
+    block.x = Math.min(a.x, b.x);
+    block.y = Math.min(a.y + a.height, b.y + b.height);
+    block.width = Math.max(a.x + a.width, b.x + b.width) - block.x;
+    block.height = Math.max(a.y, b.y) - block.y;
+  }
+
+  const dist: IGrag.IGuideLine = {
+    type: 'dist',
+    direction: horizontal ? 'horizontal' : 'vertical',
+    pos: {
+      x: horizontal ? block.x : block.x + block.width / 2,
+      y: horizontal ? block.y + block.height / 2 : block.y
+    },
+    offset: -3,
+    length: horizontal ? block.width : block.height
+  };
+
+  return { block, line: [dist] };
+}
+
+/**
+ * 判断两个矩形是否有重合（在垂直或水平方向上）
+ */
+export function isCoincide(rects: [IGrag.IRect, IGrag.IRect], direction: IGrag.IDirection, zero = true) {
+  const xy = direction === 'horizontal' ? 'x' : 'y';
+  const wh = direction === 'horizontal' ? 'width' : 'height';
+  const v1 = rects[0][xy] - rects[1][xy] - rects[1][wh];
+  const v2 = rects[0][xy] + rects[0][wh] - rects[1][xy];
+  if (zero) {
+    return v1 * v2 <= 0;
+  }
+  return v1 * v2 < 0;
+}
+
+/**
+ * 矩形对齐线
+ * [[ht,hm,hb], [vl,vm,vr]]
+ */
+export function rectAlignLines(rect: IGrag.IRect): [[number, number, number], [number, number, number]] {
+  return [
+    [rect.y, rect.y + Math.ceil(rect.height / 2), rect.y + rect.height],
+    [rect.x, rect.x + Math.ceil(rect.width / 2), rect.x + rect.width]
+  ];
+}
+
+/**
+ * 两个style的间距，source的边左负右正、source的边上负下正
+ * [horizontal[left,right], vertical[top,bottom]]
+ */
+export function calSpaces(source: IGrag.IStyle | IGrag.IRect, target: IGrag.IStyle | IGrag.IRect) {
+  const s = rotateRect(source, (source as IGrag.IStyle).rotate ?? 0);
+  const t = rotateRect(target, (target as IGrag.IStyle).rotate ?? 0);
+  return [
+    [
+      s.x - t.x - t.width,
+      s.x + s.width - t.x
+    ],
+    [
+      s.y - t.y - t.height,
+      s.y + s.height - t.y
+    ]
+  ];
 }

@@ -44,8 +44,8 @@ export class EventBus {
     this.canvaStore.dispatch('clearAction');
   }
 
-  public canvasMousedown() {
-    this.canvaStore.dispatch('setMousedown');
+  public canvasMousedown(param: { pos: IGrag.IPos; canvasId: string; }) {
+    this.canvaStore.dispatch('setMousedown', param);
     this.canvaStore.dispatch('clearSelectedFtrs');
   }
 
@@ -115,6 +115,7 @@ export class EventBus {
     this.globalStore.initFtr(params);
     const style = this.canvaStore.getState().ftrStyles[ftrId];
     if (this.globalStore.getNodeByFtrId(ftrId)) {
+      // 是通过initialState的domDone
       this.ftrMutate('setStyle', ftrId, style);
     } else {
       this.ftrMutate('updateStyle', ftrId, style);
@@ -139,8 +140,9 @@ export class EventBus {
     });
   }
 
-  public ftrMousedown(ftrId: string) {
-    this.canvaStore.dispatch('setMousedown');
+  public ftrMousedown(param: { pos: IGrag.IPos; canvasId: string; ftrId: string; }) {
+    const { pos, canvasId, ftrId } = param;
+    this.canvaStore.dispatch('setMousedown', { pos, canvasId });
     this.canvaStore.dispatch('updateMouseInFtr', ftrId);
 
     const { selectedFtrs } = this.canvaStore.getState();
@@ -181,8 +183,9 @@ export class EventBus {
     this.canvaStore.dispatch('clearDragState');
   }
 
-  public resizeMousedown(resize: IGrag.IResize) {
-    this.canvaStore.dispatch('setMousedown');
+  public resizeMousedown(param: { pos: IGrag.IPos; canvasId: string; resize: IGrag.IResize; }) {
+    const { pos, canvasId, resize } = param;
+    this.canvaStore.dispatch('setMousedown', { pos, canvasId });
     this.canvaStore.dispatch('readyResize', resize);
     this.canvaStore.dispatch('updateCursor', `${resize.type}-resize`);
   }
@@ -191,8 +194,8 @@ export class EventBus {
     this.mouseup();
   }
 
-  public rotateMousedown() {
-    this.canvaStore.dispatch('setMousedown');
+  public rotateMousedown(param: { pos: IGrag.IPos; canvasId: string; }) {
+    this.canvaStore.dispatch('setMousedown', param);
     this.canvaStore.dispatch('readyRotate');
     this.canvaStore.dispatch('updateCursor', 'pointer');
   }

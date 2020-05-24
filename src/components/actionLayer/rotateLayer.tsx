@@ -12,6 +12,7 @@ const style: React.CSSProperties = {
 };
 
 export function RotateLayer(props: IProps) {
+  const { canvasId } = props;
   const { useMappedCanvasState, evtEmit, globalStore } = React.useContext(Context);
   const { border, selectedFtrs, isMoving, isResizing } = useMappedCanvasState((s) => ({
     focusedCanvas: s.focusedCanvas,
@@ -22,8 +23,8 @@ export function RotateLayer(props: IProps) {
   }));
   const handleMousedown = React.useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    evtEmit('rotateMousedown');
-  }, []);
+    evtEmit('rotateMousedown', { pos: { x: e.clientX, y: e.clientY }, canvasId });
+  }, [canvasId]);
   const handleMouseup = React.useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     evtEmit('rotateMouseup');
@@ -34,7 +35,7 @@ export function RotateLayer(props: IProps) {
   }
 
   const noInCanvas = selectedFtrs.some(
-    (ftrId) => globalStore.getCanvasIdByFtrId(ftrId) !== props.canvasId
+    (ftrId) => globalStore.getCanvasIdByFtrId(ftrId) !== canvasId
   );
   if (noInCanvas) {
     return null;

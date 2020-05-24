@@ -9,16 +9,18 @@ interface IProps extends React.Props<any> {
   ftrId: string;
   idx: number;
   isRoot: boolean;
+  canvasId: string;
 }
 
 export function MouseEventCollect(props: IProps) {
+  const { ftrId, canvasId } = props;
   const { evtEmit } = React.useContext(Context);
   const domRef: React.MutableRefObject<HTMLElement | null> = React.useRef(null);
 
   const handleMousedown = React.useCallback((e: MouseEvent) => {
-    evtEmit('ftrMousedown', props.ftrId);
+    evtEmit('ftrMousedown', { ftrId, canvasId, pos: { x: e.clientX, y: e.clientY } });
     e.stopPropagation();
-  }, []);
+  }, [ftrId, canvasId]);
   const handleMouseup = React.useCallback((e: Event) => {
     evtEmit('ftrMouseup');
     e.stopPropagation();

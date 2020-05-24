@@ -5,7 +5,9 @@ export function traverse<T extends IGrag.INode<T>>(root: T) {
     const queue = [root];
     while (queue.length) {
       const node = queue.shift()!;
-      node.next && queue.push(node.next);
+      if (root !== node){
+        node.next && queue.push(node.next);
+      }
       node.firstChild && queue.push(node.firstChild);
       cb(node);
     }
