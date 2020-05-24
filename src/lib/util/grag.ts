@@ -386,12 +386,21 @@ export function rectAlignLines(rect: IGrag.IRect): [[number, number, number], [n
   ];
 }
 
-// /**
-//  * 两个style的间距
-//  * [horizontal, vertical]
-//  */
-// export function calSpaces(style1: IGrag.IStyle | IGrag.IRect, style2: IGrag.IStyle | IGrag.IRect) {
-//   const s1 = rotateRect(style1, (style1 as IGrag.IStyle).rotate ?? 0);
-//   const s2 = rotateRect(style2, (style2 as IGrag.IStyle).rotate ?? 0);
-  
-// }
+/**
+ * 两个style的间距，source的边左负右正、source的边上负下正
+ * [horizontal[left,right], vertical[top,bottom]]
+ */
+export function calSpaces(source: IGrag.IStyle | IGrag.IRect, target: IGrag.IStyle | IGrag.IRect) {
+  const s = rotateRect(source, (source as IGrag.IStyle).rotate ?? 0);
+  const t = rotateRect(target, (target as IGrag.IStyle).rotate ?? 0);
+  return [
+    [
+      s.x - t.x - t.width,
+      s.x + s.width - t.x
+    ],
+    [
+      s.y - t.y - t.height,
+      s.y + s.height - t.y
+    ]
+  ];
+}
